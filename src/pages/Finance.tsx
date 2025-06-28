@@ -30,6 +30,7 @@ import {
 interface StudentFinance {
   id: number;
   nama: string;
+  halaqah: string;
   budgetHarian: number;
   budgetMingguan: number;
   pengeluaranMingguIni: number;
@@ -40,6 +41,7 @@ interface StudentFinance {
 
 const Finance: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedHalaqah, setSelectedHalaqah] = useState('all');
   const [formData, setFormData] = useState({
     nama: '',
     tanggal: '',
@@ -48,11 +50,12 @@ const Finance: React.FC = () => {
     catatan: '',
   });
 
-  // Sample data
+  // Sample data with Halaqah assignments
   const [students] = useState<StudentFinance[]>([
     {
       id: 1,
       nama: 'Ahmad Fauzi',
+      halaqah: '1',
       budgetHarian: 10000,
       budgetMingguan: 70000,
       pengeluaranMingguIni: 63000,
@@ -63,6 +66,7 @@ const Finance: React.FC = () => {
     {
       id: 2,
       nama: 'Fatimah Zahra',
+      halaqah: '1',
       budgetHarian: 10000,
       budgetMingguan: 70000,
       pengeluaranMingguIni: 77000,
@@ -73,6 +77,7 @@ const Finance: React.FC = () => {
     {
       id: 3,
       nama: 'Muhammad Ali',
+      halaqah: '2',
       budgetHarian: 10000,
       budgetMingguan: 70000,
       pengeluaranMingguIni: 56000,
@@ -83,6 +88,7 @@ const Finance: React.FC = () => {
     {
       id: 4,
       nama: 'Siti Nurhaliza',
+      halaqah: '2',
       budgetHarian: 10000,
       budgetMingguan: 70000,
       pengeluaranMingguIni: 84000,
@@ -90,7 +96,66 @@ const Finance: React.FC = () => {
       status: 'over',
       statusText: 'Over Budget',
     },
+    {
+      id: 5,
+      nama: 'Abdullah Rahman',
+      halaqah: '3',
+      budgetHarian: 10000,
+      budgetMingguan: 70000,
+      pengeluaranMingguIni: 65000,
+      persentase: 93,
+      status: 'hemat',
+      statusText: 'Hemat 7%',
+    },
+    {
+      id: 6,
+      nama: 'Khadijah Binti Ali',
+      halaqah: '3',
+      budgetHarian: 10000,
+      budgetMingguan: 70000,
+      pengeluaranMingguIni: 72000,
+      persentase: 103,
+      status: 'over',
+      statusText: 'Over Budget',
+    },
+    {
+      id: 7,
+      nama: 'Umar Bin Khattab',
+      halaqah: '4',
+      budgetHarian: 10000,
+      budgetMingguan: 70000,
+      pengeluaranMingguIni: 58000,
+      persentase: 83,
+      status: 'hemat',
+      statusText: 'Hemat 17%',
+    },
+    {
+      id: 8,
+      nama: 'Aisyah Binti Abu Bakar',
+      halaqah: '5',
+      budgetHarian: 10000,
+      budgetMingguan: 70000,
+      pengeluaranMingguIni: 75000,
+      persentase: 107,
+      status: 'over',
+      statusText: 'Over Budget',
+    },
+    {
+      id: 9,
+      nama: 'Zaid Bin Haritsah',
+      halaqah: '6',
+      budgetHarian: 10000,
+      budgetMingguan: 70000,
+      pengeluaranMingguIni: 61000,
+      persentase: 87,
+      status: 'hemat',
+      statusText: 'Hemat 13%',
+    },
   ]);
+
+  const filteredStudents = selectedHalaqah === 'all' 
+    ? students 
+    : students.filter(student => student.halaqah === selectedHalaqah);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,10 +219,11 @@ const Finance: React.FC = () => {
                         <SelectValue placeholder="Pilih santri" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Ahmad Fauzi">Ahmad Fauzi</SelectItem>
-                        <SelectItem value="Fatimah Zahra">Fatimah Zahra</SelectItem>
-                        <SelectItem value="Muhammad Ali">Muhammad Ali</SelectItem>
-                        <SelectItem value="Siti Nurhaliza">Siti Nurhaliza</SelectItem>
+                        {students.map((student) => (
+                          <SelectItem key={student.id} value={student.nama}>
+                            {student.nama} (Halaqah {student.halaqah})
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -228,11 +294,38 @@ const Finance: React.FC = () => {
           </div>
         </div>
 
+        {/* Halaqah Filter Dropdown */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <Label htmlFor="halaqah-filter" className="text-sm font-medium text-gray-700">
+              Filter Halaqah:
+            </Label>
+            <Select value={selectedHalaqah} onValueChange={setSelectedHalaqah}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Pilih Halaqah" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua Halaqah</SelectItem>
+                <SelectItem value="1">Halaqah 1</SelectItem>
+                <SelectItem value="2">Halaqah 2</SelectItem>
+                <SelectItem value="3">Halaqah 3</SelectItem>
+                <SelectItem value="4">Halaqah 4</SelectItem>
+                <SelectItem value="5">Halaqah 5</SelectItem>
+                <SelectItem value="6">Halaqah 6</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-sm text-gray-500">
+              ({filteredStudents.length} santri)
+            </span>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nama Santri</TableHead>
+                <TableHead>Halaqah</TableHead>
                 <TableHead>Budget Harian</TableHead>
                 <TableHead>Budget Mingguan</TableHead>
                 <TableHead>Pengeluaran Minggu Ini</TableHead>
@@ -241,9 +334,14 @@ const Finance: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {students.map((student) => (
+              {filteredStudents.map((student) => (
                 <TableRow key={student.id}>
                   <TableCell className="font-medium">{student.nama}</TableCell>
+                  <TableCell>
+                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                      Halaqah {student.halaqah}
+                    </span>
+                  </TableCell>
                   <TableCell>{formatCurrencyShort(student.budgetHarian)}</TableCell>
                   <TableCell>{formatCurrencyShort(student.budgetMingguan)}</TableCell>
                   <TableCell>{formatCurrencyShort(student.pengeluaranMingguIni)}</TableCell>
