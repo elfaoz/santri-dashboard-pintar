@@ -10,6 +10,7 @@ import Profile from "./pages/Profile";
 import Attendance from "./pages/Attendance";
 import Halaqah from "./pages/Halaqah";
 import Activities from "./pages/Activities";
+import Finance from "./pages/Finance";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/attendance" element={<Attendance />} />
             <Route path="/halaqah" element={<Halaqah />} />
             <Route path="/activities" element={<Activities />} />
+            <Route path="/finance" element={<Finance />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>
