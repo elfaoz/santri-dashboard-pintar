@@ -2,16 +2,19 @@
 import React from 'react';
 import DashboardStats from '../components/DashboardStats';
 import AttendanceTable from '../components/AttendanceTable';
+import StudentOverview from '../components/StudentOverview';
 
 const Dashboard: React.FC = () => {
   return (
-    <div className="p-6">
+    <div className="p-6 space-y-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-2">Dashboard Overview</h1>
         <p className="text-gray-600">Ringkasan data santri dan aktivitas harian</p>
       </div>
       
       <DashboardStats />
+      
+      <StudentOverview />
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <AttendanceTable />
