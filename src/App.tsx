@@ -11,6 +11,7 @@ import Attendance from "./pages/Attendance";
 import Halaqah from "./pages/Halaqah";
 import Activities from "./pages/Activities";
 import Finance from "./pages/Finance";
+import AddStudent from "./pages/AddStudent";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/halaqah" element={<Halaqah />} />
             <Route path="/activities" element={<Activities />} />
             <Route path="/finance" element={<Finance />} />
+            <Route path="/add-student" element={<AddStudent />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Layout>
