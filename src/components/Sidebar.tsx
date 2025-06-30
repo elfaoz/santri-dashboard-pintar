@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { User, Calendar, Book, FileText, BarChart3, X, UserPlus } from 'lucide-react';
@@ -13,7 +12,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { path: '/', icon: BarChart3, label: 'Dashboard', emoji: '📊' },
     { path: '/profile', icon: User, label: 'My Profile', emoji: '👤' },
     { path: '/attendance', icon: Calendar, label: 'Attendance', emoji: '📅' },
-    { path: '/halaqah', icon: Book, label: 'Halaqah', emoji: '📖' },
+    { path: '/halaqah', icon: Book, label: 'Memorization', emoji: '📖' },
     { path: '/activities', icon: FileText, label: 'Activities', emoji: '📝' },
     { path: '/finance', icon: FileText, label: 'Finance', emoji: '💸' },
     { path: '/add-student', icon: UserPlus, label: 'Add Student', emoji: '➕' },
