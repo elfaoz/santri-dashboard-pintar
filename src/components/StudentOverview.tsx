@@ -28,15 +28,15 @@ const StudentOverview: React.FC = () => {
         <div className="space-y-6">
           <StudentProfile studentId={selectedStudent} />
           
-          {(category === 'All' || category === 'Attendance only') && (
+          {(category === 'All' || category === 'Attendance') && (
             <AttendanceSummary studentId={selectedStudent} dateRange={dateRange} />
           )}
           
-          {(category === 'All' || category === 'Attendance only' || category === 'Memorization only') && (
+          {(category === 'All' || category === 'Attendance' || category === 'Memorization') && (
             <HafalanTable studentId={selectedStudent} dateRange={dateRange} />
           )}
           
-          {(category === 'All' || category === 'Finance only') && (
+          {(category === 'All' || category === 'Finance') && (
             <FinanceSummary studentId={selectedStudent} dateRange={dateRange} />
           )}
         </div>

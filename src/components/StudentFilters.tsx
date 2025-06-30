@@ -61,9 +61,9 @@ const StudentFilters: React.FC<StudentFiltersProps> = ({
           className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="All">All</option>
-          <option value="Finance only">Finance only</option>
-          <option value="Attendance only">Attendance only</option>
-          <option value="Memorization only">Memorization only</option>
+          <option value="Finance">Finance</option>
+          <option value="Attendance">Attendance</option>
+          <option value="Memorization">Memorization</option>
         </select>
       </div>
 
