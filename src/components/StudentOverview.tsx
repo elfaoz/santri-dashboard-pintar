@@ -32,7 +32,7 @@ const StudentOverview: React.FC = () => {
             <AttendanceSummary studentId={selectedStudent} dateRange={dateRange} />
           )}
           
-          {(category === 'All' || category === 'Attendance only') && (
+          {(category === 'All' || category === 'Attendance only' || category === 'Memorization only') && (
             <HafalanTable studentId={selectedStudent} dateRange={dateRange} />
           )}
           
