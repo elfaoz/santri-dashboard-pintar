@@ -1,26 +1,21 @@
 
 import React from 'react';
 import { Menu, Bell, User } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
-  const isMobile = useIsMobile();
-
   return (
     <header className="bg-white shadow-sm border-b border-gray-100 px-6 py-4 flex items-center justify-between">
       <div className="flex items-center">
-        {isMobile && (
-          <button
-            onClick={onToggleSidebar}
-            className="p-2 rounded-lg hover:bg-gray-100 mr-4"
-          >
-            <Menu size={20} />
-          </button>
-        )}
+        <button
+          onClick={onToggleSidebar}
+          className="p-2 rounded-lg hover:bg-gray-100 mr-4 transition-colors"
+        >
+          <Menu size={20} />
+        </button>
         <div>
           <h2 className="text-lg font-semibold text-gray-800">Selamat Datang</h2>
           <p className="text-sm text-gray-600">Kelola data santri dengan mudah</p>

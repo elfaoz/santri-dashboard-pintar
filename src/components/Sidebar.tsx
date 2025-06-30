@@ -1,7 +1,7 @@
+
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { User, Calendar, Book, FileText, BarChart3, X, UserPlus } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -9,8 +9,6 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const isMobile = useIsMobile();
-
   const navItems = [
     { path: '/', icon: BarChart3, label: 'Dashboard', emoji: '📊' },
     { path: '/profile', icon: User, label: 'My Profile', emoji: '👤' },
@@ -24,9 +22,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   return (
     <>
       {/* Mobile overlay */}
-      {isMobile && isOpen && (
+      {isOpen && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={onClose}
         />
       )}
@@ -34,25 +32,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* Sidebar */}
       <div className={`
         fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50
-        ${isMobile 
-          ? (isOpen ? 'translate-x-0' : '-translate-x-full')
-          : 'translate-x-0'
-        }
-        ${!isMobile ? 'lg:static lg:z-auto' : ''}
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <div>
             <h1 className="text-xl font-bold text-gray-800">Dashboard</h1>
             <p className="text-sm text-gray-600">Guru Pendamping</p>
           </div>
-          {isMobile && (
-            <button 
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-gray-100"
-            >
-              <X size={20} />
-            </button>
-          )}
+          <button 
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-gray-100 lg:hidden"
+          >
+            <X size={20} />
+          </button>
         </div>
         
         <nav className="p-4">
@@ -68,7 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         : 'text-gray-700 hover:bg-gray-50'
                     }`
                   }
-                  onClick={() => isMobile && onClose()}
+                  onClick={onClose}
                 >
                   <span className="text-lg mr-3">{item.emoji}</span>
                   <span className="font-medium">{item.label}</span>
