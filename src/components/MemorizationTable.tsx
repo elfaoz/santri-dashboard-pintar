@@ -19,6 +19,7 @@ export interface MemorizationDetail {
 
 export interface MemorizationRecord {
   id: string;
+  studentName: string;
   date: string;
   target: number;
   actual: number;
@@ -31,6 +32,7 @@ const MemorizationTable: React.FC = () => {
   const [records, setRecords] = useState<MemorizationRecord[]>([
     {
       id: '1',
+      studentName: 'Ahmad Fauzi',
       date: '2025-07-01',
       target: 2,
       actual: 1.5,
@@ -47,6 +49,7 @@ const MemorizationTable: React.FC = () => {
     },
     {
       id: '2',
+      studentName: 'Muhammad Rizki',
       date: '2025-07-02',
       target: 2,
       actual: 2,
@@ -63,11 +66,20 @@ const MemorizationTable: React.FC = () => {
     },
     {
       id: '3',
+      studentName: 'Abdullah Rahman',
       date: '2025-07-03',
       target: 2,
       actual: 1,
       percentage: 50,
-      status: 'Not Achieved'
+      status: 'Not Achieved',
+      memorizationDetail: {
+        juz: 2,
+        pageFrom: 21,
+        pageTo: 22,
+        surahName: 'Al-Baqarah',
+        ayahFrom: 142,
+        ayahTo: 162,
+      }
     }
   ]);
 
@@ -121,8 +133,12 @@ const MemorizationTable: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-800">Daily Memorization Records</h2>
+        <div>
+          <h2 className="text-xl font-bold text-gray-800">Data Keuangan Santri</h2>
+          <p className="text-gray-600">Ringkasan pengeluaran mingguan santri</p>
+        </div>
         <Button onClick={() => setIsInputModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+          <span className="mr-2">+</span>
           Input Hafalan
         </Button>
       </div>
@@ -131,11 +147,12 @@ const MemorizationTable: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">
+              <TableHead>Nama Santri</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Target</TableHead>
-              <TableHead>Actual</TableHead>
-              <TableHead>Percentage</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Juz</TableHead>
+              <TableHead>Page Range</TableHead>
+              <TableHead>Surah Name</TableHead>
+              <TableHead>Ayah Range</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -143,55 +160,39 @@ const MemorizationTable: React.FC = () => {
             {records.map((record) => (
               <TableRow key={record.id} className="hover:bg-gray-50">
                 <TableCell className="font-medium">
+                  {record.studentName}
+                </TableCell>
+                <TableCell>
                   {new Date(record.date).toLocaleDateString('id-ID')}
                 </TableCell>
-                <TableCell>{record.target} pages</TableCell>
                 <TableCell>
-                  {editingId === record.id ? (
-                    <input
-                      type="number"
-                      value={editValue}
-                      onChange={(e) => setEditValue(parseFloat(e.target.value) || 0)}
-                      className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
-                      step="0.1"
-                      min="0"
-                      max={record.target}
-                    />
-                  ) : (
-                    `${record.actual} pages`
-                  )}
+                  {record.memorizationDetail?.juz || '-'}
                 </TableCell>
                 <TableCell>
-                  <span className={`font-medium ${
-                    record.percentage >= 100 ? 'text-green-600' :
-                    record.percentage >= 75 ? 'text-yellow-600' : 'text-red-600'
-                  }`}>
-                    {record.percentage}%
-                  </span>
+                  {record.memorizationDetail ? 
+                    `${record.memorizationDetail.pageFrom} - ${record.memorizationDetail.pageTo}` : 
+                    '-'
+                  }
                 </TableCell>
                 <TableCell>
-                  {getStatusBadge(record.status, record.percentage)}
+                  {record.memorizationDetail?.surahName || '-'}
+                </TableCell>
+                <TableCell>
+                  {record.memorizationDetail ? 
+                    `${record.memorizationDetail.ayahFrom} - ${record.memorizationDetail.ayahTo}` : 
+                    '-'
+                  }
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                    {editingId === record.id ? (
-                      <Button
-                        size="sm"
-                        onClick={() => handleSave(record.id)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Save className="h-4 w-4" />
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEdit(record)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleEdit(record)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"

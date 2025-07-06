@@ -1,11 +1,18 @@
 
 import React, { useState } from 'react';
-import { Book, Plus, TrendingUp } from 'lucide-react';
+import { Book, Plus, TrendingUp, Calendar, Search, Filter } from 'lucide-react';
 import MemorizationTable from '../components/MemorizationTable';
 
 const Halaqah: React.FC = () => {
   const [selectedHalaqah, setSelectedHalaqah] = useState('1');
   const [activeTab, setActiveTab] = useState<'overview' | 'records'>('overview');
+  
+  // Overview filters
+  const [overviewDateRange, setOverviewDateRange] = useState({ from: '', to: '' });
+  const [overviewSelectedStudent, setOverviewSelectedStudent] = useState('');
+  
+  // Daily Records filters
+  const [recordsSelectedHalaqah, setRecordsSelectedHalaqah] = useState('1');
   
   const halaqahData = {
     '1': [
@@ -18,6 +25,14 @@ const Halaqah: React.FC = () => {
       { id: 5, name: 'Siti Aisyah', target: 2, setoran: 1, percentage: 50 },
     ]
   };
+
+  const students = [
+    { id: '1', name: 'Ahmad Fauzi' },
+    { id: '2', name: 'Muhammad Rizki' },
+    { id: '3', name: 'Abdullah Rahman' },
+    { id: '4', name: 'Fatimah Az-Zahra' },
+    { id: '5', name: 'Siti Aisyah' },
+  ];
 
   const getPercentageColor = (percentage: number) => {
     if (percentage >= 80) return 'text-green-600 bg-green-100';
@@ -68,13 +83,40 @@ const Halaqah: React.FC = () => {
 
       {activeTab === 'overview' ? (
         <>
-          <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Book className="text-gray-400" size={20} />
+          {/* Overview Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Calendar className="inline w-4 h-4 mr-1" />
+                Date Range
+              </label>
+              <div className="flex space-x-2">
+                <input
+                  type="date"
+                  value={overviewDateRange.from}
+                  onChange={(e) => setOverviewDateRange({ ...overviewDateRange, from: e.target.value })}
+                  className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="dd/mm/yyyy"
+                />
+                <input
+                  type="date"
+                  value={overviewDateRange.to}
+                  onChange={(e) => setOverviewDateRange({ ...overviewDateRange, to: e.target.value })}
+                  className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="dd/mm/yyyy"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Book className="inline w-4 h-4 mr-1" />
+                Halaqah
+              </label>
               <select 
                 value={selectedHalaqah}
                 onChange={(e) => setSelectedHalaqah(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="1">Halaqah 1</option>
                 <option value="2">Halaqah 2</option>
@@ -82,6 +124,25 @@ const Halaqah: React.FC = () => {
                 <option value="4">Halaqah 4</option>
                 <option value="5">Halaqah 5</option>
                 <option value="6">Halaqah 6</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Search className="inline w-4 h-4 mr-1" />
+                Select Student
+              </label>
+              <select
+                value={overviewSelectedStudent}
+                onChange={(e) => setOverviewSelectedStudent(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Choose a student...</option>
+                {students.map((student) => (
+                  <option key={student.id} value={student.id}>
+                    {student.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -145,7 +206,28 @@ const Halaqah: React.FC = () => {
           </div>
         </>
       ) : (
-        <MemorizationTable />
+        <div className="space-y-6">
+          {/* Daily Records Halaqah Filter */}
+          <div className="flex items-center space-x-4">
+            <label className="text-sm font-medium text-gray-700">Filter Halaqah:</label>
+            <select 
+              value={recordsSelectedHalaqah}
+              onChange={(e) => setRecordsSelectedHalaqah(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Semua Halaqah</option>
+              <option value="1">Halaqah 1</option>
+              <option value="2">Halaqah 2</option>
+              <option value="3">Halaqah 3</option>
+              <option value="4">Halaqah 4</option>
+              <option value="5">Halaqah 5</option>
+              <option value="6">Halaqah 6</option>
+            </select>
+            <span className="text-sm text-gray-500">(9 santri)</span>
+          </div>
+
+          <MemorizationTable />
+        </div>
       )}
     </div>
   );
