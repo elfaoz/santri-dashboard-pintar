@@ -37,6 +37,27 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
   const [maxAyah, setMaxAyah] = useState<number>(1);
   const [validationError, setValidationError] = useState<string>('');
 
+  // Grouped students by Halaqah
+  const studentsByHalaqah = {
+    'Halaqah 1': [
+      { id: '1', name: 'Abdul Hakim' },
+      { id: '2', name: 'Ahmad Fauzi' },
+      { id: '3', name: 'Muhammad Rizki' },
+      { id: '4', name: 'Abdullah Rahman' }
+    ],
+    'Halaqah 2': [
+      { id: '5', name: 'Budi Santoso' },
+      { id: '6', name: 'Rudi Hermawan' },
+      { id: '7', name: 'Fatimah Az-Zahra' },
+      { id: '8', name: 'Siti Aisyah' }
+    ],
+    'Halaqah 3': [
+      { id: '9', name: 'Ali Hassan' },
+      { id: '10', name: 'Umar Faruq' },
+      { id: '11', name: 'Zahra Fatimah' }
+    ]
+  };
+
   const form = useForm<FormData>({
     defaultValues: {
       studentName: '',
@@ -138,16 +159,32 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
               name="studentName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nama Santri</FormLabel>
-                  <FormControl>
-                    <input
-                      type="text"
-                      {...field}
-                      placeholder="Enter student name"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </FormControl>
+                  <FormLabel>Choose Santri</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="bg-white">
+                        <SelectValue placeholder="Select student..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="max-h-64 bg-white border border-gray-200 shadow-lg z-50">
+                      {Object.entries(studentsByHalaqah).map(([halaqah, students]) => (
+                        <div key={halaqah}>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 bg-gray-100 sticky top-0">
+                            {halaqah}
+                          </div>
+                          {students.map((student) => (
+                            <SelectItem 
+                              key={student.id} 
+                              value={student.name}
+                              className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer pl-6"
+                            >
+                              {student.name}
+                            </SelectItem>
+                          ))}
+                        </div>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -198,13 +235,12 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
               name="actual"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Actual (pages)</FormLabel>
+                  <FormLabel>Actual Page</FormLabel>
                   <FormControl>
                     <input
                       type="number"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                      step="0.1"
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       min="0"
                     />
@@ -222,13 +258,13 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
                   <FormLabel>Juz</FormLabel>
                   <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue="1">
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-white">
                         <SelectValue placeholder="Select Juz" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
                       {Array.from({ length: 30 }, (_, i) => i + 1).map((juz) => (
-                        <SelectItem key={juz} value={juz.toString()}>
+                        <SelectItem key={juz} value={juz.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
                           Juz {juz}
                         </SelectItem>
                       ))}
@@ -248,13 +284,13 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
                     <FormLabel>Page From</FormLabel>
                     <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue="1">
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-white">
                           <SelectValue placeholder="From" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
                         {Array.from({ length: 20 }, (_, i) => i + 1).map((page) => (
-                          <SelectItem key={page} value={page.toString()}>
+                          <SelectItem key={page} value={page.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
                             {page}
                           </SelectItem>
                         ))}
@@ -273,13 +309,13 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
                     <FormLabel>Page To</FormLabel>
                     <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue="1">
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-white">
                           <SelectValue placeholder="To" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
                         {Array.from({ length: 20 }, (_, i) => i + 1).map((page) => (
-                          <SelectItem key={page} value={page.toString()}>
+                          <SelectItem key={page} value={page.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
                             {page}
                           </SelectItem>
                         ))}
@@ -302,13 +338,13 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
                     setSelectedSurah(value);
                   }}>
                     <FormControl>
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-white">
                         <SelectValue placeholder="Select Surah" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="max-h-60">
+                    <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
                       {surahs.map((surah) => (
-                        <SelectItem key={surah.number} value={surah.name}>
+                        <SelectItem key={surah.number} value={surah.name} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
                           {surah.number}. {surah.name} ({surah.arabicName})
                         </SelectItem>
                       ))}
@@ -332,13 +368,13 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
                       disabled={!selectedSurah}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-white">
                           <SelectValue placeholder="From" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
                         {Array.from({ length: maxAyah }, (_, i) => i + 1).map((ayah) => (
-                          <SelectItem key={ayah} value={ayah.toString()}>
+                          <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
                             {ayah}
                           </SelectItem>
                         ))}
@@ -361,13 +397,13 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
                       disabled={!selectedSurah}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-white">
                           <SelectValue placeholder="To" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
                         {Array.from({ length: maxAyah }, (_, i) => i + 1).map((ayah) => (
-                          <SelectItem key={ayah} value={ayah.toString()}>
+                          <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
                             {ayah}
                           </SelectItem>
                         ))}

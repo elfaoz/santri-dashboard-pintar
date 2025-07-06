@@ -1,7 +1,9 @@
 
 import React, { useState } from 'react';
-import { Book, Plus, TrendingUp, Calendar, Search, Filter } from 'lucide-react';
+import { Book, Plus, TrendingUp, Calendar, Search, Filter, Eye } from 'lucide-react';
 import MemorizationTable from '../components/MemorizationTable';
+import DetailMemorizationModal from '../components/DetailMemorizationModal';
+import { MemorizationRecord } from '../components/MemorizationTable';
 
 const Halaqah: React.FC = () => {
   const [selectedHalaqah, setSelectedHalaqah] = useState('1');
@@ -14,15 +16,89 @@ const Halaqah: React.FC = () => {
   // Daily Records filters
   const [recordsSelectedHalaqah, setRecordsSelectedHalaqah] = useState('1');
   
+  // Detail modal state
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<MemorizationRecord | null>(null);
+  
   const halaqahData = {
     '1': [
-      { id: 1, name: 'Ahmad Fauzi', target: 2, setoran: 1, percentage: 50 },
-      { id: 2, name: 'Muhammad Rizki', target: 2, setoran: 2, percentage: 100 },
-      { id: 3, name: 'Abdullah Rahman', target: 2, setoran: 1, percentage: 50 },
+      { 
+        id: 1, 
+        name: 'Ahmad Fauzi', 
+        target: 2, 
+        setoran: 1, 
+        percentage: 50,
+        memorizationDetail: {
+          juz: 1,
+          pageFrom: 1,
+          pageTo: 2,
+          surahName: 'Al-Fatihah',
+          ayahFrom: 1,
+          ayahTo: 7,
+        }
+      },
+      { 
+        id: 2, 
+        name: 'Muhammad Rizki', 
+        target: 2, 
+        setoran: 2, 
+        percentage: 100,
+        memorizationDetail: {
+          juz: 1,
+          pageFrom: 3,
+          pageTo: 4,
+          surahName: 'Al-Baqarah',
+          ayahFrom: 1,
+          ayahTo: 20,
+        }
+      },
+      { 
+        id: 3, 
+        name: 'Abdullah Rahman', 
+        target: 2, 
+        setoran: 1, 
+        percentage: 50,
+        memorizationDetail: {
+          juz: 2,
+          pageFrom: 21,
+          pageTo: 22,
+          surahName: 'Al-Baqarah',
+          ayahFrom: 142,
+          ayahTo: 162,
+        }
+      },
     ],
     '2': [
-      { id: 4, name: 'Fatimah Az-Zahra', target: 2, setoran: 2, percentage: 100 },
-      { id: 5, name: 'Siti Aisyah', target: 2, setoran: 1, percentage: 50 },
+      { 
+        id: 4, 
+        name: 'Fatimah Az-Zahra', 
+        target: 2, 
+        setoran: 2, 
+        percentage: 100,
+        memorizationDetail: {
+          juz: 3,
+          pageFrom: 41,
+          pageTo: 42,
+          surahName: 'Al-Imran',
+          ayahFrom: 1,
+          ayahTo: 30,
+        }
+      },
+      { 
+        id: 5, 
+        name: 'Siti Aisyah', 
+        target: 2, 
+        setoran: 1, 
+        percentage: 50,
+        memorizationDetail: {
+          juz: 3,
+          pageFrom: 43,
+          pageTo: 44,
+          surahName: 'Al-Imran',
+          ayahFrom: 31,
+          ayahTo: 60,
+        }
+      },
     ]
   };
 
@@ -33,6 +109,22 @@ const Halaqah: React.FC = () => {
     { id: '4', name: 'Fatimah Az-Zahra' },
     { id: '5', name: 'Siti Aisyah' },
   ];
+
+  const handleDetail = (student: any) => {
+    // Convert halaqah data to MemorizationRecord format
+    const record: MemorizationRecord = {
+      id: student.id.toString(),
+      studentName: student.name,
+      date: new Date().toISOString().split('T')[0],
+      target: student.target,
+      actual: student.setoran,
+      percentage: student.percentage,
+      status: student.percentage >= 100 ? 'Fully Achieved' : student.percentage >= 75 ? 'Achieved' : 'Not Achieved',
+      memorizationDetail: student.memorizationDetail
+    };
+    setSelectedRecord(record);
+    setIsDetailModalOpen(true);
+  };
 
   const getPercentageColor = (percentage: number) => {
     if (percentage >= 80) return 'text-green-600 bg-green-100';
@@ -171,6 +263,9 @@ const Halaqah: React.FC = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Persentase
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Detail
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -197,6 +292,14 @@ const Halaqah: React.FC = () => {
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPercentageColor(student.percentage)}`}>
                           {student.percentage}%
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleDetail(student)}
+                          className="inline-flex items-center justify-center h-8 w-8 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <Eye className="h-4 w-4 text-gray-600" />
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -229,6 +332,12 @@ const Halaqah: React.FC = () => {
           <MemorizationTable />
         </div>
       )}
+
+      <DetailMemorizationModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        record={selectedRecord}
+      />
     </div>
   );
 };

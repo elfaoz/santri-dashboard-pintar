@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -134,8 +133,8 @@ const MemorizationTable: React.FC = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Data Keuangan Santri</h2>
-          <p className="text-gray-600">Ringkasan pengeluaran mingguan santri</p>
+          <h2 className="text-xl font-bold text-gray-800">Data Hafalan Harian</h2>
+          <p className="text-gray-600">Ringkasan Hafalan Harian Santri</p>
         </div>
         <Button onClick={() => setIsInputModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
           <span className="mr-2">+</span>
