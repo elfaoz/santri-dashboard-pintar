@@ -16,6 +16,7 @@ interface InputMemorizationModalProps {
 }
 
 interface FormData {
+  studentName: string;
   date: string;
   target: number;
   actual: number;
@@ -38,6 +39,7 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
 
   const form = useForm<FormData>({
     defaultValues: {
+      studentName: '',
       date: new Date().toISOString().split('T')[0],
       target: 2,
       actual: 0,
@@ -92,6 +94,7 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
     };
 
     const newRecord: Omit<MemorizationRecord, 'id'> = {
+      studentName: data.studentName,
       date: data.date,
       target: data.target,
       actual: data.actual,
@@ -130,6 +133,26 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onFormSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="studentName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nama Santri</FormLabel>
+                  <FormControl>
+                    <input
+                      type="text"
+                      {...field}
+                      placeholder="Enter student name"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
