@@ -3,6 +3,8 @@ import React from 'react';
 import DashboardStats from '../components/DashboardStats';
 import AttendanceTable from '../components/AttendanceTable';
 import StudentOverview from '../components/StudentOverview';
+import MemorizationSummary from '../components/MemorizationSummary';
+import ShareResultsSection from '../components/ShareResultsSection';
 
 const Dashboard: React.FC = () => {
   return (
@@ -14,7 +16,11 @@ const Dashboard: React.FC = () => {
       
       <DashboardStats />
       
+      <MemorizationSummary />
+      
       <StudentOverview />
+      
+      <ShareResultsSection />
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <AttendanceTable />

@@ -1,0 +1,207 @@
+import React, { useState } from 'react';
+import { Trophy, Eye, Medal, Award } from 'lucide-react';
+import DetailMemorizationModal from './DetailMemorizationModal';
+import { MemorizationRecord } from './MemorizationTable';
+
+const SantriRanking: React.FC = () => {
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<MemorizationRecord | null>(null);
+
+  // Mock ranking data - replace with real data from your backend
+  const rankingData = [
+    {
+      id: '1',
+      name: 'Muhammad Rizki',
+      totalPages: 89,
+      halaqah: 'Halaqah 1',
+      rank: 1,
+      memorizationDetail: {
+        juz: 3,
+        pageFrom: 41,
+        pageTo: 89,
+        surahName: 'Al-Imran',
+        ayahFrom: 1,
+        ayahTo: 200,
+      }
+    },
+    {
+      id: '2', 
+      name: 'Fatimah Az-Zahra',
+      totalPages: 76,
+      halaqah: 'Halaqah 2',
+      rank: 2,
+      memorizationDetail: {
+        juz: 2,
+        pageFrom: 21,
+        pageTo: 76,
+        surahName: 'Al-Baqarah',
+        ayahFrom: 142,
+        ayahTo: 286,
+      }
+    },
+    {
+      id: '3',
+      name: 'Ahmad Fauzi',
+      totalPages: 65,
+      halaqah: 'Halaqah 1',
+      rank: 3,
+      memorizationDetail: {
+        juz: 2,
+        pageFrom: 1,
+        pageTo: 65,
+        surahName: 'Al-Baqarah',
+        ayahFrom: 1,
+        ayahTo: 200,
+      }
+    },
+    {
+      id: '4',
+      name: 'Abdullah Rahman',
+      totalPages: 58,
+      halaqah: 'Halaqah 1',
+      rank: 4,
+      memorizationDetail: {
+        juz: 2,
+        pageFrom: 1,
+        pageTo: 58,
+        surahName: 'Al-Baqarah',
+        ayahFrom: 1,
+        ayahTo: 180,
+      }
+    },
+    {
+      id: '5',
+      name: 'Siti Aisyah',
+      totalPages: 45,
+      halaqah: 'Halaqah 2',
+      rank: 5,
+      memorizationDetail: {
+        juz: 1,
+        pageFrom: 1,
+        pageTo: 45,
+        surahName: 'Al-Baqarah',
+        ayahFrom: 1,
+        ayahTo: 150,
+      }
+    }
+  ];
+
+  const handleViewDetail = (student: typeof rankingData[0]) => {
+    const record: MemorizationRecord = {
+      id: student.id,
+      studentName: student.name,
+      date: new Date().toISOString().split('T')[0],
+      target: student.totalPages,
+      actual: student.totalPages,
+      percentage: 100,
+      status: 'Fully Achieved',
+      memorizationDetail: student.memorizationDetail
+    };
+    setSelectedStudent(record);
+    setIsDetailModalOpen(true);
+  };
+
+  const getRankIcon = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return <Trophy className="h-5 w-5 text-yellow-500" />;
+      case 2:
+        return <Medal className="h-5 w-5 text-gray-400" />;
+      case 3:
+        return <Award className="h-5 w-5 text-amber-600" />;
+      default:
+        return <span className="h-5 w-5 flex items-center justify-center text-sm font-bold text-gray-600">#{rank}</span>;
+    }
+  };
+
+  const getRankBadgeColor = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return 'bg-yellow-100 text-yellow-800';
+      case 2:
+        return 'bg-gray-100 text-gray-800';
+      case 3:
+        return 'bg-amber-100 text-amber-800';
+      default:
+        return 'bg-blue-100 text-blue-800';
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-purple-50">
+        <div className="flex items-center space-x-2">
+          <Trophy className="h-5 w-5 text-blue-600" />
+          <h3 className="text-lg font-semibold text-gray-800">Santri Ranking</h3>
+          <span className="text-sm text-gray-600">(Hafalan Terbanyak)</span>
+        </div>
+      </div>
+      
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Rank
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Student Name
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Halaqah
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Total Memorized (Jumlah Hafalan)
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Detail
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {rankingData.map((student) => (
+              <tr key={student.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <div className="flex items-center justify-center space-x-2">
+                    {getRankIcon(student.rank)}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRankBadgeColor(student.rank)}`}>
+                      #{student.rank}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm font-medium text-gray-900">{student.name}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {student.halaqah}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <div className="text-sm font-bold text-green-600">{student.totalPages} pages</div>
+                  <div className="text-xs text-gray-500">~ {Math.floor(student.totalPages / 20)} Juz</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <button
+                    onClick={() => handleViewDetail(student)}
+                    className="inline-flex items-center justify-center h-8 w-8 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <Eye className="h-4 w-4 text-gray-600" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <DetailMemorizationModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        record={selectedStudent}
+      />
+    </div>
+  );
+};
+
+export default SantriRanking;

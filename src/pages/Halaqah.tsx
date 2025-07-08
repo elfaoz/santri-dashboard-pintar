@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Book, Plus, TrendingUp, Calendar, Search, Filter, Eye } from 'lucide-react';
 import MemorizationTable from '../components/MemorizationTable';
 import DetailMemorizationModal from '../components/DetailMemorizationModal';
+import SantriRanking from '../components/SantriRanking';
 import { MemorizationRecord } from '../components/MemorizationTable';
 
 const Halaqah: React.FC = () => {
@@ -210,6 +211,7 @@ const Halaqah: React.FC = () => {
                 onChange={(e) => setSelectedHalaqah(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
+                <option value="">All Halaqah</option>
                 <option value="1">Halaqah 1</option>
                 <option value="2">Halaqah 2</option>
                 <option value="3">Halaqah 3</option>
@@ -229,7 +231,7 @@ const Halaqah: React.FC = () => {
                 onChange={(e) => setOverviewSelectedStudent(e.target.value)}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Choose a student...</option>
+                <option value="">All Students</option>
                 {students.map((student) => (
                   <option key={student.id} value={student.id}>
                     {student.name}
@@ -238,11 +240,13 @@ const Halaqah: React.FC = () => {
               </select>
             </div>
           </div>
-          
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-800">Pencapaian Hafalan - Halaqah {selectedHalaqah}</h3>
-            </div>
+            
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Pencapaian Hafalan - {selectedHalaqah ? `Halaqah ${selectedHalaqah}` : 'All Halaqah'}
+                </h3>
+              </div>
             
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -269,7 +273,8 @@ const Halaqah: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {halaqahData[selectedHalaqah as keyof typeof halaqahData]?.map((student) => (
+                  {(selectedHalaqah ? halaqahData[selectedHalaqah as keyof typeof halaqahData] || [] : 
+                    Object.values(halaqahData).flat())?.map((student) => (
                     <tr key={student.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {student.name}
@@ -330,6 +335,11 @@ const Halaqah: React.FC = () => {
           </div>
 
           <MemorizationTable />
+          
+          {/* Santri Ranking Section */}
+          <div className="mt-8">
+            <SantriRanking />
+          </div>
         </div>
       )}
 
