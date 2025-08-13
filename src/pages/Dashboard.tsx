@@ -3,7 +3,7 @@ import React from 'react';
 import DashboardStats from '../components/DashboardStats';
 import AttendanceTable from '../components/AttendanceTable';
 import StudentOverview from '../components/StudentOverview';
-import MemorizationSummary from '../components/MemorizationSummary';
+
 import ShareResultsSection from '../components/ShareResultsSection';
 
 const Dashboard: React.FC = () => {
@@ -15,8 +15,6 @@ const Dashboard: React.FC = () => {
       </div>
       
       <DashboardStats />
-      
-      <MemorizationSummary />
       
       <StudentOverview />
       
