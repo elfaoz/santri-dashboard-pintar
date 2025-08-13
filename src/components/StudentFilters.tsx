@@ -1,10 +1,11 @@
 
 import React from 'react';
 import { Calendar, Search, Filter } from 'lucide-react';
+import { Checkbox } from './ui/checkbox';
 
 interface StudentFiltersProps {
-  selectedStudent: string;
-  onStudentChange: (student: string) => void;
+  selectedStudents: string[];
+  onStudentsChange: (students: string[]) => void;
   dateRange: { from: string; to: string };
   onDateRangeChange: (range: { from: string; to: string }) => void;
   category: string;
@@ -12,8 +13,8 @@ interface StudentFiltersProps {
 }
 
 const StudentFilters: React.FC<StudentFiltersProps> = ({
-  selectedStudent,
-  onStudentChange,
+  selectedStudents,
+  onStudentsChange,
   dateRange,
   onDateRangeChange,
   category,
@@ -70,20 +71,33 @@ const StudentFilters: React.FC<StudentFiltersProps> = ({
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           <Search className="inline w-4 h-4 mr-1" />
-          Select Student
+          Select Students
         </label>
-        <select
-          value={selectedStudent}
-          onChange={(e) => onStudentChange(e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Choose a student...</option>
-          {students.map((student) => (
-            <option key={student.id} value={student.id}>
-              {student.name}
-            </option>
-          ))}
-        </select>
+        <div className="border border-gray-300 rounded-md p-3 bg-white max-h-40 overflow-y-auto">
+          <div className="space-y-2">
+            {students.map((student) => (
+              <div key={student.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={student.id}
+                  checked={selectedStudents.includes(student.id)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      onStudentsChange([...selectedStudents, student.id]);
+                    } else {
+                      onStudentsChange(selectedStudents.filter(id => id !== student.id));
+                    }
+                  }}
+                />
+                <label
+                  htmlFor={student.id}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  {student.name}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
