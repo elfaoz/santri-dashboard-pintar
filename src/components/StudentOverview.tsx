@@ -9,7 +9,7 @@ import FinanceSummary from './FinanceSummary';
 const StudentOverview: React.FC = () => {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
-  const [category, setCategory] = useState('All');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['Finance', 'Attendance', 'Memorization']);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -20,8 +20,8 @@ const StudentOverview: React.FC = () => {
         onStudentsChange={setSelectedStudents}
         dateRange={dateRange}
         onDateRangeChange={setDateRange}
-        category={category}
-        onCategoryChange={setCategory}
+        selectedCategories={selectedCategories}
+        onCategoriesChange={setSelectedCategories}
       />
       
       {selectedStudents.length > 0 && (
@@ -30,15 +30,15 @@ const StudentOverview: React.FC = () => {
             <div key={studentId} className="border-b border-gray-200 pb-6 last:border-b-0">
               <StudentProfile studentId={studentId} />
               
-              {(category === 'All' || category === 'Attendance') && (
+              {selectedCategories.includes('Attendance') && (
                 <AttendanceSummary studentId={studentId} dateRange={dateRange} />
               )}
               
-              {(category === 'All' || category === 'Attendance' || category === 'Memorization') && (
+              {selectedCategories.includes('Memorization') && (
                 <HafalanTable studentId={studentId} dateRange={dateRange} />
               )}
               
-              {(category === 'All' || category === 'Finance') && (
+              {selectedCategories.includes('Finance') && (
                 <FinanceSummary studentId={studentId} dateRange={dateRange} />
               )}
             </div>

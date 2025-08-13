@@ -8,8 +8,8 @@ interface StudentFiltersProps {
   onStudentsChange: (students: string[]) => void;
   dateRange: { from: string; to: string };
   onDateRangeChange: (range: { from: string; to: string }) => void;
-  category: string;
-  onCategoryChange: (category: string) => void;
+  selectedCategories: string[];
+  onCategoriesChange: (categories: string[]) => void;
 }
 
 const StudentFilters: React.FC<StudentFiltersProps> = ({
@@ -17,9 +17,15 @@ const StudentFilters: React.FC<StudentFiltersProps> = ({
   onStudentsChange,
   dateRange,
   onDateRangeChange,
-  category,
-  onCategoryChange,
+  selectedCategories,
+  onCategoriesChange,
 }) => {
+  const categories = [
+    { id: 'Finance', name: 'Finance' },
+    { id: 'Attendance', name: 'Attendance' },
+    { id: 'Memorization', name: 'Memorization' },
+  ];
+
   const students = [
     { id: '1', name: 'Ahmad Fauzi' },
     { id: '2', name: 'Fatimah Az-Zahra' },
@@ -54,18 +60,33 @@ const StudentFilters: React.FC<StudentFiltersProps> = ({
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           <Filter className="inline w-4 h-4 mr-1" />
-          Category
+          Categories
         </label>
-        <select
-          value={category}
-          onChange={(e) => onCategoryChange(e.target.value)}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="All">All</option>
-          <option value="Finance">Finance</option>
-          <option value="Attendance">Attendance</option>
-          <option value="Memorization">Memorization</option>
-        </select>
+        <div className="border border-gray-300 rounded-md p-3 bg-white">
+          <div className="space-y-2">
+            {categories.map((category) => (
+              <div key={category.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={category.id}
+                  checked={selectedCategories.includes(category.id)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      onCategoriesChange([...selectedCategories, category.id]);
+                    } else {
+                      onCategoriesChange(selectedCategories.filter(id => id !== category.id));
+                    }
+                  }}
+                />
+                <label
+                  htmlFor={category.id}
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                >
+                  {category.name}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div>
