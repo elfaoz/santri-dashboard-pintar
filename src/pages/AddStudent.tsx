@@ -7,10 +7,22 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Trash2 } from 'lucide-react';
+import EditStudentModal from '@/components/EditStudentModal';
+
+interface Student {
+  id: number;
+  name: string;
+  class: string;
+  level: string;
+  period: string;
+}
 
 const AddStudent: React.FC = () => {
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  
   // Sample data for the table
-  const [students] = useState([
+  const [students, setStudents] = useState<Student[]>([
     {
       id: 1,
       name: 'Ahmad Fadil',
@@ -33,6 +45,19 @@ const AddStudent: React.FC = () => {
       period: '2024-2025'
     }
   ]);
+
+  const handleEditStudent = (student: Student) => {
+    setSelectedStudent(student);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveStudent = (updatedStudent: Student) => {
+    setStudents(prev => 
+      prev.map(student => 
+        student.id === updatedStudent.id ? updatedStudent : student
+      )
+    );
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -233,6 +258,7 @@ const AddStudent: React.FC = () => {
                           variant="ghost"
                           size="sm"
                           className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                          onClick={() => handleEditStudent(student)}
                         >
                           <Edit size={16} />
                         </Button>
@@ -252,6 +278,13 @@ const AddStudent: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      <EditStudentModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        student={selectedStudent}
+        onSave={handleSaveStudent}
+      />
     </div>
   );
 };
