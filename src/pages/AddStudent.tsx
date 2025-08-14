@@ -11,38 +11,86 @@ import EditStudentModal from '@/components/EditStudentModal';
 
 interface Student {
   id: number;
+  studentId: string;
   name: string;
+  placeOfBirth: string;
+  dateOfBirth: string;
+  fatherName: string;
+  motherName: string;
   class: string;
   level: string;
   period: string;
+  email: string;
+  phoneNumber: string;
+  address: string;
 }
 
 const AddStudent: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   
+  // Form state
+  const [formData, setFormData] = useState({
+    studentId: '',
+    fullName: '',
+    placeOfBirth: '',
+    dateOfBirth: '',
+    fatherName: '',
+    motherName: '',
+    registrationPeriod: '',
+    class: '',
+    level: '',
+    email: '',
+    phoneNumber: '',
+    address: ''
+  });
+  
   // Sample data for the table
   const [students, setStudents] = useState<Student[]>([
     {
       id: 1,
+      studentId: '001',
       name: 'Ahmad Fadil',
+      placeOfBirth: 'Jakarta',
+      dateOfBirth: '2005-01-15',
+      fatherName: 'Abdullah Fadil',
+      motherName: 'Siti Khadijah',
       class: '10',
       level: 'Mu\'allimin',
-      period: '2024-2025'
+      period: '2024-2025',
+      email: 'ahmad.fadil@email.com',
+      phoneNumber: '081234567890',
+      address: 'Jl. Merdeka No. 123, Jakarta'
     },
     {
       id: 2,
+      studentId: '002',
       name: 'Fatimah Zahra',
+      placeOfBirth: 'Bandung',
+      dateOfBirth: '2006-03-20',
+      fatherName: 'Muhammad Ali',
+      motherName: 'Aminah',
       class: '9',
       level: 'Tsanawiyyah',
-      period: '2024-2025'
+      period: '2024-2025',
+      email: 'fatimah.zahra@email.com',
+      phoneNumber: '081234567891',
+      address: 'Jl. Sudirman No. 456, Bandung'
     },
     {
       id: 3,
+      studentId: '003',
       name: 'Muhammad Hasan',
+      placeOfBirth: 'Surabaya',
+      dateOfBirth: '2004-07-10',
+      fatherName: 'Ahmad Hasan',
+      motherName: 'Fatimah',
       class: '11',
       level: 'Mu\'allimin',
-      period: '2024-2025'
+      period: '2024-2025',
+      email: 'muhammad.hasan@email.com',
+      phoneNumber: '081234567892',
+      address: 'Jl. Pemuda No. 789, Surabaya'
     }
   ]);
 
@@ -59,6 +107,53 @@ const AddStudent: React.FC = () => {
     );
   };
 
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Create new student object
+    const newStudent: Student = {
+      id: students.length + 1,
+      studentId: formData.studentId,
+      name: formData.fullName,
+      placeOfBirth: formData.placeOfBirth,
+      dateOfBirth: formData.dateOfBirth,
+      fatherName: formData.fatherName,
+      motherName: formData.motherName,
+      class: formData.class,
+      level: formData.level,
+      period: formData.registrationPeriod,
+      email: formData.email,
+      phoneNumber: formData.phoneNumber,
+      address: formData.address
+    };
+
+    // Add to students array
+    setStudents(prev => [...prev, newStudent]);
+
+    // Reset form
+    setFormData({
+      studentId: '',
+      fullName: '',
+      placeOfBirth: '',
+      dateOfBirth: '',
+      fatherName: '',
+      motherName: '',
+      registrationPeriod: '',
+      class: '',
+      level: '',
+      email: '',
+      phoneNumber: '',
+      address: ''
+    });
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="mb-8">
@@ -72,7 +167,7 @@ const AddStudent: React.FC = () => {
           <CardTitle className="text-xl font-bold text-gray-800">Student Information</CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Student ID */}
               <div className="space-y-2">
@@ -80,8 +175,11 @@ const AddStudent: React.FC = () => {
                 <Input
                   id="studentId"
                   type="text"
+                  value={formData.studentId}
+                  onChange={(e) => handleInputChange('studentId', e.target.value)}
                   placeholder="Masukkan nomor induk"
                   className="w-full"
+                  required
                 />
               </div>
 
@@ -91,8 +189,11 @@ const AddStudent: React.FC = () => {
                 <Input
                   id="fullName"
                   type="text"
+                  value={formData.fullName}
+                  onChange={(e) => handleInputChange('fullName', e.target.value)}
                   placeholder="Masukkan nama lengkap"
                   className="w-full"
+                  required
                 />
               </div>
 
@@ -102,8 +203,11 @@ const AddStudent: React.FC = () => {
                 <Input
                   id="placeOfBirth"
                   type="text"
+                  value={formData.placeOfBirth}
+                  onChange={(e) => handleInputChange('placeOfBirth', e.target.value)}
                   placeholder="Masukkan tempat lahir"
                   className="w-full"
+                  required
                 />
               </div>
 
@@ -113,7 +217,10 @@ const AddStudent: React.FC = () => {
                 <Input
                   id="dateOfBirth"
                   type="date"
+                  value={formData.dateOfBirth}
+                  onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
                   className="w-full"
+                  required
                 />
               </div>
 
@@ -123,8 +230,11 @@ const AddStudent: React.FC = () => {
                 <Input
                   id="fatherName"
                   type="text"
+                  value={formData.fatherName}
+                  onChange={(e) => handleInputChange('fatherName', e.target.value)}
                   placeholder="Masukkan nama ayah"
                   className="w-full"
+                  required
                 />
               </div>
 
@@ -134,8 +244,11 @@ const AddStudent: React.FC = () => {
                 <Input
                   id="motherName"
                   type="text"
+                  value={formData.motherName}
+                  onChange={(e) => handleInputChange('motherName', e.target.value)}
                   placeholder="Masukkan nama ibu"
                   className="w-full"
+                  required
                 />
               </div>
 
@@ -145,15 +258,18 @@ const AddStudent: React.FC = () => {
                 <Input
                   id="registrationPeriod"
                   type="text"
+                  value={formData.registrationPeriod}
+                  onChange={(e) => handleInputChange('registrationPeriod', e.target.value)}
                   placeholder="e.g., 2025-2026"
                   className="w-full"
+                  required
                 />
               </div>
 
               {/* Class */}
               <div className="space-y-2">
                 <Label htmlFor="class">Class</Label>
-                <Select>
+                <Select value={formData.class} onValueChange={(value) => handleInputChange('class', value)}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Pilih kelas" />
                   </SelectTrigger>
@@ -171,13 +287,13 @@ const AddStudent: React.FC = () => {
               {/* Level */}
               <div className="space-y-2">
                 <Label htmlFor="level">Level</Label>
-                <Select>
+                <Select value={formData.level} onValueChange={(value) => handleInputChange('level', value)}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Pilih level" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="tsanawiyyah">Tsanawiyyah</SelectItem>
-                    <SelectItem value="muallimin">Mu'allimin</SelectItem>
+                    <SelectItem value="Tsanawiyyah">Tsanawiyyah</SelectItem>
+                    <SelectItem value="Mu'allimin">Mu'allimin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -188,8 +304,11 @@ const AddStudent: React.FC = () => {
                 <Input
                   id="email"
                   type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
                   placeholder="Masukkan email"
                   className="w-full"
+                  required
                 />
               </div>
 
@@ -199,8 +318,11 @@ const AddStudent: React.FC = () => {
                 <Input
                   id="phoneNumber"
                   type="tel"
+                  value={formData.phoneNumber}
+                  onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                   placeholder="Masukkan nomor telepon"
                   className="w-full"
+                  required
                 />
               </div>
             </div>
@@ -211,8 +333,11 @@ const AddStudent: React.FC = () => {
               <Input
                 id="address"
                 type="text"
+                value={formData.address}
+                onChange={(e) => handleInputChange('address', e.target.value)}
                 placeholder="Masukkan alamat lengkap"
                 className="w-full"
+                required
               />
             </div>
 
