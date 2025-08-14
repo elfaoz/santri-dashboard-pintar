@@ -1,15 +1,28 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import StudentFilters from './StudentFilters';
 import StudentProfile from './StudentProfile';
 import AttendanceSummary from './AttendanceSummary';
 import HafalanTable from './HafalanTable';
 import FinanceSummary from './FinanceSummary';
 
-const StudentOverview: React.FC = () => {
-  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
-  const [dateRange, setDateRange] = useState({ from: '', to: '' });
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(['Finance', 'Attendance', 'Memorization']);
+interface StudentOverviewProps {
+  selectedStudents: string[];
+  onStudentsChange: (students: string[]) => void;
+  dateRange: { from: string; to: string };
+  onDateRangeChange: (range: { from: string; to: string }) => void;
+  selectedCategories: string[];
+  onCategoriesChange: (categories: string[]) => void;
+}
+
+const StudentOverview: React.FC<StudentOverviewProps> = ({
+  selectedStudents,
+  onStudentsChange,
+  dateRange,
+  onDateRangeChange,
+  selectedCategories,
+  onCategoriesChange
+}) => {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -17,11 +30,11 @@ const StudentOverview: React.FC = () => {
       
       <StudentFilters
         selectedStudents={selectedStudents}
-        onStudentsChange={setSelectedStudents}
+        onStudentsChange={onStudentsChange}
         dateRange={dateRange}
-        onDateRangeChange={setDateRange}
+        onDateRangeChange={onDateRangeChange}
         selectedCategories={selectedCategories}
-        onCategoriesChange={setSelectedCategories}
+        onCategoriesChange={onCategoriesChange}
       />
       
       {selectedStudents.length > 0 && (

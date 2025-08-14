@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import DashboardStats from '../components/DashboardStats';
 import AttendanceTable from '../components/AttendanceTable';
 import StudentOverview from '../components/StudentOverview';
@@ -7,6 +7,10 @@ import StudentOverview from '../components/StudentOverview';
 import ShareResultsSection from '../components/ShareResultsSection';
 
 const Dashboard: React.FC = () => {
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [dateRange, setDateRange] = useState({ from: '', to: '' });
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['Finance', 'Attendance', 'Memorization']);
+
   return (
     <div className="p-6 space-y-8">
       <div className="mb-8">
@@ -16,9 +20,20 @@ const Dashboard: React.FC = () => {
       
       <DashboardStats />
       
-      <StudentOverview />
+      <StudentOverview 
+        selectedStudents={selectedStudents}
+        onStudentsChange={setSelectedStudents}
+        dateRange={dateRange}
+        onDateRangeChange={setDateRange}
+        selectedCategories={selectedCategories}
+        onCategoriesChange={setSelectedCategories}
+      />
       
-      <ShareResultsSection />
+      <ShareResultsSection 
+        selectedStudents={selectedStudents}
+        dateRange={dateRange}
+        selectedCategories={selectedCategories}
+      />
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <AttendanceTable />
