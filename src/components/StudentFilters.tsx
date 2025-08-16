@@ -2,6 +2,7 @@
 import React from 'react';
 import { Calendar, Search, Filter } from 'lucide-react';
 import { Checkbox } from './ui/checkbox';
+import { useStudents } from '@/contexts/StudentContext';
 
 interface StudentFiltersProps {
   selectedStudents: string[];
@@ -20,19 +21,18 @@ const StudentFilters: React.FC<StudentFiltersProps> = ({
   selectedCategories,
   onCategoriesChange,
 }) => {
+  const { students: registeredStudents } = useStudents();
+  
   const categories = [
     { id: 'Finance', name: 'Finance' },
     { id: 'Attendance', name: 'Attendance' },
     { id: 'Memorization', name: 'Memorization' },
   ];
 
-  const students = [
-    { id: '1', name: 'Ahmad Fauzi' },
-    { id: '2', name: 'Fatimah Az-Zahra' },
-    { id: '3', name: 'Muhammad Rizki' },
-    { id: '4', name: 'Siti Aisyah' },
-    { id: '5', name: 'Abdullah Rahman' },
-  ];
+  const students = registeredStudents.map(student => ({
+    id: student.studentId,
+    name: student.name
+  }));
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">

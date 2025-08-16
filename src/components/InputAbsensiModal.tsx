@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { X } from 'lucide-react';
+import { useStudents } from '@/contexts/StudentContext';
 
 interface InputAbsensiModalProps {
   isOpen: boolean;
@@ -26,6 +27,8 @@ const InputAbsensiModal: React.FC<InputAbsensiModalProps> = ({
   onSave,
   initialData
 }) => {
+  const { students: registeredStudents } = useStudents();
+  
   const [formData, setFormData] = useState<AttendanceData>({
     halaqah: initialData?.halaqah || '',
     studentId: initialData?.studentId || '',
@@ -43,32 +46,20 @@ const InputAbsensiModal: React.FC<InputAbsensiModalProps> = ({
     { value: '6', label: 'Halaqah 6' }
   ];
 
+  // Map registered students to studentsByHalaqah format
+  const allStudents = registeredStudents.map(student => ({
+    id: student.studentId,
+    name: student.name
+  }));
+
+  // Distribute students across halaqahs (for demo purposes)
   const studentsByHalaqah = {
-    '1': [
-      { id: '1', name: 'Ahmad Fauzi' },
-      { id: '2', name: 'Muhammad Rizki' },
-      { id: '3', name: 'Abdullah Rahman' }
-    ],
-    '2': [
-      { id: '4', name: 'Fatimah Az-Zahra' },
-      { id: '5', name: 'Siti Aisyah' }
-    ],
-    '3': [
-      { id: '6', name: 'Umar Bin Khattab' },
-      { id: '7', name: 'Ali Bin Abi Thalib' }
-    ],
-    '4': [
-      { id: '8', name: 'Khadijah' },
-      { id: '9', name: 'Aminah' }
-    ],
-    '5': [
-      { id: '10', name: 'Hassan' },
-      { id: '11', name: 'Hussein' }
-    ],
-    '6': [
-      { id: '12', name: 'Bilal' },
-      { id: '13', name: 'Salman' }
-    ]
+    '1': allStudents.slice(0, Math.ceil(allStudents.length / 6)),
+    '2': allStudents.slice(Math.ceil(allStudents.length / 6), Math.ceil(2 * allStudents.length / 6)),
+    '3': allStudents.slice(Math.ceil(2 * allStudents.length / 6), Math.ceil(3 * allStudents.length / 6)),
+    '4': allStudents.slice(Math.ceil(3 * allStudents.length / 6), Math.ceil(4 * allStudents.length / 6)),
+    '5': allStudents.slice(Math.ceil(4 * allStudents.length / 6), Math.ceil(5 * allStudents.length / 6)),
+    '6': allStudents.slice(Math.ceil(5 * allStudents.length / 6))
   };
 
   const statusOptions = [

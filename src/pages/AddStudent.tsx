@@ -8,24 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Trash2 } from 'lucide-react';
 import EditStudentModal from '@/components/EditStudentModal';
-
-interface Student {
-  id: number;
-  studentId: string;
-  name: string;
-  placeOfBirth: string;
-  dateOfBirth: string;
-  fatherName: string;
-  motherName: string;
-  class: string;
-  level: string;
-  period: string;
-  email: string;
-  phoneNumber: string;
-  address: string;
-}
+import { useStudents, Student } from '@/contexts/StudentContext';
 
 const AddStudent: React.FC = () => {
+  const { students, addStudent, updateStudent, deleteStudent } = useStudents();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   
@@ -44,55 +30,6 @@ const AddStudent: React.FC = () => {
     phoneNumber: '',
     address: ''
   });
-  
-  // Sample data for the table
-  const [students, setStudents] = useState<Student[]>([
-    {
-      id: 1,
-      studentId: '001',
-      name: 'Ahmad Fadil',
-      placeOfBirth: 'Jakarta',
-      dateOfBirth: '2005-01-15',
-      fatherName: 'Abdullah Fadil',
-      motherName: 'Siti Khadijah',
-      class: '10',
-      level: 'Mu\'allimin',
-      period: '2024-2025',
-      email: 'ahmad.fadil@email.com',
-      phoneNumber: '081234567890',
-      address: 'Jl. Merdeka No. 123, Jakarta'
-    },
-    {
-      id: 2,
-      studentId: '002',
-      name: 'Fatimah Zahra',
-      placeOfBirth: 'Bandung',
-      dateOfBirth: '2006-03-20',
-      fatherName: 'Muhammad Ali',
-      motherName: 'Aminah',
-      class: '9',
-      level: 'Tsanawiyyah',
-      period: '2024-2025',
-      email: 'fatimah.zahra@email.com',
-      phoneNumber: '081234567891',
-      address: 'Jl. Sudirman No. 456, Bandung'
-    },
-    {
-      id: 3,
-      studentId: '003',
-      name: 'Muhammad Hasan',
-      placeOfBirth: 'Surabaya',
-      dateOfBirth: '2004-07-10',
-      fatherName: 'Ahmad Hasan',
-      motherName: 'Fatimah',
-      class: '11',
-      level: 'Mu\'allimin',
-      period: '2024-2025',
-      email: 'muhammad.hasan@email.com',
-      phoneNumber: '081234567892',
-      address: 'Jl. Pemuda No. 789, Surabaya'
-    }
-  ]);
 
   const handleEditStudent = (student: Student) => {
     setSelectedStudent(student);
@@ -100,11 +37,13 @@ const AddStudent: React.FC = () => {
   };
 
   const handleSaveStudent = (updatedStudent: Student) => {
-    setStudents(prev => 
-      prev.map(student => 
-        student.id === updatedStudent.id ? updatedStudent : student
-      )
-    );
+    updateStudent(updatedStudent);
+  };
+
+  const handleDeleteStudent = (studentId: number) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus data santri ini?')) {
+      deleteStudent(studentId);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -135,7 +74,7 @@ const AddStudent: React.FC = () => {
     };
 
     // Add to students array
-    setStudents(prev => [...prev, newStudent]);
+    addStudent(newStudent);
 
     // Reset form
     setFormData({
@@ -391,6 +330,7 @@ const AddStudent: React.FC = () => {
                           variant="ghost"
                           size="sm"
                           className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                          onClick={() => handleDeleteStudent(student.id)}
                         >
                           <Trash2 size={16} />
                         </Button>
