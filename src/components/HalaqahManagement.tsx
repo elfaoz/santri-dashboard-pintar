@@ -5,8 +5,10 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Edit, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Edit, Trash2, Users, GraduationCap } from 'lucide-react';
 import EditHalaqahModal from './EditHalaqahModal';
+import { useStudents } from '@/contexts/StudentContext';
 
 interface Halaqah {
   id: number;
@@ -18,6 +20,7 @@ interface Halaqah {
 }
 
 const HalaqahManagement: React.FC = () => {
+  const { students } = useStudents();
   const [halaqahs, setHalaqahs] = useState<Halaqah[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedHalaqah, setSelectedHalaqah] = useState<Halaqah | null>(null);
@@ -217,6 +220,70 @@ const HalaqahManagement: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Halaqah Members Section */}
+      {halaqahs.length > 0 && (
+        <Card className="shadow-sm border border-gray-100">
+          <CardHeader>
+            <CardTitle className="text-xl font-bold text-gray-800 flex items-center gap-2">
+              <Users size={24} className="text-green-600" />
+              Halaqah Members
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {halaqahs.map((halaqah) => (
+                <Card key={halaqah.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg font-bold text-green-700 flex items-center gap-2">
+                      <GraduationCap size={20} />
+                      {halaqah.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-3">
+                      {/* Pembina */}
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 mb-1">Pembina:</p>
+                        <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
+                          {halaqah.pembina}
+                        </Badge>
+                      </div>
+                      
+                      {/* Level */}
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 mb-1">Level:</p>
+                        <Badge variant="outline" className="text-purple-700 border-purple-200">
+                          {halaqah.level}
+                        </Badge>
+                      </div>
+                      
+                      {/* Members */}
+                      <div>
+                        <p className="text-sm font-medium text-gray-600 mb-2">
+                          Members ({halaqah.selectedStudents?.length || 0}/{halaqah.membersCount}):
+                        </p>
+                        <div className="space-y-1 max-h-32 overflow-y-auto">
+                          {halaqah.selectedStudents && halaqah.selectedStudents.length > 0 ? (
+                            halaqah.selectedStudents.map((studentName, index) => (
+                              <div key={index} className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                <span className="text-sm text-gray-700">{studentName}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-sm text-gray-500 italic">Belum ada anggota</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Edit Halaqah Modal */}
       <EditHalaqahModal
