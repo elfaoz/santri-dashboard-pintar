@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Trash2 } from 'lucide-react';
+import EditHalaqahModal from './EditHalaqahModal';
 
 interface Halaqah {
   id: number;
@@ -13,10 +14,13 @@ interface Halaqah {
   membersCount: number;
   level: string;
   pembina: string;
+  selectedStudents?: string[];
 }
 
 const HalaqahManagement: React.FC = () => {
   const [halaqahs, setHalaqahs] = useState<Halaqah[]>([]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedHalaqah, setSelectedHalaqah] = useState<Halaqah | null>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -64,8 +68,21 @@ const HalaqahManagement: React.FC = () => {
   };
 
   const handleEditHalaqah = (halaqah: Halaqah) => {
-    // For now, just log the edit action
-    console.log('Edit halaqah:', halaqah);
+    setSelectedHalaqah(halaqah);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveHalaqah = (updatedHalaqah: Halaqah) => {
+    setHalaqahs(prev => 
+      prev.map(h => h.id === updatedHalaqah.id ? updatedHalaqah : h)
+    );
+    setIsEditModalOpen(false);
+    setSelectedHalaqah(null);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedHalaqah(null);
   };
 
   return (
@@ -200,6 +217,14 @@ const HalaqahManagement: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Halaqah Modal */}
+      <EditHalaqahModal
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        halaqah={selectedHalaqah}
+        onSave={handleSaveHalaqah}
+      />
     </div>
   );
 };
