@@ -2,19 +2,65 @@
 import React, { useState } from 'react';
 import { Calendar, Plus, Edit } from 'lucide-react';
 import InputAbsensiModal from '../components/InputAbsensiModal';
+import { useStudents } from '@/contexts/StudentContext';
+
+interface Halaqah {
+  id: number;
+  name: string;
+  membersCount: number;
+  level: string;
+  pembina: string;
+  selectedStudents?: string[];
+}
+
+interface StudentAttendance {
+  id: number;
+  name: string;
+  status: string;
+  halaqah: string;
+  remarks: string;
+}
 
 const Attendance: React.FC = () => {
+  const { students } = useStudents();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedHalaqah, setSelectedHalaqah] = useState('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<any>(null);
   
-  const [students, setStudents] = useState([
+  const [registeredHalaqahs] = useState<Halaqah[]>([
+    { id: 1, name: 'Halaqah Al-Fatihah', membersCount: 5, level: 'Pemula', pembina: 'Ustadz Ahmad', selectedStudents: ['1', '3', '5'] },
+    { id: 2, name: 'Halaqah Al-Baqarah', membersCount: 4, level: 'Menengah', pembina: 'Ustadz Rahman', selectedStudents: ['2', '4'] },
+    { id: 3, name: 'Halaqah An-Nisa', membersCount: 3, level: 'Lanjutan', pembina: 'Ustadz Ali', selectedStudents: ['6', '7'] },
+  ]);
+
+  const [attendanceData, setAttendanceData] = useState<StudentAttendance[]>([
     { id: 1, name: 'Ahmad Fauzi', status: 'hadir', halaqah: '1', remarks: '' },
     { id: 2, name: 'Fatimah Az-Zahra', status: 'izin', halaqah: '2', remarks: 'Ada keperluan keluarga' },
     { id: 3, name: 'Muhammad Rizki', status: 'hadir', halaqah: '1', remarks: '' },
     { id: 4, name: 'Siti Aisyah', status: 'sakit', halaqah: '2', remarks: 'Demam tinggi' },
-    { id: 5, name: 'Abdullah Rahman', status: 'tanpa keterangan', halaqah: '1', remarks: '' },
   ]);
+
+  const getStudentsByHalaqah = () => {
+    if (selectedHalaqah === 'all') {
+      return attendanceData.map(attendance => {
+        const student = students.find(s => s.id.toString() === attendance.id.toString());
+        return { ...attendance, name: student?.name || attendance.name };
+      });
+    }
+    
+    const halaqah = registeredHalaqahs.find(h => h.id.toString() === selectedHalaqah);
+    if (!halaqah?.selectedStudents) return [];
+    
+    return attendanceData
+      .filter(attendance => halaqah.selectedStudents?.includes(attendance.id.toString()))
+      .map(attendance => {
+        const student = students.find(s => s.id.toString() === attendance.id.toString());
+        return { ...attendance, name: student?.name || attendance.name };
+      });
+  };
+
+  const filteredStudents = getStudentsByHalaqah();
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -47,6 +93,19 @@ const Attendance: React.FC = () => {
             onChange={(e) => setSelectedDate(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
+          
+          <select 
+            value={selectedHalaqah}
+            onChange={(e) => setSelectedHalaqah(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">Semua Halaqah</option>
+            {registeredHalaqahs.map(halaqah => (
+              <option key={halaqah.id} value={halaqah.id.toString()}>
+                {halaqah.name}
+              </option>
+            ))}
+          </select>
         </div>
         
         <button 
@@ -85,7 +144,7 @@ const Attendance: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {students.map((student, index) => (
+              {filteredStudents.map((student, index) => (
                 <tr key={student.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {index + 1}
@@ -101,10 +160,10 @@ const Attendance: React.FC = () => {
                       className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={student.status}
                       onChange={(e) => {
-                        const updatedStudents = students.map(s => 
+                        const updatedAttendance = attendanceData.map(s => 
                           s.id === student.id ? { ...s, status: e.target.value } : s
                         );
-                        setStudents(updatedStudents);
+                        setAttendanceData(updatedAttendance);
                       }}
                     >
                       <option value="hadir">Hadir</option>
@@ -153,10 +212,10 @@ const Attendance: React.FC = () => {
         onSave={(data) => {
           if (editingStudent) {
             // Update existing student
-            const updatedStudents = students.map(s => 
+            const updatedAttendance = attendanceData.map(s => 
               s.id === editingStudent.id ? { ...s, status: data.status, remarks: data.remarks } : s
             );
-            setStudents(updatedStudents);
+            setAttendanceData(updatedAttendance);
           } else {
             // Add new attendance record (this would be handled differently in a real app)
             console.log('New attendance record:', data);

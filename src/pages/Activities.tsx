@@ -1,18 +1,40 @@
 
 import React, { useState } from 'react';
 import { Calendar, CheckCircle, Circle } from 'lucide-react';
+import { useStudents } from '@/contexts/StudentContext';
+
+interface Halaqah {
+  id: number;
+  name: string;
+  membersCount: number;
+  level: string;
+  pembina: string;
+  selectedStudents?: string[];
+}
 
 const Activities: React.FC = () => {
+  const { students } = useStudents();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedStudent, setSelectedStudent] = useState('1');
+  const [selectedHalaqah, setSelectedHalaqah] = useState('all');
+  const [selectedStudent, setSelectedStudent] = useState('');
   
-  const students = [
-    { id: '1', name: 'Ahmad Fauzi' },
-    { id: '2', name: 'Fatimah Az-Zahra' },
-    { id: '3', name: 'Muhammad Rizki' },
-    { id: '4', name: 'Siti Aisyah' },
-    { id: '5', name: 'Abdullah Rahman' },
-  ];
+  const [registeredHalaqahs] = useState<Halaqah[]>([
+    { id: 1, name: 'Halaqah Al-Fatihah', membersCount: 5, level: 'Pemula', pembina: 'Ustadz Ahmad', selectedStudents: ['1', '3', '5'] },
+    { id: 2, name: 'Halaqah Al-Baqarah', membersCount: 4, level: 'Menengah', pembina: 'Ustadz Rahman', selectedStudents: ['2', '4'] },
+    { id: 3, name: 'Halaqah An-Nisa', membersCount: 3, level: 'Lanjutan', pembina: 'Ustadz Ali', selectedStudents: ['6', '7'] },
+  ]);
+
+  const getStudentsByHalaqah = (halaqahId: string) => {
+    if (halaqahId === 'all') return students;
+    const halaqah = registeredHalaqahs.find(h => h.id.toString() === halaqahId);
+    if (!halaqah?.selectedStudents) return [];
+    
+    return students.filter(student => 
+      halaqah.selectedStudents?.includes(student.id.toString())
+    );
+  };
+
+  const filteredStudents = getStudentsByHalaqah(selectedHalaqah);
 
   const activities = [
     { id: 'bangun', label: 'Bangun Tidur', emoji: '⏰', completed: true },
@@ -44,7 +66,7 @@ const Activities: React.FC = () => {
         <p className="text-gray-600">Checklist kegiatan harian santri</p>
       </div>
       
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="flex items-center space-x-3">
           <Calendar className="text-gray-400" size={20} />
           <input
@@ -56,12 +78,30 @@ const Activities: React.FC = () => {
         </div>
         
         <select 
+          value={selectedHalaqah}
+          onChange={(e) => {
+            setSelectedHalaqah(e.target.value);
+            setSelectedStudent('');
+          }}
+          className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="all">Semua Halaqah</option>
+          {registeredHalaqahs.map(halaqah => (
+            <option key={halaqah.id} value={halaqah.id.toString()}>
+              {halaqah.name}
+            </option>
+          ))}
+        </select>
+        
+        <select 
           value={selectedStudent}
           onChange={(e) => setSelectedStudent(e.target.value)}
           className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={filteredStudents.length === 0}
         >
-          {students.map(student => (
-            <option key={student.id} value={student.id}>
+          <option value="">Pilih Santri</option>
+          {filteredStudents.map(student => (
+            <option key={student.id} value={student.id.toString()}>
               {student.name}
             </option>
           ))}
@@ -71,7 +111,7 @@ const Activities: React.FC = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-800">
-            Aktivitas Harian - {students.find(s => s.id === selectedStudent)?.name}
+            Aktivitas Harian - {selectedStudent ? students.find(s => s.id.toString() === selectedStudent)?.name : 'Pilih Santri'}
           </h3>
           <p className="text-sm text-gray-600 mt-1">
             Tanggal: {new Date(selectedDate).toLocaleDateString('id-ID', {

@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useStudents } from '@/contexts/StudentContext';
 
 interface StudentFinance {
   id: number;
@@ -39,10 +40,26 @@ interface StudentFinance {
   statusText: string;
 }
 
+interface Halaqah {
+  id: number;
+  name: string;
+  membersCount: number;
+  level: string;
+  pembina: string;
+  selectedStudents?: string[];
+}
+
 const Finance: React.FC = () => {
+  const { students } = useStudents();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedHalaqah, setSelectedHalaqah] = useState('all');
+  const [registeredHalaqahs] = useState<Halaqah[]>([
+    { id: 1, name: 'Halaqah Al-Fatihah', membersCount: 5, level: 'Pemula', pembina: 'Ustadz Ahmad', selectedStudents: ['1', '3', '5'] },
+    { id: 2, name: 'Halaqah Al-Baqarah', membersCount: 4, level: 'Menengah', pembina: 'Ustadz Rahman', selectedStudents: ['2', '4'] },
+    { id: 3, name: 'Halaqah An-Nisa', membersCount: 3, level: 'Lanjutan', pembina: 'Ustadz Ali', selectedStudents: ['6', '7'] },
+  ]);
   const [formData, setFormData] = useState({
+    halaqah: '',
     nama: '',
     tanggal: '',
     jumlah: '',
@@ -51,7 +68,7 @@ const Finance: React.FC = () => {
   });
 
   // Sample data with Halaqah assignments
-  const [students] = useState<StudentFinance[]>([
+  const [studentsFinance] = useState<StudentFinance[]>([
     {
       id: 1,
       nama: 'Ahmad Fauzi',
@@ -66,7 +83,7 @@ const Finance: React.FC = () => {
     {
       id: 2,
       nama: 'Fatimah Zahra',
-      halaqah: '1',
+      halaqah: '2',
       budgetHarian: 10000,
       budgetMingguan: 70000,
       pengeluaranMingguIni: 77000,
@@ -77,7 +94,7 @@ const Finance: React.FC = () => {
     {
       id: 3,
       nama: 'Muhammad Ali',
-      halaqah: '2',
+      halaqah: '1',
       budgetHarian: 10000,
       budgetMingguan: 70000,
       pengeluaranMingguIni: 56000,
@@ -85,83 +102,30 @@ const Finance: React.FC = () => {
       status: 'hemat',
       statusText: 'Hemat 20%',
     },
-    {
-      id: 4,
-      nama: 'Siti Nurhaliza',
-      halaqah: '2',
-      budgetHarian: 10000,
-      budgetMingguan: 70000,
-      pengeluaranMingguIni: 84000,
-      persentase: 120,
-      status: 'over',
-      statusText: 'Over Budget',
-    },
-    {
-      id: 5,
-      nama: 'Abdullah Rahman',
-      halaqah: '3',
-      budgetHarian: 10000,
-      budgetMingguan: 70000,
-      pengeluaranMingguIni: 65000,
-      persentase: 93,
-      status: 'hemat',
-      statusText: 'Hemat 7%',
-    },
-    {
-      id: 6,
-      nama: 'Khadijah Binti Ali',
-      halaqah: '3',
-      budgetHarian: 10000,
-      budgetMingguan: 70000,
-      pengeluaranMingguIni: 72000,
-      persentase: 103,
-      status: 'over',
-      statusText: 'Over Budget',
-    },
-    {
-      id: 7,
-      nama: 'Umar Bin Khattab',
-      halaqah: '4',
-      budgetHarian: 10000,
-      budgetMingguan: 70000,
-      pengeluaranMingguIni: 58000,
-      persentase: 83,
-      status: 'hemat',
-      statusText: 'Hemat 17%',
-    },
-    {
-      id: 8,
-      nama: 'Aisyah Binti Abu Bakar',
-      halaqah: '5',
-      budgetHarian: 10000,
-      budgetMingguan: 70000,
-      pengeluaranMingguIni: 75000,
-      persentase: 107,
-      status: 'over',
-      statusText: 'Over Budget',
-    },
-    {
-      id: 9,
-      nama: 'Zaid Bin Haritsah',
-      halaqah: '6',
-      budgetHarian: 10000,
-      budgetMingguan: 70000,
-      pengeluaranMingguIni: 61000,
-      persentase: 87,
-      status: 'hemat',
-      statusText: 'Hemat 13%',
-    },
   ]);
 
   const filteredStudents = selectedHalaqah === 'all' 
-    ? students 
-    : students.filter(student => student.halaqah === selectedHalaqah);
+    ? studentsFinance 
+    : studentsFinance.filter(student => {
+        const halaqah = registeredHalaqahs.find(h => h.id.toString() === selectedHalaqah);
+        return halaqah?.selectedStudents?.includes(student.id.toString());
+      });
+
+  const getStudentsByHalaqah = (halaqahId: string) => {
+    const halaqah = registeredHalaqahs.find(h => h.id.toString() === halaqahId);
+    if (!halaqah?.selectedStudents) return [];
+    
+    return students.filter(student => 
+      halaqah.selectedStudents?.includes(student.id.toString())
+    );
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Form submitted:', formData);
     setIsOpen(false);
     setFormData({
+      halaqah: '',
       nama: '',
       tanggal: '',
       jumlah: '',
@@ -213,15 +177,35 @@ const Finance: React.FC = () => {
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <Label htmlFor="nama">Nama Santri</Label>
-                    <Select value={formData.nama} onValueChange={(value) => setFormData({...formData, nama: value})}>
+                    <Label htmlFor="halaqah">Nama Halaqah</Label>
+                    <Select value={formData.halaqah} onValueChange={(value) => setFormData({...formData, halaqah: value, nama: ''})}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Pilih santri" />
+                        <SelectValue placeholder="Pilih halaqah" />
                       </SelectTrigger>
                       <SelectContent>
-                        {students.map((student) => (
-                          <SelectItem key={student.id} value={student.nama}>
-                            {student.nama} (Halaqah {student.halaqah})
+                        {registeredHalaqahs.map((halaqah) => (
+                          <SelectItem key={halaqah.id} value={halaqah.id.toString()}>
+                            {halaqah.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="nama">Nama Santri</Label>
+                    <Select 
+                      value={formData.nama} 
+                      onValueChange={(value) => setFormData({...formData, nama: value})}
+                      disabled={!formData.halaqah}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={!formData.halaqah ? "Pilih halaqah terlebih dahulu" : "Pilih santri"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {formData.halaqah && getStudentsByHalaqah(formData.halaqah).map((student) => (
+                          <SelectItem key={student.id} value={student.name}>
+                            {student.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -306,12 +290,11 @@ const Finance: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua Halaqah</SelectItem>
-                <SelectItem value="1">Halaqah 1</SelectItem>
-                <SelectItem value="2">Halaqah 2</SelectItem>
-                <SelectItem value="3">Halaqah 3</SelectItem>
-                <SelectItem value="4">Halaqah 4</SelectItem>
-                <SelectItem value="5">Halaqah 5</SelectItem>
-                <SelectItem value="6">Halaqah 6</SelectItem>
+                {registeredHalaqahs.map((halaqah) => (
+                  <SelectItem key={halaqah.id} value={halaqah.id.toString()}>
+                    {halaqah.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <span className="text-sm text-gray-500">

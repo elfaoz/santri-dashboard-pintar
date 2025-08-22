@@ -6,6 +6,9 @@ import { Edit, Save, Eye } from 'lucide-react';
 import { calculateMemorizationStatus } from '@/utils/surahData';
 import InputMemorizationModal from './InputMemorizationModal';
 import DetailMemorizationModal from './DetailMemorizationModal';
+import { useStudents } from '@/contexts/StudentContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 export interface MemorizationDetail {
   juz: number;
@@ -27,7 +30,24 @@ export interface MemorizationRecord {
   memorizationDetail?: MemorizationDetail;
 }
 
+interface Halaqah {
+  id: number;
+  name: string;
+  membersCount: number;
+  level: string;
+  pembina: string;
+  selectedStudents?: string[];
+}
+
 const MemorizationTable: React.FC = () => {
+  const { students } = useStudents();
+  const [selectedHalaqah, setSelectedHalaqah] = useState('all');
+  
+  const [registeredHalaqahs] = useState<Halaqah[]>([
+    { id: 1, name: 'Halaqah Al-Fatihah', membersCount: 5, level: 'Pemula', pembina: 'Ustadz Ahmad', selectedStudents: ['1', '3', '5'] },
+    { id: 2, name: 'Halaqah Al-Baqarah', membersCount: 4, level: 'Menengah', pembina: 'Ustadz Rahman', selectedStudents: ['2', '4'] },
+    { id: 3, name: 'Halaqah An-Nisa', membersCount: 3, level: 'Lanjutan', pembina: 'Ustadz Ali', selectedStudents: ['6', '7'] },
+  ]);
   const [records, setRecords] = useState<MemorizationRecord[]>([
     {
       id: '1',
@@ -63,24 +83,21 @@ const MemorizationTable: React.FC = () => {
         ayahTo: 20,
       }
     },
-    {
-      id: '3',
-      studentName: 'Abdullah Rahman',
-      date: '2025-07-03',
-      target: 2,
-      actual: 1,
-      percentage: 50,
-      status: 'Not Achieved',
-      memorizationDetail: {
-        juz: 2,
-        pageFrom: 21,
-        pageTo: 22,
-        surahName: 'Al-Baqarah',
-        ayahFrom: 142,
-        ayahTo: 162,
-      }
-    }
   ]);
+
+  const getStudentsByHalaqah = () => {
+    if (selectedHalaqah === 'all') return records;
+    
+    const halaqah = registeredHalaqahs.find(h => h.id.toString() === selectedHalaqah);
+    if (!halaqah?.selectedStudents) return [];
+    
+    return records.filter(record => {
+      const student = students.find(s => s.name === record.studentName);
+      return student && halaqah.selectedStudents?.includes(student.id.toString());
+    });
+  };
+
+  const filteredRecords = getStudentsByHalaqah();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState<number>(0);
@@ -142,6 +159,29 @@ const MemorizationTable: React.FC = () => {
         </Button>
       </div>
 
+      {/* Halaqah Filter */}
+      <div className="flex items-center gap-3">
+        <Label htmlFor="halaqah-filter" className="text-sm font-medium text-gray-700">
+          Filter Halaqah:
+        </Label>
+        <Select value={selectedHalaqah} onValueChange={setSelectedHalaqah}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Pilih Halaqah" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Semua Halaqah</SelectItem>
+            {registeredHalaqahs.map((halaqah) => (
+              <SelectItem key={halaqah.id} value={halaqah.id.toString()}>
+                {halaqah.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-gray-500">
+          ({filteredRecords.length} records)
+        </span>
+      </div>
+
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <Table>
           <TableHeader>
@@ -156,7 +196,7 @@ const MemorizationTable: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {records.map((record) => (
+            {filteredRecords.map((record) => (
               <TableRow key={record.id} className="hover:bg-gray-50">
                 <TableCell className="font-medium">
                   {record.studentName}
