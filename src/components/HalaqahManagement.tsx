@@ -9,21 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Users, GraduationCap } from 'lucide-react';
 import EditHalaqahModal from './EditHalaqahModal';
 import { useStudents } from '@/contexts/StudentContext';
-
-interface Halaqah {
-  id: number;
-  name: string;
-  membersCount: number;
-  level: string;
-  pembina: string;
-  selectedStudents?: string[];
-}
+import { useHalaqahs } from '@/contexts/HalaqahContext';
 
 const HalaqahManagement: React.FC = () => {
   const { students } = useStudents();
-  const [halaqahs, setHalaqahs] = useState<Halaqah[]>([]);
+  const { halaqahs, addHalaqah, updateHalaqah, deleteHalaqah } = useHalaqahs();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedHalaqah, setSelectedHalaqah] = useState<Halaqah | null>(null);
+  const [selectedHalaqah, setSelectedHalaqah] = useState<any>(null);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -44,8 +36,7 @@ const HalaqahManagement: React.FC = () => {
     e.preventDefault();
     
     // Create new halaqah object
-    const newHalaqah: Halaqah = {
-      id: halaqahs.length + 1,
+    const newHalaqah = {
       name: formData.name,
       membersCount: parseInt(formData.membersCount),
       level: formData.level,
@@ -53,7 +44,7 @@ const HalaqahManagement: React.FC = () => {
     };
 
     // Add to halaqahs array
-    setHalaqahs(prev => [...prev, newHalaqah]);
+    addHalaqah(newHalaqah);
 
     // Reset form
     setFormData({
@@ -66,19 +57,17 @@ const HalaqahManagement: React.FC = () => {
 
   const handleDeleteHalaqah = (halaqahId: number) => {
     if (window.confirm('Apakah Anda yakin ingin menghapus halaqah ini?')) {
-      setHalaqahs(prev => prev.filter(h => h.id !== halaqahId));
+      deleteHalaqah(halaqahId);
     }
   };
 
-  const handleEditHalaqah = (halaqah: Halaqah) => {
+  const handleEditHalaqah = (halaqah: any) => {
     setSelectedHalaqah(halaqah);
     setIsEditModalOpen(true);
   };
 
-  const handleSaveHalaqah = (updatedHalaqah: Halaqah) => {
-    setHalaqahs(prev => 
-      prev.map(h => h.id === updatedHalaqah.id ? updatedHalaqah : h)
-    );
+  const handleSaveHalaqah = (updatedHalaqah: any) => {
+    updateHalaqah(updatedHalaqah.id, updatedHalaqah);
     setIsEditModalOpen(false);
     setSelectedHalaqah(null);
   };

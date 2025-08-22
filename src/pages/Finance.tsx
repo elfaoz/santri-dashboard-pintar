@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useStudents } from '@/contexts/StudentContext';
+import { useHalaqahs } from '@/contexts/HalaqahContext';
 
 interface StudentFinance {
   id: number;
@@ -40,24 +41,12 @@ interface StudentFinance {
   statusText: string;
 }
 
-interface Halaqah {
-  id: number;
-  name: string;
-  membersCount: number;
-  level: string;
-  pembina: string;
-  selectedStudents?: string[];
-}
 
 const Finance: React.FC = () => {
   const { students } = useStudents();
+  const { halaqahs: registeredHalaqahs } = useHalaqahs();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedHalaqah, setSelectedHalaqah] = useState('all');
-  const [registeredHalaqahs] = useState<Halaqah[]>([
-    { id: 1, name: 'Halaqah Al-Fatihah', membersCount: 5, level: 'Pemula', pembina: 'Ustadz Ahmad', selectedStudents: ['1', '3', '5'] },
-    { id: 2, name: 'Halaqah Al-Baqarah', membersCount: 4, level: 'Menengah', pembina: 'Ustadz Rahman', selectedStudents: ['2', '4'] },
-    { id: 3, name: 'Halaqah An-Nisa', membersCount: 3, level: 'Lanjutan', pembina: 'Ustadz Ali', selectedStudents: ['6', '7'] },
-  ]);
   const [formData, setFormData] = useState({
     halaqah: '',
     nama: '',
