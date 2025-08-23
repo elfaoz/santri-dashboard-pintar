@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useStudents } from '@/contexts/StudentContext';
 
 interface AttendanceRecord {
   id: number;
@@ -8,35 +9,8 @@ interface AttendanceRecord {
 }
 
 const AttendanceTable: React.FC = () => {
-  const [attendanceData] = useState<AttendanceRecord[]>([
-    {
-      id: 1,
-      name: 'Ahmad Fauzi',
-      attendance: {
-        '26/06': 'hadir',
-        '27/06': 'sakit',
-        '28/06': 'hadir'
-      }
-    },
-    {
-      id: 2,
-      name: 'Fatimah Az-Zahra',
-      attendance: {
-        '26/06': 'izin',
-        '27/06': 'hadir',
-        '28/06': 'alfa'
-      }
-    },
-    {
-      id: 3,
-      name: 'Muhammad Rizki',
-      attendance: {
-        '26/06': 'hadir',
-        '27/06': 'hadir',
-        '28/06': 'hadir'
-      }
-    }
-  ]);
+  const { students } = useStudents();
+  const [attendanceData] = useState<AttendanceRecord[]>([]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -82,7 +56,7 @@ const AttendanceTable: React.FC = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {attendanceData.map((student) => (
+            {attendanceData.length > 0 ? attendanceData.map((student) => (
               <tr key={student.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {student.name}
@@ -95,7 +69,13 @@ const AttendanceTable: React.FC = () => {
                   </td>
                 ))}
               </tr>
-            ))}
+            )) : (
+              <tr>
+                <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                  Belum ada data absensi
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

@@ -6,12 +6,11 @@ interface MemorizationSummaryProps {
 }
 
 const MemorizationSummary: React.FC<MemorizationSummaryProps> = ({ dateRange }) => {
-  // Mock data - replace with real data from your backend
   const summaryData = {
-    totalPages: 45,
-    targetPages: 60,
-    averageDaily: 2.1,
-    completionRate: 75
+    totalPages: 0,
+    targetPages: 0,
+    averageDaily: 0,
+    completionRate: 0
   };
 
   return (

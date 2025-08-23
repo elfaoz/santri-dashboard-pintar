@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Calendar, Plus, Edit } from 'lucide-react';
 import InputAbsensiModal from '../components/InputAbsensiModal';
 import { useStudents } from '@/contexts/StudentContext';
+import { useHalaqahs } from '@/contexts/HalaqahContext';
 
 interface Halaqah {
   id: number;
@@ -28,18 +29,8 @@ const Attendance: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<any>(null);
   
-  const [registeredHalaqahs] = useState<Halaqah[]>([
-    { id: 1, name: 'Halaqah Al-Fatihah', membersCount: 5, level: 'Pemula', pembina: 'Ustadz Ahmad', selectedStudents: ['1', '3', '5'] },
-    { id: 2, name: 'Halaqah Al-Baqarah', membersCount: 4, level: 'Menengah', pembina: 'Ustadz Rahman', selectedStudents: ['2', '4'] },
-    { id: 3, name: 'Halaqah An-Nisa', membersCount: 3, level: 'Lanjutan', pembina: 'Ustadz Ali', selectedStudents: ['6', '7'] },
-  ]);
-
-  const [attendanceData, setAttendanceData] = useState<StudentAttendance[]>([
-    { id: 1, name: 'Ahmad Fauzi', status: 'hadir', halaqah: '1', remarks: '' },
-    { id: 2, name: 'Fatimah Az-Zahra', status: 'izin', halaqah: '2', remarks: 'Ada keperluan keluarga' },
-    { id: 3, name: 'Muhammad Rizki', status: 'hadir', halaqah: '1', remarks: '' },
-    { id: 4, name: 'Siti Aisyah', status: 'sakit', halaqah: '2', remarks: 'Demam tinggi' },
-  ]);
+  const { halaqahs: registeredHalaqahs } = useHalaqahs();
+  const [attendanceData, setAttendanceData] = useState<StudentAttendance[]>([]);
 
   const getStudentsByHalaqah = () => {
     if (selectedHalaqah === 'all') {

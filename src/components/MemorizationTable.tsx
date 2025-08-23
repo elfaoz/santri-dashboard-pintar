@@ -7,6 +7,7 @@ import { calculateMemorizationStatus } from '@/utils/surahData';
 import InputMemorizationModal from './InputMemorizationModal';
 import DetailMemorizationModal from './DetailMemorizationModal';
 import { useStudents } from '@/contexts/StudentContext';
+import { useHalaqahs } from '@/contexts/HalaqahContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
@@ -41,49 +42,10 @@ interface Halaqah {
 
 const MemorizationTable: React.FC = () => {
   const { students } = useStudents();
+  const { halaqahs: registeredHalaqahs } = useHalaqahs();
   const [selectedHalaqah, setSelectedHalaqah] = useState('all');
   
-  const [registeredHalaqahs] = useState<Halaqah[]>([
-    { id: 1, name: 'Halaqah Al-Fatihah', membersCount: 5, level: 'Pemula', pembina: 'Ustadz Ahmad', selectedStudents: ['1', '3', '5'] },
-    { id: 2, name: 'Halaqah Al-Baqarah', membersCount: 4, level: 'Menengah', pembina: 'Ustadz Rahman', selectedStudents: ['2', '4'] },
-    { id: 3, name: 'Halaqah An-Nisa', membersCount: 3, level: 'Lanjutan', pembina: 'Ustadz Ali', selectedStudents: ['6', '7'] },
-  ]);
-  const [records, setRecords] = useState<MemorizationRecord[]>([
-    {
-      id: '1',
-      studentName: 'Ahmad Fauzi',
-      date: '2025-07-01',
-      target: 2,
-      actual: 1.5,
-      percentage: 75,
-      status: 'Achieved',
-      memorizationDetail: {
-        juz: 1,
-        pageFrom: 1,
-        pageTo: 2,
-        surahName: 'Al-Fatihah',
-        ayahFrom: 1,
-        ayahTo: 7,
-      }
-    },
-    {
-      id: '2',
-      studentName: 'Muhammad Rizki',
-      date: '2025-07-02',
-      target: 2,
-      actual: 2,
-      percentage: 100,
-      status: 'Fully Achieved',
-      memorizationDetail: {
-        juz: 1,
-        pageFrom: 3,
-        pageTo: 4,
-        surahName: 'Al-Baqarah',
-        ayahFrom: 1,
-        ayahTo: 20,
-      }
-    },
-  ]);
+  const [records, setRecords] = useState<MemorizationRecord[]>([]);
 
   const getStudentsByHalaqah = () => {
     if (selectedHalaqah === 'all') return records;
@@ -196,7 +158,7 @@ const MemorizationTable: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredRecords.map((record) => (
+            {filteredRecords.length > 0 ? filteredRecords.map((record) => (
               <TableRow key={record.id} className="hover:bg-gray-50">
                 <TableCell className="font-medium">
                   {record.studentName}
@@ -243,7 +205,13 @@ const MemorizationTable: React.FC = () => {
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+            )) : (
+              <TableRow>
+                <TableCell colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                  Belum ada data hafalan
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>

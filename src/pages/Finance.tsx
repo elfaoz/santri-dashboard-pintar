@@ -56,42 +56,7 @@ const Finance: React.FC = () => {
     catatan: '',
   });
 
-  // Sample data with Halaqah assignments
-  const [studentsFinance] = useState<StudentFinance[]>([
-    {
-      id: 1,
-      nama: 'Ahmad Fauzi',
-      halaqah: '1',
-      budgetHarian: 10000,
-      budgetMingguan: 70000,
-      pengeluaranMingguIni: 63000,
-      persentase: 90,
-      status: 'hemat',
-      statusText: 'Hemat 10%',
-    },
-    {
-      id: 2,
-      nama: 'Fatimah Zahra',
-      halaqah: '2',
-      budgetHarian: 10000,
-      budgetMingguan: 70000,
-      pengeluaranMingguIni: 77000,
-      persentase: 110,
-      status: 'over',
-      statusText: 'Over Budget',
-    },
-    {
-      id: 3,
-      nama: 'Muhammad Ali',
-      halaqah: '1',
-      budgetHarian: 10000,
-      budgetMingguan: 70000,
-      pengeluaranMingguIni: 56000,
-      persentase: 80,
-      status: 'hemat',
-      statusText: 'Hemat 20%',
-    },
-  ]);
+  const [studentsFinance] = useState<StudentFinance[]>([]);
 
   const filteredStudents = selectedHalaqah === 'all' 
     ? studentsFinance 

@@ -7,84 +7,7 @@ const SantriRanking: React.FC = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<MemorizationRecord | null>(null);
 
-  // Mock ranking data - replace with real data from your backend
-  const rankingData = [
-    {
-      id: '1',
-      name: 'Muhammad Rizki',
-      totalPages: 89,
-      halaqah: 'Halaqah 1',
-      rank: 1,
-      memorizationDetail: {
-        juz: 3,
-        pageFrom: 41,
-        pageTo: 89,
-        surahName: 'Al-Imran',
-        ayahFrom: 1,
-        ayahTo: 200,
-      }
-    },
-    {
-      id: '2', 
-      name: 'Fatimah Az-Zahra',
-      totalPages: 76,
-      halaqah: 'Halaqah 2',
-      rank: 2,
-      memorizationDetail: {
-        juz: 2,
-        pageFrom: 21,
-        pageTo: 76,
-        surahName: 'Al-Baqarah',
-        ayahFrom: 142,
-        ayahTo: 286,
-      }
-    },
-    {
-      id: '3',
-      name: 'Ahmad Fauzi',
-      totalPages: 65,
-      halaqah: 'Halaqah 1',
-      rank: 3,
-      memorizationDetail: {
-        juz: 2,
-        pageFrom: 1,
-        pageTo: 65,
-        surahName: 'Al-Baqarah',
-        ayahFrom: 1,
-        ayahTo: 200,
-      }
-    },
-    {
-      id: '4',
-      name: 'Abdullah Rahman',
-      totalPages: 58,
-      halaqah: 'Halaqah 1',
-      rank: 4,
-      memorizationDetail: {
-        juz: 2,
-        pageFrom: 1,
-        pageTo: 58,
-        surahName: 'Al-Baqarah',
-        ayahFrom: 1,
-        ayahTo: 180,
-      }
-    },
-    {
-      id: '5',
-      name: 'Siti Aisyah',
-      totalPages: 45,
-      halaqah: 'Halaqah 2',
-      rank: 5,
-      memorizationDetail: {
-        juz: 1,
-        pageFrom: 1,
-        pageTo: 45,
-        surahName: 'Al-Baqarah',
-        ayahFrom: 1,
-        ayahTo: 150,
-      }
-    }
-  ];
+  const rankingData: any[] = [];
 
   const handleViewDetail = (student: typeof rankingData[0]) => {
     const record: MemorizationRecord = {
@@ -159,7 +82,7 @@ const SantriRanking: React.FC = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {rankingData.map((student) => (
+            {rankingData.length > 0 ? rankingData.map((student) => (
               <tr key={student.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-center">
                   <div className="flex items-center justify-center space-x-2">
@@ -190,7 +113,13 @@ const SantriRanking: React.FC = () => {
                   </button>
                 </td>
               </tr>
-            ))}
+            )) : (
+              <tr>
+                <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                  Belum ada data ranking santri
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
