@@ -2,31 +2,27 @@
 import React, { useState } from 'react';
 import { Calendar, CheckCircle, Circle } from 'lucide-react';
 import { useStudents } from '@/contexts/StudentContext';
+import { useHalaqahs } from '@/contexts/HalaqahContext';
 
-interface Halaqah {
-  id: number;
-  name: string;
-  membersCount: number;
-  level: string;
-  pembina: string;
-  selectedStudents?: string[];
+interface ActivityRecord {
+  id: string;
+  studentId: string;
+  studentName: string;
+  date: string;
+  activities: Record<string, boolean>;
 }
 
 const Activities: React.FC = () => {
   const { students } = useStudents();
+  const { halaqahs } = useHalaqahs();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedHalaqah, setSelectedHalaqah] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState('');
-  
-  const [registeredHalaqahs] = useState<Halaqah[]>([
-    { id: 1, name: 'Halaqah Al-Fatihah', membersCount: 5, level: 'Pemula', pembina: 'Ustadz Ahmad', selectedStudents: ['1', '3', '5'] },
-    { id: 2, name: 'Halaqah Al-Baqarah', membersCount: 4, level: 'Menengah', pembina: 'Ustadz Rahman', selectedStudents: ['2', '4'] },
-    { id: 3, name: 'Halaqah An-Nisa', membersCount: 3, level: 'Lanjutan', pembina: 'Ustadz Ali', selectedStudents: ['6', '7'] },
-  ]);
+  const [activityRecords, setActivityRecords] = useState<ActivityRecord[]>([]);
 
   const getStudentsByHalaqah = (halaqahId: string) => {
     if (halaqahId === 'all') return students;
-    const halaqah = registeredHalaqahs.find(h => h.id.toString() === halaqahId);
+    const halaqah = halaqahs.find(h => h.id.toString() === halaqahId);
     if (!halaqah?.selectedStudents) return [];
     
     return students.filter(student => 
@@ -59,6 +55,46 @@ const Activities: React.FC = () => {
     }));
   };
 
+  const handleSaveActivities = () => {
+    if (!selectedStudent) return;
+    
+    const student = students.find(s => s.id.toString() === selectedStudent);
+    if (!student) return;
+
+    const newRecord: ActivityRecord = {
+      id: `${selectedStudent}-${selectedDate}`,
+      studentId: selectedStudent,
+      studentName: student.name,
+      date: selectedDate,
+      activities: { ...activityStatus }
+    };
+
+    setActivityRecords(prev => {
+      const existing = prev.filter(record => record.id !== newRecord.id);
+      return [...existing, newRecord];
+    });
+  };
+
+  const getActivityRecordsForWeek = () => {
+    const endDate = new Date(selectedDate);
+    const startDate = new Date(endDate);
+    startDate.setDate(endDate.getDate() - 6);
+    
+    const weekDates = [];
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      weekDates.push(new Date(d).toISOString().split('T')[0]);
+    }
+    
+    const studentRecords = activityRecords.filter(record => 
+      (!selectedStudent || record.studentId === selectedStudent) &&
+      weekDates.includes(record.date)
+    );
+    
+    return { weekDates, studentRecords };
+  };
+
+  const { weekDates, studentRecords } = getActivityRecordsForWeek();
+
   return (
     <div className="p-6">
       <div className="mb-8">
@@ -86,7 +122,7 @@ const Activities: React.FC = () => {
           className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">Semua Halaqah</option>
-          {registeredHalaqahs.map(halaqah => (
+          {halaqahs.map(halaqah => (
             <option key={halaqah.id} value={halaqah.id.toString()}>
               {halaqah.name}
             </option>
@@ -161,13 +197,72 @@ const Activities: React.FC = () => {
               <div className="text-sm text-gray-600">
                 Aktivitas diselesaikan: {Object.values(activityStatus).filter(Boolean).length} dari {activities.length}
               </div>
-              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+              <button 
+                onClick={handleSaveActivities}
+                disabled={!selectedStudent}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
                 Simpan Aktivitas
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Weekly Activities Table */}
+      {studentRecords.length > 0 && (
+        <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-800">
+              Riwayat Aktivitas - 7 Hari Terakhir
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Santri
+                  </th>
+                  {weekDates.map(date => (
+                    <th key={date} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                      {new Date(date).toLocaleDateString('id-ID', { 
+                        month: 'short', 
+                        day: 'numeric'
+                      })}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {activities.map(activity => (
+                  <tr key={activity.id}>
+                    <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                      <div className="flex items-center space-x-2">
+                        <span>{activity.emoji}</span>
+                        <span>{activity.label}</span>
+                      </div>
+                    </td>
+                    {weekDates.map(date => {
+                      const record = studentRecords.find(r => r.date === date);
+                      const isCompleted = record?.activities[activity.id] || false;
+                      return (
+                        <td key={date} className="px-4 py-3 text-center">
+                          {isCompleted ? (
+                            <CheckCircle className="mx-auto text-green-600" size={20} />
+                          ) : (
+                            <Circle className="mx-auto text-gray-300" size={20} />
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

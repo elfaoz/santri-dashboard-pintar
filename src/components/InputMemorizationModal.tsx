@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { surahs, getSurahByName, calculateMemorizationStatus } from '@/utils/surahData';
 import { MemorizationRecord, MemorizationDetail } from './MemorizationTable';
+import { useStudents } from '@/contexts/StudentContext';
+import { useHalaqahs } from '@/contexts/HalaqahContext';
 
 interface InputMemorizationModalProps {
   isOpen: boolean;
@@ -33,30 +35,35 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
   onClose,
   onSubmit
 }) => {
+  const { students } = useStudents();
+  const { halaqahs } = useHalaqahs();
   const [selectedSurah, setSelectedSurah] = useState<string>('');
   const [maxAyah, setMaxAyah] = useState<number>(1);
   const [validationError, setValidationError] = useState<string>('');
 
-  // Grouped students by Halaqah
-  const studentsByHalaqah = {
-    'Halaqah 1': [
-      { id: '1', name: 'Abdul Hakim' },
-      { id: '2', name: 'Ahmad Fauzi' },
-      { id: '3', name: 'Muhammad Rizki' },
-      { id: '4', name: 'Abdullah Rahman' }
-    ],
-    'Halaqah 2': [
-      { id: '5', name: 'Budi Santoso' },
-      { id: '6', name: 'Rudi Hermawan' },
-      { id: '7', name: 'Fatimah Az-Zahra' },
-      { id: '8', name: 'Siti Aisyah' }
-    ],
-    'Halaqah 3': [
-      { id: '9', name: 'Ali Hassan' },
-      { id: '10', name: 'Umar Faruq' },
-      { id: '11', name: 'Zahra Fatimah' }
-    ]
+  // Group students by their halaqahs
+  const getStudentsByHalaqah = () => {
+    const grouped: Record<string, Array<{ id: string; name: string }>> = {};
+    
+    halaqahs.forEach(halaqah => {
+      if (halaqah.selectedStudents?.length) {
+        const halaqahStudents = students.filter(student => 
+          halaqah.selectedStudents?.includes(student.id.toString())
+        ).map(student => ({
+          id: student.id.toString(),
+          name: student.name
+        }));
+        
+        if (halaqahStudents.length > 0) {
+          grouped[halaqah.name] = halaqahStudents;
+        }
+      }
+    });
+    
+    return grouped;
   };
+
+  const studentsByHalaqah = getStudentsByHalaqah();
 
   const form = useForm<FormData>({
     defaultValues: {
@@ -166,23 +173,29 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
                         <SelectValue placeholder="Select student..." />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="max-h-64 bg-white border border-gray-200 shadow-lg z-50">
-                      {Object.entries(studentsByHalaqah).map(([halaqah, students]) => (
-                        <div key={halaqah}>
-                          <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 bg-gray-100 sticky top-0">
-                            {halaqah}
+                    <SelectContent className="max-h-64 bg-white border border-gray-200 shadow-lg z-50 overflow-y-auto">
+                      {Object.entries(studentsByHalaqah).length > 0 ? (
+                        Object.entries(studentsByHalaqah).map(([halaqah, students]) => (
+                          <div key={halaqah}>
+                            <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 bg-gray-100 sticky top-0 z-10">
+                              {halaqah}
+                            </div>
+                            {students.map((student) => (
+                              <SelectItem 
+                                key={student.id} 
+                                value={student.name}
+                                className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer pl-6"
+                              >
+                                {student.name}
+                              </SelectItem>
+                            ))}
                           </div>
-                          {students.map((student) => (
-                            <SelectItem 
-                              key={student.id} 
-                              value={student.name}
-                              className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer pl-6"
-                            >
-                              {student.name}
-                            </SelectItem>
-                          ))}
+                        ))
+                      ) : (
+                        <div className="px-2 py-4 text-sm text-gray-500 text-center">
+                          Belum ada halaqah dengan santri terdaftar
                         </div>
-                      ))}
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />

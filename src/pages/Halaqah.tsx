@@ -5,9 +5,13 @@ import MemorizationTable from '../components/MemorizationTable';
 import DetailMemorizationModal from '../components/DetailMemorizationModal';
 import SantriRanking from '../components/SantriRanking';
 import { MemorizationRecord } from '../components/MemorizationTable';
+import { useStudents } from '@/contexts/StudentContext';
+import { useHalaqahs } from '@/contexts/HalaqahContext';
 
 const Halaqah: React.FC = () => {
-  const [selectedHalaqah, setSelectedHalaqah] = useState('1');
+  const { students } = useStudents();
+  const { halaqahs } = useHalaqahs();
+  const [selectedHalaqah, setSelectedHalaqah] = useState('');
   const [activeTab, setActiveTab] = useState<'overview' | 'records'>('overview');
   
   // Overview filters
@@ -15,113 +19,43 @@ const Halaqah: React.FC = () => {
   const [overviewSelectedStudent, setOverviewSelectedStudent] = useState('');
   
   // Daily Records filters
-  const [recordsSelectedHalaqah, setRecordsSelectedHalaqah] = useState('1');
+  const [recordsSelectedHalaqah, setRecordsSelectedHalaqah] = useState('');
   
   // Detail modal state
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<MemorizationRecord | null>(null);
-  
-  const halaqahData = {
-    '1': [
-      { 
-        id: 1, 
-        name: 'Ahmad Fauzi', 
-        target: 2, 
-        setoran: 1, 
-        percentage: 50,
-        memorizationDetail: {
-          juz: 1,
-          pageFrom: 1,
-          pageTo: 2,
-          surahName: 'Al-Fatihah',
-          ayahFrom: 1,
-          ayahTo: 7,
-        }
-      },
-      { 
-        id: 2, 
-        name: 'Muhammad Rizki', 
-        target: 2, 
-        setoran: 2, 
-        percentage: 100,
-        memorizationDetail: {
-          juz: 1,
-          pageFrom: 3,
-          pageTo: 4,
-          surahName: 'Al-Baqarah',
-          ayahFrom: 1,
-          ayahTo: 20,
-        }
-      },
-      { 
-        id: 3, 
-        name: 'Abdullah Rahman', 
-        target: 2, 
-        setoran: 1, 
-        percentage: 50,
-        memorizationDetail: {
-          juz: 2,
-          pageFrom: 21,
-          pageTo: 22,
-          surahName: 'Al-Baqarah',
-          ayahFrom: 142,
-          ayahTo: 162,
-        }
-      },
-    ],
-    '2': [
-      { 
-        id: 4, 
-        name: 'Fatimah Az-Zahra', 
-        target: 2, 
-        setoran: 2, 
-        percentage: 100,
-        memorizationDetail: {
-          juz: 3,
-          pageFrom: 41,
-          pageTo: 42,
-          surahName: 'Al-Imran',
-          ayahFrom: 1,
-          ayahTo: 30,
-        }
-      },
-      { 
-        id: 5, 
-        name: 'Siti Aisyah', 
-        target: 2, 
-        setoran: 1, 
-        percentage: 50,
-        memorizationDetail: {
-          juz: 3,
-          pageFrom: 43,
-          pageTo: 44,
-          surahName: 'Al-Imran',
-          ayahFrom: 31,
-          ayahTo: 60,
-        }
-      },
-    ]
+
+  const getStudentsByHalaqah = (halaqahId: string) => {
+    if (!halaqahId) return students;
+    const halaqah = halaqahs.find(h => h.id.toString() === halaqahId);
+    if (!halaqah?.selectedStudents) return [];
+    
+    return students.filter(student => 
+      halaqah.selectedStudents?.includes(student.id.toString())
+    );
   };
 
-  const students = [
-    { id: '1', name: 'Ahmad Fauzi' },
-    { id: '2', name: 'Muhammad Rizki' },
-    { id: '3', name: 'Abdullah Rahman' },
-    { id: '4', name: 'Fatimah Az-Zahra' },
-    { id: '5', name: 'Siti Aisyah' },
-  ];
+  const filteredStudents = getStudentsByHalaqah(selectedHalaqah);
 
   const handleDetail = (student: any) => {
-    // Convert halaqah data to MemorizationRecord format
+    // This would be implemented when you have actual memorization data
+    // For now, just show a placeholder record
     const record: MemorizationRecord = {
       id: student.id.toString(),
       studentName: student.name,
       date: new Date().toISOString().split('T')[0],
-      target: student.target,
-      actual: student.setoran,
-      percentage: student.percentage,
-      status: student.percentage >= 100 ? 'Fully Achieved' : student.percentage >= 75 ? 'Achieved' : 'Not Achieved',
-      memorizationDetail: student.memorizationDetail
+      target: 0,
+      actual: 0,
+      percentage: 0,
+      status: 'No data',
+      memorizationDetail: {
+        juz: 1,
+        pageFrom: 1,
+        pageTo: 1,
+        surahName: 'No data',
+        ayahFrom: 1,
+        ayahTo: 1,
+      }
     };
     setSelectedRecord(record);
     setIsDetailModalOpen(true);
@@ -212,12 +146,11 @@ const Halaqah: React.FC = () => {
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Halaqah</option>
-                <option value="1">Halaqah 1</option>
-                <option value="2">Halaqah 2</option>
-                <option value="3">Halaqah 3</option>
-                <option value="4">Halaqah 4</option>
-                <option value="5">Halaqah 5</option>
-                <option value="6">Halaqah 6</option>
+                {halaqahs.map(halaqah => (
+                  <option key={halaqah.id} value={halaqah.id.toString()}>
+                    {halaqah.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -232,8 +165,8 @@ const Halaqah: React.FC = () => {
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Students</option>
-                {students.map((student) => (
-                  <option key={student.id} value={student.id}>
+                {filteredStudents.map((student) => (
+                  <option key={student.id} value={student.id.toString()}>
                     {student.name}
                   </option>
                 ))}
@@ -244,7 +177,9 @@ const Halaqah: React.FC = () => {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h3 className="text-lg font-semibold text-gray-800">
-                  Pencapaian Hafalan - {selectedHalaqah ? `Halaqah ${selectedHalaqah}` : 'All Halaqah'}
+                  Pencapaian Hafalan - {selectedHalaqah ? 
+                    halaqahs.find(h => h.id.toString() === selectedHalaqah)?.name || 'Halaqah' 
+                    : 'All Halaqah'}
                 </h3>
               </div>
             
@@ -273,29 +208,25 @@ const Halaqah: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {(selectedHalaqah ? halaqahData[selectedHalaqah as keyof typeof halaqahData] || [] : 
-                    Object.values(halaqahData).flat())?.map((student) => (
+                  {filteredStudents.length > 0 ? filteredStudents.map((student) => (
                     <tr key={student.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {student.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {student.target} halaman
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                        -
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {student.setoran} halaman
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                        -
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="w-full bg-gray-200 rounded-full h-2.5">
-                          <div 
-                            className={`h-2.5 rounded-full ${getProgressBarColor(student.percentage)}`}
-                            style={{ width: `${student.percentage}%` }}
-                          ></div>
+                          <div className="h-2.5 rounded-full bg-gray-300" style={{ width: '0%' }}></div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPercentageColor(student.percentage)}`}>
-                          {student.percentage}%
+                        <span className="px-2 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-100">
+                          0%
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -307,7 +238,13 @@ const Halaqah: React.FC = () => {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                  )) : (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                        Belum ada data hafalan
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -324,14 +261,15 @@ const Halaqah: React.FC = () => {
               className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Semua Halaqah</option>
-              <option value="1">Halaqah 1</option>
-              <option value="2">Halaqah 2</option>
-              <option value="3">Halaqah 3</option>
-              <option value="4">Halaqah 4</option>
-              <option value="5">Halaqah 5</option>
-              <option value="6">Halaqah 6</option>
+              {halaqahs.map(halaqah => (
+                <option key={halaqah.id} value={halaqah.id.toString()}>
+                  {halaqah.name}
+                </option>
+              ))}
             </select>
-            <span className="text-sm text-gray-500">(9 santri)</span>
+            <span className="text-sm text-gray-500">
+              ({getStudentsByHalaqah(recordsSelectedHalaqah).length} santri)
+            </span>
           </div>
 
           <MemorizationTable />
