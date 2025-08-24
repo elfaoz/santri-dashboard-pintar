@@ -208,8 +208,18 @@ const Attendance: React.FC = () => {
             );
             setAttendanceData(updatedAttendance);
           } else {
-            // Add new attendance record (this would be handled differently in a real app)
-            console.log('New attendance record:', data);
+            // Add new attendance record
+            const student = students.find(s => s.studentId === data.studentId);
+            if (student) {
+              const newAttendanceRecord: StudentAttendance = {
+                id: student.id,
+                name: student.name,
+                status: data.status,
+                halaqah: data.halaqah,
+                remarks: data.remarks
+              };
+              setAttendanceData(prev => [...prev, newAttendanceRecord]);
+            }
           }
           setEditingStudent(null);
         }}

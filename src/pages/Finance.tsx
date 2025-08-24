@@ -41,6 +41,16 @@ interface StudentFinance {
   statusText: string;
 }
 
+interface ExpenseRecord {
+  id: number;
+  halaqah: string;
+  nama: string;
+  tanggal: string;
+  jumlah: number;
+  kategori: string;
+  catatan: string;
+}
+
 
 const Finance: React.FC = () => {
   const { students } = useStudents();
@@ -56,7 +66,8 @@ const Finance: React.FC = () => {
     catatan: '',
   });
 
-  const [studentsFinance] = useState<StudentFinance[]>([]);
+  const [studentsFinance, setStudentsFinance] = useState<StudentFinance[]>([]);
+  const [expenseRecords, setExpenseRecords] = useState<ExpenseRecord[]>([]);
 
   const filteredStudents = selectedHalaqah === 'all' 
     ? studentsFinance 
@@ -76,7 +87,62 @@ const Finance: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+    
+    // Add new expense record
+    const newExpense: ExpenseRecord = {
+      id: Date.now(),
+      halaqah: formData.halaqah,
+      nama: formData.nama,
+      tanggal: formData.tanggal,
+      jumlah: parseInt(formData.jumlah),
+      kategori: formData.kategori,
+      catatan: formData.catatan,
+    };
+    
+    setExpenseRecords(prev => [...prev, newExpense]);
+    
+    // Update or create student finance record
+    const existingStudentFinance = studentsFinance.find(sf => sf.nama === formData.nama);
+    
+    if (existingStudentFinance) {
+      // Update existing student's weekly expenses
+      const updatedFinance = studentsFinance.map(sf => {
+        if (sf.nama === formData.nama) {
+          const newWeeklyExpense = sf.pengeluaranMingguIni + parseInt(formData.jumlah);
+          const newPercentage = Math.round((newWeeklyExpense / sf.budgetMingguan) * 100);
+          return {
+            ...sf,
+            pengeluaranMingguIni: newWeeklyExpense,
+            persentase: newPercentage,
+            status: newPercentage <= 100 ? 'hemat' : 'over' as 'hemat' | 'over',
+            statusText: newPercentage <= 100 ? 'Hemat' : 'Over Budget'
+          };
+        }
+        return sf;
+      });
+      setStudentsFinance(updatedFinance);
+    } else {
+      // Create new student finance record with default budget
+      const defaultBudgetHarian = 15000;
+      const defaultBudgetMingguan = defaultBudgetHarian * 7;
+      const weeklyExpense = parseInt(formData.jumlah);
+      const percentage = Math.round((weeklyExpense / defaultBudgetMingguan) * 100);
+      
+      const newStudentFinance: StudentFinance = {
+        id: Date.now(),
+        nama: formData.nama,
+        halaqah: formData.halaqah,
+        budgetHarian: defaultBudgetHarian,
+        budgetMingguan: defaultBudgetMingguan,
+        pengeluaranMingguIni: weeklyExpense,
+        persentase: percentage,
+        status: percentage <= 100 ? 'hemat' : 'over',
+        statusText: percentage <= 100 ? 'Hemat' : 'Over Budget'
+      };
+      
+      setStudentsFinance(prev => [...prev, newStudentFinance]);
+    }
+    
     setIsOpen(false);
     setFormData({
       halaqah: '',
@@ -271,39 +337,47 @@ const Finance: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStudents.map((student) => (
-                <TableRow key={student.id}>
-                  <TableCell className="font-medium">{student.nama}</TableCell>
-                  <TableCell>
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                      Halaqah {student.halaqah}
-                    </span>
-                  </TableCell>
-                  <TableCell>{formatCurrencyShort(student.budgetHarian)}</TableCell>
-                  <TableCell>{formatCurrencyShort(student.budgetMingguan)}</TableCell>
-                  <TableCell>{formatCurrencyShort(student.pengeluaranMingguIni)}</TableCell>
-                  <TableCell>
-                    <span className={`font-medium ${
-                      student.status === 'hemat' 
-                        ? 'text-green-600' 
-                        : 'text-red-600'
-                    }`}>
-                      {student.statusText}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
+              {filteredStudents.length > 0 ? (
+                filteredStudents.map((student) => (
+                  <TableRow key={student.id}>
+                    <TableCell className="font-medium">{student.nama}</TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                        {registeredHalaqahs.find(h => h.id.toString() === student.halaqah)?.name || `Halaqah ${student.halaqah}`}
+                      </span>
+                    </TableCell>
+                    <TableCell>{formatCurrencyShort(student.budgetHarian)}</TableCell>
+                    <TableCell>{formatCurrencyShort(student.budgetMingguan)}</TableCell>
+                    <TableCell>{formatCurrencyShort(student.pengeluaranMingguIni)}</TableCell>
+                    <TableCell>
                       <span className={`font-medium ${
-                        student.persentase <= 100 
+                        student.status === 'hemat' 
                           ? 'text-green-600' 
                           : 'text-red-600'
                       }`}>
-                        {student.persentase}%
+                        {student.statusText}
                       </span>
-                    </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <span className={`font-medium ${
+                          student.persentase <= 100 
+                            ? 'text-green-600' 
+                            : 'text-red-600'
+                        }`}>
+                          {student.persentase}%
+                        </span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                    Belum ada data keuangan santri
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>
