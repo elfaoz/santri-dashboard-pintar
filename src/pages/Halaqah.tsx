@@ -252,26 +252,6 @@ const Halaqah: React.FC = () => {
         </>
       ) : (
         <div className="space-y-6">
-          {/* Daily Records Halaqah Filter */}
-          <div className="flex items-center space-x-4">
-            <label className="text-sm font-medium text-gray-700">Filter Halaqah:</label>
-            <select 
-              value={recordsSelectedHalaqah}
-              onChange={(e) => setRecordsSelectedHalaqah(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Semua Halaqah</option>
-              {halaqahs.map(halaqah => (
-                <option key={halaqah.id} value={halaqah.id.toString()}>
-                  {halaqah.name}
-                </option>
-              ))}
-            </select>
-            <span className="text-sm text-gray-500">
-              ({getStudentsByHalaqah(recordsSelectedHalaqah).length} santri)
-            </span>
-          </div>
-
           <MemorizationTable />
           
           {/* Santri Ranking Section */}

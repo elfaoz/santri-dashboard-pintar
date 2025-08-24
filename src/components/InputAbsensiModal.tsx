@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { X } from 'lucide-react';
 import { useStudents } from '@/contexts/StudentContext';
+import { useHalaqahs } from '@/contexts/HalaqahContext';
 
 interface InputAbsensiModalProps {
   isOpen: boolean;
@@ -37,29 +38,20 @@ const InputAbsensiModal: React.FC<InputAbsensiModalProps> = ({
     remarks: initialData?.remarks || ''
   });
 
-  const halaqahOptions = [
-    { value: '1', label: 'Halaqah 1' },
-    { value: '2', label: 'Halaqah 2' },
-    { value: '3', label: 'Halaqah 3' },
-    { value: '4', label: 'Halaqah 4' },
-    { value: '5', label: 'Halaqah 5' },
-    { value: '6', label: 'Halaqah 6' }
-  ];
+  // Get registered halaqahs and students from contexts
+  const { halaqahs: registeredHalaqahs } = useHalaqahs();
 
-  // Map registered students to studentsByHalaqah format
-  const allStudents = registeredStudents.map(student => ({
-    id: student.studentId,
-    name: student.name
-  }));
-
-  // Distribute students across halaqahs (for demo purposes)
-  const studentsByHalaqah = {
-    '1': allStudents.slice(0, Math.ceil(allStudents.length / 6)),
-    '2': allStudents.slice(Math.ceil(allStudents.length / 6), Math.ceil(2 * allStudents.length / 6)),
-    '3': allStudents.slice(Math.ceil(2 * allStudents.length / 6), Math.ceil(3 * allStudents.length / 6)),
-    '4': allStudents.slice(Math.ceil(3 * allStudents.length / 6), Math.ceil(4 * allStudents.length / 6)),
-    '5': allStudents.slice(Math.ceil(4 * allStudents.length / 6), Math.ceil(5 * allStudents.length / 6)),
-    '6': allStudents.slice(Math.ceil(5 * allStudents.length / 6))
+  // Get students for selected halaqah
+  const getStudentsForHalaqah = (halaqahId: string) => {
+    const halaqah = registeredHalaqahs.find(h => h.id.toString() === halaqahId);
+    if (!halaqah?.selectedStudents) return [];
+    
+    return registeredStudents.filter(student => 
+      halaqah.selectedStudents?.includes(student.id.toString())
+    ).map(student => ({
+      id: student.studentId,
+      name: student.name
+    }));
   };
 
   const statusOptions = [
@@ -79,7 +71,8 @@ const InputAbsensiModal: React.FC<InputAbsensiModalProps> = ({
   };
 
   const handleStudentChange = (studentId: string) => {
-    const student = studentsByHalaqah[formData.halaqah as keyof typeof studentsByHalaqah]?.find(s => s.id === studentId);
+    const availableStudents = getStudentsForHalaqah(formData.halaqah);
+    const student = availableStudents.find(s => s.id === studentId);
     setFormData({
       ...formData,
       studentId,
@@ -105,7 +98,7 @@ const InputAbsensiModal: React.FC<InputAbsensiModalProps> = ({
     onClose();
   };
 
-  const availableStudents = formData.halaqah ? studentsByHalaqah[formData.halaqah as keyof typeof studentsByHalaqah] || [] : [];
+  const availableStudents = formData.halaqah ? getStudentsForHalaqah(formData.halaqah) : [];
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -134,9 +127,9 @@ const InputAbsensiModal: React.FC<InputAbsensiModalProps> = ({
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 max-h-40 overflow-y-auto bg-white"
             >
               <option value="">Choose halaqah...</option>
-              {halaqahOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {registeredHalaqahs.map((halaqah) => (
+                <option key={halaqah.id} value={halaqah.id.toString()}>
+                  {halaqah.name}
                 </option>
               ))}
             </select>
