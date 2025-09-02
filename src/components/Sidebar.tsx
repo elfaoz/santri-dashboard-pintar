@@ -1,6 +1,7 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { User, Calendar, Book, FileText, BarChart3, X, UserPlus } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { User, Calendar, Book, FileText, BarChart3, X, UserPlus, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -8,8 +9,11 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
   const navItems = [
-    { path: '/', icon: BarChart3, label: 'Dashboard', emoji: '📊' },
+    { path: '/dashboard', icon: BarChart3, label: 'Dashboard', emoji: '📊' },
     { path: '/profile', icon: User, label: 'My Profile', emoji: '👤' },
     { path: '/attendance', icon: Calendar, label: 'Attendance', emoji: '📅' },
     { path: '/halaqah', icon: Book, label: 'Memorization', emoji: '📖' },
@@ -17,6 +21,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { path: '/finance', icon: FileText, label: 'Finance', emoji: '💸' },
     { path: '/add-student', icon: UserPlus, label: 'Add Student', emoji: '➕' },
   ];
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+    onClose();
+  };
 
   return (
     <>
@@ -46,8 +56,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </button>
         </div>
         
-        <nav className="p-4">
-          <ul className="space-y-2">
+        <nav className="p-4 flex flex-col h-full">
+          <ul className="space-y-2 flex-1">
             {navItems.map((item) => (
               <li key={item.path}>
                 <NavLink
@@ -67,6 +77,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               </li>
             ))}
           </ul>
+          
+          {/* Logout Button */}
+          <div className="mt-auto pt-4 border-t border-gray-100">
+            <button
+              onClick={handleLogout}
+              className="flex items-center w-full px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <LogOut size={20} className="mr-3" />
+              <span className="font-medium">Logout</span>
+            </button>
+          </div>
         </nav>
       </div>
     </>

@@ -6,7 +6,7 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white font-roboto">
       {/* Header with Login */}
       <header className="w-full py-4 px-6 border-b border-gray-200">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
@@ -25,11 +25,15 @@ const Home: React.FC = () => {
       <main className="max-w-4xl mx-auto px-6 py-16">
         <div className="text-center space-y-8">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-            Karim Dashboard Manager
+            KDM – Karim Dashboard Manager
           </h1>
           
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Solusi terdepan untuk mengelola data santri, kehadiran, hafalan, dan keuangan pesantren dengan mudah dan efisien.
+          <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">
+            Dashboard Cerdas Manajemen Santri Terpadu
+          </h2>
+          
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Satu platform digital yang membantu guru pendamping mengelola data santri, absensi, hafalan, keuangan, dan aktivitas ibadah dengan cara yang lebih mudah, cepat, dan praktis.
           </p>
 
           <div className="pt-8">
@@ -43,42 +47,68 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-2xl">📊</span>
+        <div className="mt-20">
+          <h3 className="text-2xl font-bold text-gray-900 text-center mb-12">
+            7 Langkah Lebih Maju Pengelolaan Santri
+          </h3>
+          
+          <div className="space-y-6 max-w-3xl mx-auto">
+            <div className="flex items-start space-x-4">
+              <span className="text-2xl">👉</span>
+              <div>
+                <h4 className="font-semibold text-gray-900">Kelola Santri</h4>
+                <p className="text-gray-600">Simpan dan akses data santri secara rapi dan terstruktur.</p>
+              </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900">Dashboard Terpadu</h3>
-            <p className="text-gray-600">
-              Pantau semua aktivitas santri dalam satu dashboard yang mudah dipahami
-            </p>
-          </div>
-
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-2xl">📖</span>
+            
+            <div className="flex items-start space-x-4">
+              <span className="text-2xl">👉</span>
+              <div>
+                <h4 className="font-semibold text-gray-900">Kelola Absensi</h4>
+                <p className="text-gray-600">Catat hadir, sakit, izin, dan alfa hanya dalam hitungan detik.</p>
+              </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900">Tracking Hafalan</h3>
-            <p className="text-gray-600">
-              Catat dan monitor progress hafalan Al-Qur'an setiap santri dengan detail
-            </p>
-          </div>
-
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-2xl">💰</span>
+            
+            <div className="flex items-start space-x-4">
+              <span className="text-2xl">👉</span>
+              <div>
+                <h4 className="font-semibold text-gray-900">Kelola Hafalan</h4>
+                <p className="text-gray-600">Pantau progres setoran Qur'an dengan perhitungan otomatis target hafalan.</p>
+              </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900">Manajemen Keuangan</h3>
-            <p className="text-gray-600">
-              Kelola keuangan santri dan pesantren dengan sistem yang transparan
-            </p>
+            
+            <div className="flex items-start space-x-4">
+              <span className="text-2xl">👉</span>
+              <div>
+                <h4 className="font-semibold text-gray-900">Kelola Keuangan</h4>
+                <p className="text-gray-600">Atur dan laporkan transaksi keuangan santri dengan transparan.</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-4">
+              <span className="text-2xl">👉</span>
+              <div>
+                <h4 className="font-semibold text-gray-900">Kelola Mutabaah</h4>
+                <p className="text-gray-600">Checklist ibadah harian santri seperti tahajud, rawatib, shaum, tilawah, hingga piket.</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-4">
+              <span className="text-2xl">👉</span>
+              <div>
+                <h4 className="font-semibold text-gray-900">Laporan Aktivitas</h4>
+                <p className="text-gray-600">Evaluasi aktivitas santri sehari-hari secara detail dan real-time.</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-4">
+              <span className="text-2xl">👉</span>
+              <div>
+                <h4 className="font-semibold text-gray-900">Laporan Ibadah</h4>
+                <p className="text-gray-600">Rekap ibadah santri secara konsisten untuk memantau perkembangan spiritual.</p>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div className="mt-20 text-center">
-          <p className="text-gray-500">
-            Diperkaya dengan teknologi modern untuk kemudahan pengelolaan pesantren
-          </p>
         </div>
       </main>
     </div>
