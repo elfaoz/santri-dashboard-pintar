@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -16,13 +18,13 @@ const Login: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Default credentials check
-    if (username === 'admin' && password === 'admin123') {
+    const success = login(username, password);
+    if (success) {
       toast({
         title: 'Login berhasil',
         description: 'Selamat datang di KDM 1.0',
       });
-      navigate('/');
+      navigate('/dashboard');
     } else {
       toast({
         title: 'Login gagal',
@@ -75,9 +77,6 @@ const Login: React.FC = () => {
               {isLoading ? 'Memproses...' : 'Masuk'}
             </Button>
           </form>
-          <div className="mt-4 text-center text-sm text-gray-500">
-            <p>Default: admin / admin123</p>
-          </div>
         </CardContent>
       </Card>
     </div>
