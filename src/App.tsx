@@ -14,6 +14,7 @@ import Halaqah from "./pages/Halaqah";
 import Activities from "./pages/Activities";
 import Finance from "./pages/Finance";
 import AddStudent from "./pages/AddStudent";
+import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <BrowserRouter>
             <Layout>
               <Routes>
+                <Route path="/login" element={<Login />} />
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/attendance" element={<Attendance />} />

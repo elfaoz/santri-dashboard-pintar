@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/select';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
+import { toast } from '@/hooks/use-toast';
 
 interface StudentFinance {
   id: number;
@@ -57,10 +58,15 @@ const Finance: React.FC = () => {
   const { halaqahs: registeredHalaqahs } = useHalaqahs();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedHalaqah, setSelectedHalaqah] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editData, setEditData] = useState<StudentFinance | null>(null);
   const [formData, setFormData] = useState({
     halaqah: '',
     nama: '',
-    tanggal: '',
+    tanggalDari: '',
+    tanggalSampai: '',
     jumlah: '',
     kategori: '',
     catatan: '',
@@ -69,12 +75,25 @@ const Finance: React.FC = () => {
   const [studentsFinance, setStudentsFinance] = useState<StudentFinance[]>([]);
   const [expenseRecords, setExpenseRecords] = useState<ExpenseRecord[]>([]);
 
-  const filteredStudents = selectedHalaqah === 'all' 
-    ? studentsFinance 
-    : studentsFinance.filter(student => {
+  const filteredStudents = studentsFinance.filter(student => {
+    // Filter by halaqah
+    const halaqahMatch = selectedHalaqah === 'all' || 
+      (() => {
         const halaqah = registeredHalaqahs.find(h => h.id.toString() === selectedHalaqah);
         return halaqah?.selectedStudents?.includes(student.id.toString());
-      });
+      })();
+    
+    // Filter by date range if both dates are provided
+    const dateMatch = (!dateFrom || !dateTo) || 
+      (() => {
+        const studentExpenses = expenseRecords.filter(record => record.nama === student.nama);
+        return studentExpenses.some(expense => 
+          expense.tanggal >= dateFrom && expense.tanggal <= dateTo
+        );
+      })();
+    
+    return halaqahMatch && dateMatch;
+  });
 
   const getStudentsByHalaqah = (halaqahId: string) => {
     const halaqah = registeredHalaqahs.find(h => h.id.toString() === halaqahId);
@@ -93,7 +112,7 @@ const Finance: React.FC = () => {
       id: Date.now(),
       halaqah: formData.halaqah,
       nama: formData.nama,
-      tanggal: formData.tanggal,
+      tanggal: formData.tanggalDari,
       jumlah: parseInt(formData.jumlah),
       kategori: formData.kategori,
       catatan: formData.catatan,
@@ -147,7 +166,8 @@ const Finance: React.FC = () => {
     setFormData({
       halaqah: '',
       nama: '',
-      tanggal: '',
+      tanggalDari: '',
+      tanggalSampai: '',
       jumlah: '',
       kategori: '',
       catatan: '',
@@ -167,6 +187,32 @@ const Finance: React.FC = () => {
       return `Rp ${(amount / 1000).toFixed(0)}k`;
     }
     return formatCurrency(amount);
+  };
+
+  const handleEdit = (student: StudentFinance) => {
+    setEditingId(student.id);
+    setEditData({...student});
+  };
+
+  const handleSave = () => {
+    if (editData) {
+      setStudentsFinance(prev => 
+        prev.map(student => 
+          student.id === editData.id ? editData : student
+        )
+      );
+      setEditingId(null);
+      setEditData(null);
+      toast({
+        title: 'Data berhasil disimpan',
+        description: 'Perubahan data keuangan telah disimpan',
+      });
+    }
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setEditData(null);
   };
 
   return (
@@ -232,16 +278,28 @@ const Finance: React.FC = () => {
                     </Select>
                   </div>
 
-                  <div>
-                    <Label htmlFor="tanggal">Tanggal</Label>
-                    <Input
-                      id="tanggal"
-                      type="date"
-                      value={formData.tanggal}
-                      onChange={(e) => setFormData({...formData, tanggal: e.target.value})}
-                      required
-                    />
-                  </div>
+                   <div className="grid grid-cols-2 gap-3">
+                     <div>
+                       <Label htmlFor="tanggalDari">Tanggal Dari</Label>
+                       <Input
+                         id="tanggalDari"
+                         type="date"
+                         value={formData.tanggalDari}
+                         onChange={(e) => setFormData({...formData, tanggalDari: e.target.value})}
+                         required
+                       />
+                     </div>
+                     <div>
+                       <Label htmlFor="tanggalSampai">Tanggal Sampai</Label>
+                       <Input
+                         id="tanggalSampai"
+                         type="date"
+                         value={formData.tanggalSampai}
+                         onChange={(e) => setFormData({...formData, tanggalSampai: e.target.value})}
+                         required
+                       />
+                     </div>
+                   </div>
 
                   <div>
                     <Label htmlFor="jumlah">Jumlah Pengeluaran</Label>
@@ -298,25 +356,48 @@ const Finance: React.FC = () => {
           </div>
         </div>
 
-        {/* Halaqah Filter Dropdown */}
+        {/* Filters */}
         <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <Label htmlFor="halaqah-filter" className="text-sm font-medium text-gray-700">
-              Filter Halaqah:
-            </Label>
-            <Select value={selectedHalaqah} onValueChange={setSelectedHalaqah}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Pilih Halaqah" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Halaqah</SelectItem>
-                {registeredHalaqahs.map((halaqah) => (
-                  <SelectItem key={halaqah.id} value={halaqah.id.toString()}>
-                    {halaqah.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="halaqah-filter" className="text-sm font-medium text-gray-700">
+                Filter Halaqah:
+              </Label>
+              <Select value={selectedHalaqah} onValueChange={setSelectedHalaqah}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Pilih Halaqah" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Halaqah</SelectItem>
+                  {registeredHalaqahs.map((halaqah) => (
+                    <SelectItem key={halaqah.id} value={halaqah.id.toString()}>
+                      {halaqah.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium text-gray-700">Dari:</Label>
+              <Input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="w-40"
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Label className="text-sm font-medium text-gray-700">Sampai:</Label>
+              <Input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="w-40"
+              />
+            </div>
+            
             <span className="text-sm text-gray-500">
               ({filteredStudents.length} santri)
             </span>
@@ -334,20 +415,53 @@ const Finance: React.FC = () => {
                 <TableHead>Pengeluaran Minggu Ini</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Persentase</TableHead>
+                <TableHead>Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredStudents.length > 0 ? (
                 filteredStudents.map((student) => (
                   <TableRow key={student.id}>
-                    <TableCell className="font-medium">{student.nama}</TableCell>
+                    <TableCell className="font-medium">
+                      {editingId === student.id ? (
+                        <Input
+                          value={editData?.nama || ''}
+                          onChange={(e) => setEditData(prev => prev ? {...prev, nama: e.target.value} : null)}
+                          disabled
+                        />
+                      ) : (
+                        student.nama
+                      )}
+                    </TableCell>
                     <TableCell>
                       <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
                         {registeredHalaqahs.find(h => h.id.toString() === student.halaqah)?.name || `Halaqah ${student.halaqah}`}
                       </span>
                     </TableCell>
-                    <TableCell>{formatCurrencyShort(student.budgetHarian)}</TableCell>
-                    <TableCell>{formatCurrencyShort(student.budgetMingguan)}</TableCell>
+                    <TableCell>
+                      {editingId === student.id ? (
+                        <Input
+                          type="number"
+                          value={editData?.budgetHarian || ''}
+                          onChange={(e) => setEditData(prev => prev ? {...prev, budgetHarian: parseInt(e.target.value)} : null)}
+                          className="w-24"
+                        />
+                      ) : (
+                        formatCurrencyShort(student.budgetHarian)
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {editingId === student.id ? (
+                        <Input
+                          type="number"
+                          value={editData?.budgetMingguan || ''}
+                          onChange={(e) => setEditData(prev => prev ? {...prev, budgetMingguan: parseInt(e.target.value)} : null)}
+                          className="w-24"
+                        />
+                      ) : (
+                        formatCurrencyShort(student.budgetMingguan)
+                      )}
+                    </TableCell>
                     <TableCell>{formatCurrencyShort(student.pengeluaranMingguIni)}</TableCell>
                     <TableCell>
                       <span className={`font-medium ${
@@ -369,11 +483,23 @@ const Finance: React.FC = () => {
                         </span>
                       </div>
                     </TableCell>
+                    <TableCell>
+                      {editingId === student.id ? (
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={handleSave}>Simpan</Button>
+                          <Button size="sm" variant="outline" onClick={handleCancel}>Batal</Button>
+                        </div>
+                      ) : (
+                        <Button size="sm" variant="outline" onClick={() => handleEdit(student)}>
+                          Edit
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
                     Belum ada data keuangan santri
                   </TableCell>
                 </TableRow>
