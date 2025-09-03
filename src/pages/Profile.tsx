@@ -89,8 +89,8 @@ const Profile: React.FC = () => {
     }
 
     // Send WhatsApp notification (mock)
-    const message = `Pengajuan Penarikan Dana KDM%0A%0ANama: ${profileData.name}%0AJumlah: Rp ${parseInt(withdrawAmount).toLocaleString('id-ID')}%0APIN: ${withdrawPin}%0A%0AMohon diproses. Terima kasih.`;
-    const whatsappUrl = `https://wa.me/6281234567890?text=${message}`;
+    const message = `Assalamu'alaikum Wr. Wb.%0A%0APengajuan Penarikan Dana KDM%0A%0ANama: ${profileData.name}%0AJabatan: ${profileData.role}%0ANo. HP: ${profileData.phone}%0ABank: ${profileData.bankInfo}%0A%0AJumlah Penarikan: Rp ${parseInt(withdrawAmount).toLocaleString('id-ID')}%0APIN Penarikan: ${withdrawPin}%0ATanggal Pengajuan: ${new Date().toLocaleDateString('id-ID')}%0A%0AMohon diproses sesuai prosedur yang berlaku.%0A%0ABarakallahu fiikum.%0AWassalamu'alaikum Wr. Wb.`;
+    const whatsappUrl = `https://wa.me/625223857484?text=${message}`;
     
     window.open(whatsappUrl, '_blank');
     
@@ -271,6 +271,7 @@ const Profile: React.FC = () => {
                           <li>Hafalan Qur'an = 50% bobot.</li>
                           <li>Absensi Santri = 30% bobot.</li>
                           <li>Mutabaah Ibadah = 20% bobot.</li>
+                          <li>Laporan Keuangan = Transparansi dan ketepatan pelaporan keuangan santri.</li>
                         </ul>
                       </li>
                     </ul>
@@ -280,6 +281,7 @@ const Profile: React.FC = () => {
                       <p className="mb-2">Bonus = Persentase capaian bulanan × gaji pokok.</p>
                       <p className="text-sm italic">Contoh: Jika capaian bulan ini 90%, maka bonus = 90% × Rp600.000 = Rp540.000.</p>
                       <p className="font-semibold">Total penerimaan = gaji pokok + bonus capaian bulanan.</p>
+                      <p className="text-sm mt-2 text-blue-600">*Laporan keuangan menjadi faktor penilaian tambahan untuk transparansi dan akuntabilitas.</p>
                     </div>
                   </section>
 
@@ -430,7 +432,7 @@ const Profile: React.FC = () => {
                   <Dialog open={showWithdrawModal} onOpenChange={setShowWithdrawModal}>
                     <DialogTrigger asChild>
                       <Button 
-                        className="bg-orange-600 hover:bg-orange-700"
+                        className="bg-orange-600 hover:bg-orange-700 mb-4"
                         onClick={() => setWithdrawAmount(profileData.currentBalance.toString())}
                       >
                         Ajukan Penarikan
@@ -453,6 +455,17 @@ const Profile: React.FC = () => {
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
+                  
+                  {/* Withdrawal Notes */}
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
+                    <p className="font-semibold mb-2">📋 Ketentuan Penarikan Dana:</p>
+                    <ul className="space-y-1 text-xs">
+                      <li>• Minimal penarikan: <span className="font-semibold">Rp 500.000</span></li>
+                      <li>• Pengajuan hanya dapat dilakukan pada <span className="font-semibold">tanggal 1-10</span> setiap bulan</li>
+                      <li>• Proses verifikasi membutuhkan waktu 1-3 hari kerja</li>
+                      <li>• Pastikan data rekening sudah benar sebelum mengajukan</li>
+                    </ul>
+                  </div>
                 </div>
 
                 {/* PIN Modal */}
