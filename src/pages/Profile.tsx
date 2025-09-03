@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 
 const Profile: React.FC = () => {
@@ -16,6 +17,8 @@ const Profile: React.FC = () => {
   const [withdrawPin, setWithdrawPin] = useState('');
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
+  const [hasAgreed, setHasAgreed] = useState(false);
+  const [showAgreementModal, setShowAgreementModal] = useState(false);
   const { toast } = useToast();
 
   // Mock data - replace with actual data from context/API
@@ -31,12 +34,44 @@ const Profile: React.FC = () => {
     currentBalance: 500000
   };
 
+  // Calculate bonus based on formula: (Hafalan × 50%) + (Absensi × 30%) + (Mutabaah × 20%)
+  const calculateBonus = (hafalan: number, absensi: number, mutabaah: number) => {
+    const percentage = (hafalan * 0.5) + (absensi * 0.3) + (mutabaah * 0.2);
+    const bonus = Math.round(percentage * 600000); // Gaji pokok Rp 600.000
+    return { percentage: Math.round(percentage * 100), bonus };
+  };
+
   const bonusHistory = [
-    { month: 'September 2025', percentage: '95%', bonus: 250000, status: 'Cair' },
-    { month: 'Agustus 2025', percentage: '88%', bonus: 200000, status: 'Cair' },
-    { month: 'Juli 2025', percentage: '92%', bonus: 230000, status: 'Disetujui' },
-    { month: 'Juni 2025', percentage: '85%', bonus: 180000, status: 'Pending' },
+    { 
+      month: 'September 2025', 
+      hafalan: 95, absensi: 98, mutabaah: 92,
+      ...calculateBonus(0.95, 0.98, 0.92),
+      status: 'Cair' 
+    },
+    { 
+      month: 'Agustus 2025', 
+      hafalan: 88, absensi: 90, mutabaah: 85,
+      ...calculateBonus(0.88, 0.90, 0.85),
+      status: 'Cair' 
+    },
+    { 
+      month: 'Juli 2025', 
+      hafalan: 92, absensi: 95, mutabaah: 88,
+      ...calculateBonus(0.92, 0.95, 0.88),
+      status: 'Disetujui' 
+    },
+    { 
+      month: 'Juni 2025', 
+      hafalan: 85, absensi: 82, mutabaah: 90,
+      ...calculateBonus(0.85, 0.82, 0.90),
+      status: 'Pending' 
+    },
   ];
+
+  const handleAgreeMoU = () => {
+    setHasAgreed(true);
+    setShowAgreementModal(true);
+  };
 
   const handleWithdrawConfirm = () => {
     setShowWithdrawModal(false);
@@ -190,54 +225,120 @@ const Profile: React.FC = () => {
                     <span className="text-white font-bold text-xl">KDM</span>
                   </div>
                   <h1 className="text-xl font-bold text-gray-800">
-                    MEMORANDUM OF UNDERSTANDING (MoU)
+                    Nota Kesepahaman (MoU)
                   </h1>
-                  <p className="text-gray-600 mt-2">Karim Dashboard Manager - Sistem Manajemen Santri</p>
+                  <p className="text-gray-600 mt-2">Antara Kepala dan Musyrif/Muhafizh</p>
+                  <p className="text-gray-600">Tentang: Amanah Pengasuhan, Pembinaan SKL Tahfizh, dan Sistem Penilaian Kinerja</p>
                 </div>
 
                 <div className="space-y-6 text-sm text-gray-700 leading-relaxed">
                   <section>
-                    <h2 className="text-lg font-semibold text-gray-800 mb-3">1. LATAR BELAKANG</h2>
-                    <p>Dalam rangka meningkatkan efisiensi pengelolaan data santri dan optimalisasi kinerja guru pendamping, diperlukan sistem digital yang terintegrasi untuk membantu proses administrasi dan monitoring aktivitas santri secara real-time.</p>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-3">I. Latar Belakang</h2>
+                    <p>Dalam rangka mencapai Standar Kompetensi Lulusan (SKL) bidang tahfizh, dibutuhkan sinergi antara kepala lembaga dan para musyrif/muhafizh dengan pembagian tugas, target, hak, serta sistem penilaian kinerja yang jelas dan terukur.</p>
                   </section>
 
                   <section>
-                    <h2 className="text-lg font-semibold text-gray-800 mb-3">2. TUJUAN</h2>
-                    <p>MoU ini bertujuan untuk menetapkan kesepakatan penggunaan platform KDM sebagai alat bantu pengelolaan data santri, termasuk sistem bonus dan insentif berdasarkan pencapaian kinerja.</p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-lg font-semibold text-gray-800 mb-3">3. KETENTUAN PENGGUNAAN</h2>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-3">II. Tujuan Kesepakatan</h2>
                     <ul className="list-disc pl-6 space-y-2">
-                      <li>Guru pendamping wajib menggunakan sistem secara konsisten dan akurat</li>
-                      <li>Data yang diinput harus sesuai dengan kondisi aktual santri</li>
-                      <li>Sistem bonus dihitung berdasarkan pencapaian target yang telah ditetapkan</li>
+                      <li>Menjamin pencapaian target hafalan santri (SKL).</li>
+                      <li>Menegaskan amanah dan tanggung jawab musyrif dalam pembinaan tahfizh.</li>
+                      <li>Memberikan kejelasan sistem penghargaan, evaluasi, dan bonus capaian berbasis kinerja.</li>
                     </ul>
                   </section>
 
                   <section>
-                    <h2 className="text-lg font-semibold text-gray-800 mb-3">4. HAK DAN KEWAJIBAN</h2>
-                    <p>Guru pendamping berhak mendapatkan bonus sesuai pencapaian dan berkewajiban menjaga kerahasiaan data santri serta menggunakan sistem sesuai prosedur yang berlaku.</p>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-3">III. Ketentuan Amanah</h2>
+                    <ul className="list-disc pl-6 space-y-2">
+                      <li>Setiap musyrif diberi amanah maksimal 20 orang santri.</li>
+                      <li>Target capaian SKL untuk setiap santri adalah 3 juz dalam waktu 2 tahun.</li>
+                      <li>Musyrif bertanggung jawab dalam:
+                        <ul className="list-disc pl-6 mt-2 space-y-1">
+                          <li>Pembinaan hafalan harian (setoran, murojaah).</li>
+                          <li>Pencatatan progres hafalan.</li>
+                          <li>Membina kedisiplinan dan motivasi santri.</li>
+                          <li>Berkoordinasi aktif dengan kepala tahfizh/asrama.</li>
+                        </ul>
+                      </li>
+                    </ul>
                   </section>
 
                   <section>
-                    <h2 className="text-lg font-semibold text-gray-800 mb-3">5. EVALUASI</h2>
-                    <p>Evaluasi penggunaan sistem dilakukan setiap bulan dengan review pencapaian target dan kualitas data yang diinput.</p>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-3">IV. Hak Musyrif/Muhafizh</h2>
+                    <ul className="list-disc pl-6 space-y-2">
+                      <li>Gaji pokok bulanan sebesar maksimal Rp600.000, diberikan secara tetap tanpa bergantung pada capaian target.</li>
+                      <li>Bonus capaian bulanan dihitung berdasarkan persentase pencapaian kinerja, dengan komponen:
+                        <ul className="list-disc pl-6 mt-2 space-y-1">
+                          <li>Hafalan Qur'an = 50% bobot.</li>
+                          <li>Absensi Santri = 30% bobot.</li>
+                          <li>Mutabaah Ibadah = 20% bobot.</li>
+                        </ul>
+                      </li>
+                    </ul>
+                    <div className="bg-gray-50 p-4 rounded-lg mt-4">
+                      <p className="font-semibold">Rumus:</p>
+                      <p className="mb-2">Persentase Capaian Bulanan = (Hafalan × 50%) + (Absensi × 30%) + (Mutabaah × 20%)</p>
+                      <p className="mb-2">Bonus = Persentase capaian bulanan × gaji pokok.</p>
+                      <p className="text-sm italic">Contoh: Jika capaian bulan ini 90%, maka bonus = 90% × Rp600.000 = Rp540.000.</p>
+                      <p className="font-semibold">Total penerimaan = gaji pokok + bonus capaian bulanan.</p>
+                    </div>
                   </section>
 
-                  <div className="grid grid-cols-2 gap-8 mt-12 pt-8 border-t">
-                    <div className="text-center">
-                      <p className="mb-16">Admin Pusat</p>
-                      <div className="border-b border-gray-400 w-32 mx-auto mb-2"></div>
-                      <p className="text-xs">Tanda Tangan & Nama</p>
+                  <section>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-3">V. Evaluasi dan Rotasi</h2>
+                    <ul className="list-disc pl-6 space-y-2">
+                      <li>Evaluasi dilakukan setiap bulan untuk memantau pencapaian SKL dan kinerja.</li>
+                      <li>Jika selama 2 tahun rata-rata pencapaian bulanan di bawah 80%, maka akan dilakukan rotasi amanah oleh pihak kepala/lembaga.</li>
+                      <li>Musyrif yang dirotasi berhak mendapatkan pembinaan dan penugasan sesuai kompetensinya.</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-3">VI. Penutup</h2>
+                    <p>Kesepakatan ini disusun atas dasar amanah, kepercayaan, dan semangat kolaboratif demi kemajuan dan keberkahan lembaga, serta demi tumbuhnya generasi penghafal Al-Qur'an yang berkualitas.</p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-lg font-semibold text-gray-800 mb-3">VII. Tanda Tangan</h2>
+                    <p className="mb-4">Disepakati dan ditandatangani pada tanggal: {new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    
+                    <div className="grid grid-cols-2 gap-8 mt-12 pt-8 border-t">
+                      <div className="text-center">
+                        <p className="mb-16">Kepala Asrama</p>
+                        <div className="border-b border-gray-400 w-32 mx-auto mb-2"></div>
+                        <p className="text-xs">Tanda Tangan & Nama</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="mb-16">Rizal Fauzan Nasherudin K.</p>
+                        <div className="border-b border-gray-400 w-32 mx-auto mb-2"></div>
+                        <p className="text-xs">NPP. 67-010715-004</p>
+                      </div>
                     </div>
-                    <div className="text-center">
-                      <p className="mb-16">Guru Pendamping</p>
-                      <div className="border-b border-gray-400 w-32 mx-auto mb-2"></div>
-                      <p className="text-xs">Tanda Tangan & Nama</p>
+                  </section>
+                </div>
+
+                {/* Agreement Section */}
+                {!hasAgreed && (
+                  <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center space-x-3">
+                      <Checkbox 
+                        id="agreement" 
+                        checked={false}
+                        onCheckedChange={(checked) => {
+                          if (checked) handleAgreeMoU();
+                        }}
+                      />
+                      <Label htmlFor="agreement" className="text-sm">
+                        Saya telah membaca dan memahami seluruh isi MoU ini
+                      </Label>
                     </div>
                   </div>
-                </div>
+                )}
+
+                {hasAgreed && (
+                  <div className="mt-8 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <p className="text-green-700 font-semibold">✓ Anda telah menyetujui MoU ini</p>
+                  </div>
+                )}
 
                 <div className="mt-8 text-center">
                   <Button className="flex items-center gap-2 mx-auto">
@@ -246,6 +347,28 @@ const Profile: React.FC = () => {
                   </Button>
                 </div>
               </div>
+
+              {/* Agreement Confirmation Modal */}
+              <Dialog open={showAgreementModal} onOpenChange={setShowAgreementModal}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>MoU Telah Disetujui</DialogTitle>
+                  </DialogHeader>
+                  <div className="text-center py-4">
+                    <div className="w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <span className="text-green-600 text-2xl">✓</span>
+                    </div>
+                    <p className="text-lg font-semibold mb-2">Anda telah menyetujui MoU</p>
+                    <p className="text-gray-600 mb-4">Selamat Bekerja Dengan Amanah dan Penuh Tanggung Jawab</p>
+                    <p className="text-blue-600 font-semibold">Barakallahu Fiik</p>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={() => setShowAgreementModal(false)} className="w-full">
+                      Terima Kasih
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </TabsContent>
 
             {/* Bonus Tab */}
@@ -285,7 +408,7 @@ const Profile: React.FC = () => {
                       {bonusHistory.map((item, index) => (
                         <TableRow key={index}>
                           <TableCell>{item.month}</TableCell>
-                          <TableCell>{item.percentage}</TableCell>
+                          <TableCell>{item.percentage}%</TableCell>
                           <TableCell>Rp {item.bonus.toLocaleString('id-ID')}</TableCell>
                           <TableCell>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
