@@ -23,10 +23,10 @@ const DashboardStats: React.FC = () => {
         subtitle="Kelompok belajar"
       />
       <StatCard
-        title="Bonus Pencapaian"
+        title="Saldo Aktif"
         icon="💰"
-        value="Rp 0"
-        subtitle="Bulan ini"
+        value="Rp 500.000"
+        subtitle="Saldo Aktif September 2025"
       />
     </div>
   );
