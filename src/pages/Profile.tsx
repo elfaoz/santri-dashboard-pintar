@@ -31,7 +31,8 @@ const Profile: React.FC = () => {
     phone: '+62 812-3456-7890',
     email: 'ahmad.wijaya@pesantren.com',
     workPeriod: 'Sejak Juli 2019 – 6 Tahun',
-    currentBalance: 500000
+    currentBalance: 500000,
+    accountNumber: '4043-0101-5163-532'
   };
 
   // Calculate bonus based on formula: (Hafalan × 50%) + (Absensi × 30%) + (Mutabaah × 20%)
@@ -89,8 +90,8 @@ const Profile: React.FC = () => {
     }
 
     // Send WhatsApp notification (mock)
-    const message = `Assalamu'alaikum Wr. Wb.%0A%0APengajuan Penarikan Dana KDM%0A%0ANama: ${profileData.name}%0AJabatan: ${profileData.role}%0ANo. HP: ${profileData.phone}%0ABank: ${profileData.bankInfo}%0A%0AJumlah Penarikan: Rp ${parseInt(withdrawAmount).toLocaleString('id-ID')}%0APIN Penarikan: ${withdrawPin}%0ATanggal Pengajuan: ${new Date().toLocaleDateString('id-ID')}%0A%0AMohon diproses sesuai prosedur yang berlaku.%0A%0ABarakallahu fiikum.%0AWassalamu'alaikum Wr. Wb.`;
-    const whatsappUrl = `https://wa.me/625223857484?text=${message}`;
+    const message = `Pengajuan Penarikan Dana%0A%0AData Pemohon:%0A%0ANama: ${profileData.name}%0AEmail: ${profileData.email || 'nashers.manziel@gmail.com'}%0ANo. HP: ${profileData.phone}%0AAlamat: ${profileData.address}%0A%0ATanggal Pengajuan:%0A${new Date().toLocaleDateString('id-ID')}%0A%0ATotal Pengajuan:%0ARp ${parseInt(withdrawAmount).toLocaleString('id-ID')}%0A%0AInformasi Rekening Penerima:%0A${profileData.bankInfo}%0ANo. Rekening: ${profileData.accountNumber || '4043-0101-5163-532'}%0AAtас Nama: ${profileData.name}%0A%0AMohon segera lakukan pembayaran dan konfirmasi. Terima kasih.`;
+    const whatsappUrl = `https://wa.me/6285223857484?text=${message}`;
     
     window.open(whatsappUrl, '_blank');
     

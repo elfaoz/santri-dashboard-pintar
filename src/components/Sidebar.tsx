@@ -46,7 +46,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <div>
             <h1 className="text-xl font-bold text-gray-800">Dashboard</h1>
-            <p className="text-sm text-gray-600">KDM versi yang digunakan</p>
+            <p className="text-sm text-gray-600">KDM 1.0 Karim Dashboard Manager</p>
           </div>
           <button 
             onClick={onClose}

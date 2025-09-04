@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Book, Plus, TrendingUp, Calendar, Search, Filter, Eye } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MemorizationTable from '../components/MemorizationTable';
 import DetailMemorizationModal from '../components/DetailMemorizationModal';
 import SantriRanking from '../components/SantriRanking';
@@ -12,7 +13,6 @@ const Halaqah: React.FC = () => {
   const { students } = useStudents();
   const { halaqahs } = useHalaqahs();
   const [selectedHalaqah, setSelectedHalaqah] = useState('');
-  const [activeTab, setActiveTab] = useState<'overview' | 'records'>('overview');
   
   // Overview filters
   const [overviewDateRange, setOverviewDateRange] = useState({ from: '', to: '' });
@@ -80,36 +80,13 @@ const Halaqah: React.FC = () => {
         <p className="text-gray-600">Kelola pencapaian hafalan santri per halaqah</p>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => setActiveTab('overview')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'overview'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Halaqah Overview
-            </button>
-            <button
-              onClick={() => setActiveTab('records')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'records'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Daily Records
-            </button>
-          </nav>
-        </div>
-      </div>
-
-      {activeTab === 'overview' ? (
-        <>
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="overview">Halaqah Overview</TabsTrigger>
+          <TabsTrigger value="records">Daily Records</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="overview" className="space-y-6">
           {/* Overview Filters */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
             <div>
@@ -249,17 +226,17 @@ const Halaqah: React.FC = () => {
               </table>
             </div>
           </div>
-        </>
-      ) : (
-        <div className="space-y-6">
+        </TabsContent>
+        
+        <TabsContent value="records" className="space-y-6">
           <MemorizationTable />
           
           {/* Santri Ranking Section */}
           <div className="mt-8">
             <SantriRanking />
           </div>
-        </div>
-      )}
+        </TabsContent>
+      </Tabs>
 
       <DetailMemorizationModal
         isOpen={isDetailModalOpen}
