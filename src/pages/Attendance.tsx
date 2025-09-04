@@ -1,72 +1,112 @@
-
 import React, { useState } from 'react';
-import { Calendar, Plus, Edit } from 'lucide-react';
-import InputAbsensiModal from '../components/InputAbsensiModal';
+import { Calendar, CheckCircle, Circle } from 'lucide-react';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
-
-interface Halaqah {
-  id: number;
-  name: string;
-  membersCount: number;
-  level: string;
-  pembina: string;
-  selectedStudents?: string[];
-}
+import InputAbsensiModal from '@/components/InputAbsensiModal';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface StudentAttendance {
-  id: number;
+  id: string;
   name: string;
-  status: string;
+  status: 'hadir' | 'izin' | 'alfa';
   halaqah: string;
-  remarks: string;
+  remarks?: string;
+}
+
+interface AttendanceRecord {
+  id: string;
+  studentId: string;
+  studentName: string;
+  date: string;
+  status: 'hadir' | 'izin' | 'alfa';
+  remarks?: string;
 }
 
 const Attendance: React.FC = () => {
   const { students } = useStudents();
+  const { halaqahs } = useHalaqahs();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedHalaqah, setSelectedHalaqah] = useState('all');
+  const [selectedStudent, setSelectedStudent] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingStudent, setEditingStudent] = useState<any>(null);
+  const [editingStudent, setEditingStudent] = useState<StudentAttendance | null>(null);
+  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   
-  const { halaqahs: registeredHalaqahs } = useHalaqahs();
-  const [attendanceData, setAttendanceData] = useState<StudentAttendance[]>([]);
+  // Input form state
+  const [attendanceStatus, setAttendanceStatus] = useState<'hadir' | 'izin' | 'alfa'>('hadir');
+  const [remarks, setRemarks] = useState('');
 
-  const getStudentsByHalaqah = () => {
-    if (selectedHalaqah === 'all') {
-      return attendanceData.map(attendance => {
-        const student = students.find(s => s.id.toString() === attendance.id.toString());
-        return { ...attendance, name: student?.name || attendance.name };
-      });
-    }
-    
-    const halaqah = registeredHalaqahs.find(h => h.id.toString() === selectedHalaqah);
+  const getStudentsByHalaqah = (halaqahId: string) => {
+    if (halaqahId === 'all') return students;
+    const halaqah = halaqahs.find(h => h.id.toString() === halaqahId);
     if (!halaqah?.selectedStudents) return [];
     
-    return attendanceData
-      .filter(attendance => halaqah.selectedStudents?.includes(attendance.id.toString()))
-      .map(attendance => {
-        const student = students.find(s => s.id.toString() === attendance.id.toString());
-        return { ...attendance, name: student?.name || attendance.name };
-      });
-  };
-
-  const filteredStudents = getStudentsByHalaqah();
-
-  const getStatusBadge = (status: string) => {
-    const styles = {
-      hadir: 'bg-green-100 text-green-800',
-      sakit: 'bg-yellow-100 text-yellow-800',
-      izin: 'bg-blue-100 text-blue-800',
-      alfa: 'bg-red-100 text-red-800',
-    };
-    
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${styles[status as keyof typeof styles]}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </span>
+    return students.filter(student => 
+      halaqah.selectedStudents?.includes(student.id.toString())
     );
   };
+
+  const filteredStudents = getStudentsByHalaqah(selectedHalaqah);
+
+  const getStatusBadge = (status: string) => {
+    const statusStyles = {
+      hadir: 'bg-green-100 text-green-800',
+      izin: 'bg-yellow-100 text-yellow-800',
+      alfa: 'bg-red-100 text-red-800'
+    };
+
+    return (
+      <Badge className={statusStyles[status as keyof typeof statusStyles] || 'bg-gray-100 text-gray-800'}>
+        {status}
+      </Badge>
+    );
+  };
+
+  const handleSaveAttendance = () => {
+    if (!selectedStudent) return;
+    
+    const student = students.find(s => s.id.toString() === selectedStudent);
+    if (!student) return;
+
+    const newRecord: AttendanceRecord = {
+      id: `${selectedStudent}-${selectedDate}`,
+      studentId: selectedStudent,
+      studentName: student.name,
+      date: selectedDate,
+      status: attendanceStatus,
+      remarks: remarks
+    };
+
+    setAttendanceRecords(prev => {
+      const existing = prev.filter(record => record.id !== newRecord.id);
+      return [...existing, newRecord];
+    });
+
+    // Reset form
+    setAttendanceStatus('hadir');
+    setRemarks('');
+  };
+
+  const getAttendanceRecordsForWeek = () => {
+    const endDate = new Date(selectedDate);
+    const startDate = new Date(endDate);
+    startDate.setDate(endDate.getDate() - 6);
+    
+    const weekDates = [];
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      weekDates.push(new Date(d).toISOString().split('T')[0]);
+    }
+    
+    const studentRecords = attendanceRecords.filter(record => 
+      (!selectedStudent || record.studentId === selectedStudent) &&
+      weekDates.includes(record.date)
+    );
+    
+    return { weekDates, studentRecords };
+  };
+
+  const { weekDates, studentRecords } = getAttendanceRecordsForWeek();
 
   return (
     <div className="p-6">
@@ -74,8 +114,9 @@ const Attendance: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-800 mb-2">Attendance</h1>
         <p className="text-gray-600">Kelola absensi santri harian</p>
       </div>
-      
-      <div className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+
+      {/* Filters */}
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="flex items-center space-x-3">
           <Calendar className="text-gray-400" size={20} />
           <input
@@ -84,152 +125,185 @@ const Attendance: React.FC = () => {
             onChange={(e) => setSelectedDate(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          
-          <select 
-            value={selectedHalaqah}
-            onChange={(e) => setSelectedHalaqah(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">Semua Halaqah</option>
-            {registeredHalaqahs.map(halaqah => (
-              <option key={halaqah.id} value={halaqah.id.toString()}>
-                {halaqah.name}
-              </option>
-            ))}
-          </select>
         </div>
         
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center space-x-2"
+        <select 
+          value={selectedHalaqah}
+          onChange={(e) => {
+            setSelectedHalaqah(e.target.value);
+            setSelectedStudent('');
+          }}
+          className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <Plus size={16} />
-          <span>Input Absensi</span>
-        </button>
+          <option value="all">Semua Halaqah</option>
+          {halaqahs.map(halaqah => (
+            <option key={halaqah.id} value={halaqah.id.toString()}>
+              {halaqah.name}
+            </option>
+          ))}
+        </select>
+        
+        <select 
+          value={selectedStudent}
+          onChange={(e) => setSelectedStudent(e.target.value)}
+          className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={filteredStudents.length === 0}
+        >
+          <option value="">Pilih Santri</option>
+          {filteredStudents.map(student => (
+            <option key={student.id} value={student.id.toString()}>
+              {student.name}
+            </option>
+          ))}
+        </select>
       </div>
-      
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+
+      {/* Input Section */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
         <div className="px-6 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-800">Daftar Absensi Santri</h3>
+          <h3 className="text-lg font-semibold text-gray-800">
+            Input Absensi - {selectedStudent ? students.find(s => s.id.toString() === selectedStudent)?.name : 'Pilih Santri'}
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            Tanggal: {new Date(selectedDate).toLocaleDateString('id-ID', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </p>
         </div>
         
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  No
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Nama Santri
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Aksi
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Edit
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredStudents.map((student, index) => (
-                <tr key={student.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {index + 1}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {student.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(student.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <select 
-                      className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={student.status}
-                      onChange={(e) => {
-                        const updatedAttendance = attendanceData.map(s => 
-                          s.id === student.id ? { ...s, status: e.target.value } : s
-                        );
-                        setAttendanceData(updatedAttendance);
-                      }}
-                    >
-                      <option value="hadir">Hadir</option>
-                      <option value="sakit">Sakit</option>
-                      <option value="izin">Izin</option>
-                      <option value="tanpa keterangan">Tanpa Keterangan</option>
-                    </select>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <button
-                      onClick={() => {
-                        setEditingStudent(student);
-                        setIsModalOpen(true);
-                      }}
-                      className="inline-flex items-center justify-center h-8 w-8 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <Edit className="h-4 w-4 text-gray-600" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* Save Button */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50">
-          <button 
-            onClick={() => {
-              // Save attendance data
-              alert('Attendance data saved successfully!');
-            }}
-            className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors"
-          >
-            Save Attendance
-          </button>
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {(['hadir', 'izin', 'alfa'] as const).map((status) => (
+              <div
+                key={status}
+                className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                  attendanceStatus === status
+                    ? 'border-blue-200 bg-blue-50'
+                    : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                }`}
+                onClick={() => setAttendanceStatus(status)}
+              >
+                <div className="flex items-center space-x-3">
+                  {attendanceStatus === status ? (
+                    <CheckCircle className="text-blue-600" size={24} />
+                  ) : (
+                    <Circle className="text-gray-400" size={24} />
+                  )}
+                  <div className="flex-1">
+                    <span className={`font-medium capitalize ${
+                      attendanceStatus === status ? 'text-blue-800' : 'text-gray-700'
+                    }`}>
+                      {status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Keterangan (opsional)
+            </label>
+            <textarea
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
+              placeholder="Masukkan keterangan..."
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={3}
+            />
+          </div>
+          
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                Status: <span className="font-medium capitalize">{attendanceStatus}</span>
+              </div>
+              <button 
+                onClick={handleSaveAttendance}
+                disabled={!selectedStudent}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                Save Attendance
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Weekly Attendance Table */}
+      {studentRecords.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-800">
+              Riwayat Absensi - 7 Hari Terakhir
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Santri
+                  </th>
+                  {weekDates.map(date => (
+                    <th key={date} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                      {new Date(date).toLocaleDateString('id-ID', { 
+                        month: 'short', 
+                        day: 'numeric'
+                      })}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                <tr>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                    {selectedStudent ? students.find(s => s.id.toString() === selectedStudent)?.name : 'All Students'}
+                  </td>
+                  {weekDates.map(date => {
+                    const record = studentRecords.find(r => r.date === date);
+                    return (
+                      <td key={date} className="px-4 py-3 text-center">
+                        {record ? (
+                          <div className="flex flex-col items-center">
+                            {getStatusBadge(record.status)}
+                            {record.remarks && (
+                              <span className="text-xs text-gray-500 mt-1" title={record.remarks}>
+                                {record.remarks.substring(0, 10)}...
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <Circle className="mx-auto text-gray-300" size={20} />
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <InputAbsensiModal
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setEditingStudent(null);
-        }}
-        onSave={(data) => {
-          if (editingStudent) {
-            // Update existing student
-            const updatedAttendance = attendanceData.map(s => 
-              s.id === editingStudent.id ? { ...s, status: data.status, remarks: data.remarks } : s
-            );
-            setAttendanceData(updatedAttendance);
-          } else {
-            // Add new attendance record
-            const student = students.find(s => s.studentId === data.studentId);
-            if (student) {
-              const newAttendanceRecord: StudentAttendance = {
-                id: student.id,
-                name: student.name,
-                status: data.status,
-                halaqah: data.halaqah,
-                remarks: data.remarks
-              };
-              setAttendanceData(prev => [...prev, newAttendanceRecord]);
-            }
-          }
-          setEditingStudent(null);
-        }}
+        onClose={() => setIsModalOpen(false)}
         initialData={editingStudent ? {
           halaqah: editingStudent.halaqah,
-          studentId: editingStudent.id.toString(),
+          studentId: editingStudent.id,
           studentName: editingStudent.name,
-          status: editingStudent.status,
-          remarks: editingStudent.remarks
+          status: editingStudent.status === 'alfa' ? 'tanpa keterangan' : editingStudent.status,
+          remarks: editingStudent.remarks || ''
         } : null}
+        onSave={(updatedStudent) => {
+          console.log('Updated student:', updatedStudent);
+          setIsModalOpen(false);
+        }}
       />
     </div>
   );

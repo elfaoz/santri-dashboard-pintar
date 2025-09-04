@@ -13,6 +13,7 @@ const Halaqah: React.FC = () => {
   const { students } = useStudents();
   const { halaqahs } = useHalaqahs();
   const [selectedHalaqah, setSelectedHalaqah] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   
   // Overview filters
   const [overviewDateRange, setOverviewDateRange] = useState({ from: '', to: '' });
@@ -20,6 +21,14 @@ const Halaqah: React.FC = () => {
   
   // Daily Records filters
   const [recordsSelectedHalaqah, setRecordsSelectedHalaqah] = useState('');
+  const [recordsSelectedStudent, setRecordsSelectedStudent] = useState('');
+  
+  // Input form state
+  const [memorizationTarget, setMemorizationTarget] = useState('');
+  const [memorizationActual, setMemorizationActual] = useState('');
+  const [surahName, setSurahName] = useState('');
+  const [ayahFrom, setAyahFrom] = useState('');
+  const [ayahTo, setAyahTo] = useState('');
   
   // Detail modal state
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -36,6 +45,32 @@ const Halaqah: React.FC = () => {
   };
 
   const filteredStudents = getStudentsByHalaqah(selectedHalaqah);
+
+  const handleSaveMemorization = () => {
+    if (!recordsSelectedStudent || !memorizationTarget || !memorizationActual) return;
+    
+    const student = students.find(s => s.id.toString() === recordsSelectedStudent);
+    if (!student) return;
+
+    // Here you would save the memorization record
+    console.log('Saving memorization:', {
+      studentId: recordsSelectedStudent,
+      studentName: student.name,
+      date: selectedDate,
+      target: parseInt(memorizationTarget),
+      actual: parseInt(memorizationActual),
+      surahName,
+      ayahFrom: parseInt(ayahFrom),
+      ayahTo: parseInt(ayahTo)
+    });
+
+    // Reset form
+    setMemorizationTarget('');
+    setMemorizationActual('');
+    setSurahName('');
+    setAyahFrom('');
+    setAyahTo('');
+  };
 
   const handleDetail = (student: any) => {
     // This would be implemented when you have actual memorization data
@@ -229,6 +264,148 @@ const Halaqah: React.FC = () => {
         </TabsContent>
         
         <TabsContent value="records" className="space-y-6">
+          {/* Daily Records Input Section */}
+          <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center space-x-3">
+              <Calendar className="text-gray-400" size={20} />
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            
+            <select 
+              value={recordsSelectedHalaqah}
+              onChange={(e) => {
+                setRecordsSelectedHalaqah(e.target.value);
+                setRecordsSelectedStudent('');
+              }}
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Semua Halaqah</option>
+              {halaqahs.map(halaqah => (
+                <option key={halaqah.id} value={halaqah.id.toString()}>
+                  {halaqah.name}
+                </option>
+              ))}
+            </select>
+            
+            <select 
+              value={recordsSelectedStudent}
+              onChange={(e) => setRecordsSelectedStudent(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Pilih Santri</option>
+              {getStudentsByHalaqah(recordsSelectedHalaqah).map(student => (
+                <option key={student.id} value={student.id.toString()}>
+                  {student.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Input Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Input Hafalan - {recordsSelectedStudent ? students.find(s => s.id.toString() === recordsSelectedStudent)?.name : 'Pilih Santri'}
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Tanggal: {new Date(selectedDate).toLocaleDateString('id-ID', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </p>
+            </div>
+            
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Target Hafalan (halaman)
+                  </label>
+                  <input
+                    type="number"
+                    value={memorizationTarget}
+                    onChange={(e) => setMemorizationTarget(e.target.value)}
+                    placeholder="Masukkan target..."
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Pencapaian Aktual (halaman)
+                  </label>
+                  <input
+                    type="number"
+                    value={memorizationActual}
+                    onChange={(e) => setMemorizationActual(e.target.value)}
+                    placeholder="Masukkan pencapaian..."
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nama Surah
+                  </label>
+                  <input
+                    type="text"
+                    value={surahName}
+                    onChange={(e) => setSurahName(e.target.value)}
+                    placeholder="Masukkan nama surah..."
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ayat (dari - sampai)
+                  </label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="number"
+                      value={ayahFrom}
+                      onChange={(e) => setAyahFrom(e.target.value)}
+                      placeholder="Dari"
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <input
+                      type="number"
+                      value={ayahTo}
+                      onChange={(e) => setAyahTo(e.target.value)}
+                      placeholder="Sampai"
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-6 pt-6 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    Persentase: {memorizationTarget && memorizationActual ? 
+                      Math.round((parseInt(memorizationActual) / parseInt(memorizationTarget)) * 100) : 0}%
+                  </div>
+                  <button 
+                    onClick={handleSaveMemorization}
+                    disabled={!recordsSelectedStudent || !memorizationTarget || !memorizationActual}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    Save Memorization
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <MemorizationTable />
           
           {/* Santri Ranking Section */}

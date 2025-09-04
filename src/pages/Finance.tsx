@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -52,50 +51,28 @@ interface ExpenseRecord {
   catatan: string;
 }
 
-
 const Finance: React.FC = () => {
   const { students } = useStudents();
   const { halaqahs: registeredHalaqahs } = useHalaqahs();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedHalaqah, setSelectedHalaqah] = useState('all');
+  const [selectedStudent, setSelectedStudent] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<StudentFinance | null>(null);
-  const [formData, setFormData] = useState({
-    halaqah: '',
-    nama: '',
-    tanggalDari: '',
-    tanggalSampai: '',
-    jumlah: '',
-    kategori: '',
-    catatan: '',
-  });
+  
+  // Input form state
+  const [expenseAmount, setExpenseAmount] = useState('');
+  const [expenseCategory, setExpenseCategory] = useState('');
+  const [expenseNotes, setExpenseNotes] = useState('');
 
   const [studentsFinance, setStudentsFinance] = useState<StudentFinance[]>([]);
   const [expenseRecords, setExpenseRecords] = useState<ExpenseRecord[]>([]);
 
-  const filteredStudents = studentsFinance.filter(student => {
-    // Filter by halaqah
-    const halaqahMatch = selectedHalaqah === 'all' || 
-      (() => {
-        const halaqah = registeredHalaqahs.find(h => h.id.toString() === selectedHalaqah);
-        return halaqah?.selectedStudents?.includes(student.id.toString());
-      })();
-    
-    // Filter by date range if both dates are provided
-    const dateMatch = (!dateFrom || !dateTo) || 
-      (() => {
-        const studentExpenses = expenseRecords.filter(record => record.nama === student.nama);
-        return studentExpenses.some(expense => 
-          expense.tanggal >= dateFrom && expense.tanggal <= dateTo
-        );
-      })();
-    
-    return halaqahMatch && dateMatch;
-  });
-
   const getStudentsByHalaqah = (halaqahId: string) => {
+    if (halaqahId === 'all') return students;
     const halaqah = registeredHalaqahs.find(h => h.id.toString() === halaqahId);
     if (!halaqah?.selectedStudents) return [];
     
@@ -104,30 +81,33 @@ const Finance: React.FC = () => {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const filteredStudents = getStudentsByHalaqah(selectedHalaqah);
+
+  const handleSaveExpense = () => {
+    if (!selectedStudent || !expenseAmount) return;
     
-    // Add new expense record
+    const student = students.find(s => s.id.toString() === selectedStudent);
+    if (!student) return;
+
     const newExpense: ExpenseRecord = {
       id: Date.now(),
-      halaqah: formData.halaqah,
-      nama: formData.nama,
-      tanggal: formData.tanggalDari,
-      jumlah: parseInt(formData.jumlah),
-      kategori: formData.kategori,
-      catatan: formData.catatan,
+      halaqah: selectedHalaqah,
+      nama: student.name,
+      tanggal: selectedDate,
+      jumlah: parseInt(expenseAmount),
+      kategori: expenseCategory,
+      catatan: expenseNotes,
     };
     
     setExpenseRecords(prev => [...prev, newExpense]);
     
     // Update or create student finance record
-    const existingStudentFinance = studentsFinance.find(sf => sf.nama === formData.nama);
+    const existingStudentFinance = studentsFinance.find(sf => sf.nama === student.name);
     
     if (existingStudentFinance) {
-      // Update existing student's weekly expenses
       const updatedFinance = studentsFinance.map(sf => {
-        if (sf.nama === formData.nama) {
-          const newWeeklyExpense = sf.pengeluaranMingguIni + parseInt(formData.jumlah);
+        if (sf.nama === student.name) {
+          const newWeeklyExpense = sf.pengeluaranMingguIni + parseInt(expenseAmount);
           const newPercentage = Math.round((newWeeklyExpense / sf.budgetMingguan) * 100);
           return {
             ...sf,
@@ -141,16 +121,15 @@ const Finance: React.FC = () => {
       });
       setStudentsFinance(updatedFinance);
     } else {
-      // Create new student finance record with default budget
       const defaultBudgetHarian = 15000;
       const defaultBudgetMingguan = defaultBudgetHarian * 7;
-      const weeklyExpense = parseInt(formData.jumlah);
+      const weeklyExpense = parseInt(expenseAmount);
       const percentage = Math.round((weeklyExpense / defaultBudgetMingguan) * 100);
       
       const newStudentFinance: StudentFinance = {
         id: Date.now(),
-        nama: formData.nama,
-        halaqah: formData.halaqah,
+        nama: student.name,
+        halaqah: selectedHalaqah,
         budgetHarian: defaultBudgetHarian,
         budgetMingguan: defaultBudgetMingguan,
         pengeluaranMingguIni: weeklyExpense,
@@ -161,18 +140,32 @@ const Finance: React.FC = () => {
       
       setStudentsFinance(prev => [...prev, newStudentFinance]);
     }
-    
-    setIsOpen(false);
-    setFormData({
-      halaqah: '',
-      nama: '',
-      tanggalDari: '',
-      tanggalSampai: '',
-      jumlah: '',
-      kategori: '',
-      catatan: '',
-    });
+
+    // Reset form
+    setExpenseAmount('');
+    setExpenseCategory('');
+    setExpenseNotes('');
   };
+
+  const getExpenseRecordsForWeek = () => {
+    const endDate = new Date(selectedDate);
+    const startDate = new Date(endDate);
+    startDate.setDate(endDate.getDate() - 6);
+    
+    const weekDates = [];
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      weekDates.push(new Date(d).toISOString().split('T')[0]);
+    }
+    
+    const studentExpenses = expenseRecords.filter(record => 
+      (!selectedStudent || record.nama === students.find(s => s.id.toString() === selectedStudent)?.name) &&
+      weekDates.includes(record.tanggal)
+    );
+    
+    return { weekDates, studentExpenses };
+  };
+
+  const { weekDates, studentExpenses } = getExpenseRecordsForWeek();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -189,32 +182,6 @@ const Finance: React.FC = () => {
     return formatCurrency(amount);
   };
 
-  const handleEdit = (student: StudentFinance) => {
-    setEditingId(student.id);
-    setEditData({...student});
-  };
-
-  const handleSave = () => {
-    if (editData) {
-      setStudentsFinance(prev => 
-        prev.map(student => 
-          student.id === editData.id ? editData : student
-        )
-      );
-      setEditingId(null);
-      setEditData(null);
-      toast({
-        title: 'Data berhasil disimpan',
-        description: 'Perubahan data keuangan telah disimpan',
-      });
-    }
-  };
-
-  const handleCancel = () => {
-    setEditingId(null);
-    setEditData(null);
-  };
-
   return (
     <div className="p-6">
       <div className="mb-8">
@@ -222,186 +189,191 @@ const Finance: React.FC = () => {
         <p className="text-gray-600">Kelola data keuangan santri mingguan secara teratur</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex justify-between items-center">
+      {/* Filters */}
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="flex items-center space-x-3">
+          <Calendar className="text-gray-400" size={20} />
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        
+        <select 
+          value={selectedHalaqah}
+          onChange={(e) => {
+            setSelectedHalaqah(e.target.value);
+            setSelectedStudent('');
+          }}
+          className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="all">Semua Halaqah</option>
+          {registeredHalaqahs.map(halaqah => (
+            <option key={halaqah.id} value={halaqah.id.toString()}>
+              {halaqah.name}
+            </option>
+          ))}
+        </select>
+        
+        <select 
+          value={selectedStudent}
+          onChange={(e) => setSelectedStudent(e.target.value)}
+          className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          disabled={filteredStudents.length === 0}
+        >
+          <option value="">Pilih Santri</option>
+          {filteredStudents.map(student => (
+            <option key={student.id} value={student.id.toString()}>
+              {student.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Input Section */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-800">
+            Input Pengeluaran - {selectedStudent ? students.find(s => s.id.toString() === selectedStudent)?.name : 'Pilih Santri'}
+          </h3>
+          <p className="text-sm text-gray-600 mt-1">
+            Tanggal: {new Date(selectedDate).toLocaleDateString('id-ID', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </p>
+        </div>
+        
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Data Keuangan Santri</h2>
-              <p className="text-sm text-gray-600 mt-1">Ringkasan pengeluaran mingguan santri</p>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Jumlah Pengeluaran
+              </label>
+              <input
+                type="number"
+                value={expenseAmount}
+                onChange={(e) => setExpenseAmount(e.target.value)}
+                placeholder="Masukkan jumlah..."
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
             </div>
             
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Input Pengeluaran
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Input Pengeluaran Santri</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="halaqah">Nama Halaqah</Label>
-                    <Select value={formData.halaqah} onValueChange={(value) => setFormData({...formData, halaqah: value, nama: ''})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih halaqah" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {registeredHalaqahs.map((halaqah) => (
-                          <SelectItem key={halaqah.id} value={halaqah.id.toString()}>
-                            {halaqah.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="nama">Nama Santri</Label>
-                    <Select 
-                      value={formData.nama} 
-                      onValueChange={(value) => setFormData({...formData, nama: value})}
-                      disabled={!formData.halaqah}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={!formData.halaqah ? "Pilih halaqah terlebih dahulu" : "Pilih santri"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {formData.halaqah && getStudentsByHalaqah(formData.halaqah).map((student) => (
-                          <SelectItem key={student.id} value={student.name}>
-                            {student.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                   <div className="grid grid-cols-2 gap-3">
-                     <div>
-                       <Label htmlFor="tanggalDari">Tanggal Dari</Label>
-                       <Input
-                         id="tanggalDari"
-                         type="date"
-                         value={formData.tanggalDari}
-                         onChange={(e) => setFormData({...formData, tanggalDari: e.target.value})}
-                         required
-                       />
-                     </div>
-                     <div>
-                       <Label htmlFor="tanggalSampai">Tanggal Sampai</Label>
-                       <Input
-                         id="tanggalSampai"
-                         type="date"
-                         value={formData.tanggalSampai}
-                         onChange={(e) => setFormData({...formData, tanggalSampai: e.target.value})}
-                         required
-                       />
-                     </div>
-                   </div>
-
-                  <div>
-                    <Label htmlFor="jumlah">Jumlah Pengeluaran</Label>
-                    <Input
-                      id="jumlah"
-                      type="number"
-                      placeholder="Masukkan jumlah"
-                      value={formData.jumlah}
-                      onChange={(e) => setFormData({...formData, jumlah: e.target.value})}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="kategori">Kategori</Label>
-                    <Select value={formData.kategori} onValueChange={(value) => setFormData({...formData, kategori: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih kategori (opsional)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Makan">Makan</SelectItem>
-                        <SelectItem value="Transport">Transport</SelectItem>
-                        <SelectItem value="Pribadi">Pribadi</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="catatan">Catatan</Label>
-                    <Input
-                      id="catatan"
-                      placeholder="Catatan tambahan (opsional)"
-                      value={formData.catatan}
-                      onChange={(e) => setFormData({...formData, catatan: e.target.value})}
-                    />
-                  </div>
-
-                  <div className="flex gap-3 pt-4">
-                    <Button type="submit" className="flex-1">
-                      Simpan
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setIsOpen(false)}
-                      className="flex-1"
-                    >
-                      Batal
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Kategori
+              </label>
+              <select
+                value={expenseCategory}
+                onChange={(e) => setExpenseCategory(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Pilih kategori</option>
+                <option value="Makan">Makan</option>
+                <option value="Transport">Transport</option>
+                <option value="Pribadi">Pribadi</option>
+                <option value="Kesehatan">Kesehatan</option>
+                <option value="Pendidikan">Pendidikan</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Catatan (opsional)
+            </label>
+            <textarea
+              value={expenseNotes}
+              onChange={(e) => setExpenseNotes(e.target.value)}
+              placeholder="Masukkan catatan..."
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={3}
+            />
+          </div>
+          
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                Jumlah: {expenseAmount ? formatCurrency(parseInt(expenseAmount)) : 'Rp 0'}
+              </div>
+              <button 
+                onClick={handleSaveExpense}
+                disabled={!selectedStudent || !expenseAmount}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                Save Expense
+              </button>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Filters */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="halaqah-filter" className="text-sm font-medium text-gray-700">
-                Filter Halaqah:
-              </Label>
-              <Select value={selectedHalaqah} onValueChange={setSelectedHalaqah}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Pilih Halaqah" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Halaqah</SelectItem>
-                  {registeredHalaqahs.map((halaqah) => (
-                    <SelectItem key={halaqah.id} value={halaqah.id.toString()}>
-                      {halaqah.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Label className="text-sm font-medium text-gray-700">Dari:</Label>
-              <Input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="w-40"
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Label className="text-sm font-medium text-gray-700">Sampai:</Label>
-              <Input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="w-40"
-              />
-            </div>
-            
-            <span className="text-sm text-gray-500">
-              ({filteredStudents.length} santri)
-            </span>
+      {/* Weekly Expense Table */}
+      {studentExpenses.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-800">
+              Riwayat Pengeluaran - 7 Hari Terakhir
+            </h3>
           </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Santri
+                  </th>
+                  {weekDates.map(date => (
+                    <th key={date} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                      {new Date(date).toLocaleDateString('id-ID', { 
+                        month: 'short', 
+                        day: 'numeric'
+                      })}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                <tr>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                    {selectedStudent ? students.find(s => s.id.toString() === selectedStudent)?.name : 'All Students'}
+                  </td>
+                  {weekDates.map(date => {
+                    const dayExpenses = studentExpenses.filter(e => e.tanggal === date);
+                    const totalAmount = dayExpenses.reduce((sum, e) => sum + e.jumlah, 0);
+                    return (
+                      <td key={date} className="px-4 py-3 text-center">
+                        {dayExpenses.length > 0 ? (
+                          <div className="flex flex-col items-center">
+                            <span className="text-sm font-medium text-green-600">
+                              {formatCurrencyShort(totalAmount)}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {dayExpenses.length} item{dayExpenses.length > 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-300">-</span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Summary Table */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">Data Keuangan Santri</h2>
+          <p className="text-sm text-gray-600 mt-1">Ringkasan pengeluaran mingguan santri</p>
         </div>
 
         <div className="overflow-x-auto">
@@ -415,53 +387,20 @@ const Finance: React.FC = () => {
                 <TableHead>Pengeluaran Minggu Ini</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Persentase</TableHead>
-                <TableHead>Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStudents.length > 0 ? (
-                filteredStudents.map((student) => (
+              {studentsFinance.length > 0 ? (
+                studentsFinance.map((student) => (
                   <TableRow key={student.id}>
-                    <TableCell className="font-medium">
-                      {editingId === student.id ? (
-                        <Input
-                          value={editData?.nama || ''}
-                          onChange={(e) => setEditData(prev => prev ? {...prev, nama: e.target.value} : null)}
-                          disabled
-                        />
-                      ) : (
-                        student.nama
-                      )}
-                    </TableCell>
+                    <TableCell className="font-medium">{student.nama}</TableCell>
                     <TableCell>
                       <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
                         {registeredHalaqahs.find(h => h.id.toString() === student.halaqah)?.name || `Halaqah ${student.halaqah}`}
                       </span>
                     </TableCell>
-                    <TableCell>
-                      {editingId === student.id ? (
-                        <Input
-                          type="number"
-                          value={editData?.budgetHarian || ''}
-                          onChange={(e) => setEditData(prev => prev ? {...prev, budgetHarian: parseInt(e.target.value)} : null)}
-                          className="w-24"
-                        />
-                      ) : (
-                        formatCurrencyShort(student.budgetHarian)
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {editingId === student.id ? (
-                        <Input
-                          type="number"
-                          value={editData?.budgetMingguan || ''}
-                          onChange={(e) => setEditData(prev => prev ? {...prev, budgetMingguan: parseInt(e.target.value)} : null)}
-                          className="w-24"
-                        />
-                      ) : (
-                        formatCurrencyShort(student.budgetMingguan)
-                      )}
-                    </TableCell>
+                    <TableCell>{formatCurrencyShort(student.budgetHarian)}</TableCell>
+                    <TableCell>{formatCurrencyShort(student.budgetMingguan)}</TableCell>
                     <TableCell>{formatCurrencyShort(student.pengeluaranMingguIni)}</TableCell>
                     <TableCell>
                       <span className={`font-medium ${
@@ -475,32 +414,18 @@ const Finance: React.FC = () => {
                     <TableCell>
                       <div className="flex items-center">
                         <span className={`font-medium ${
-                          student.persentase <= 100 
-                            ? 'text-green-600' 
-                            : 'text-red-600'
+                          student.persentase <= 100 ? 'text-green-600' : 'text-red-600'
                         }`}>
                           {student.persentase}%
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {editingId === student.id ? (
-                        <div className="flex gap-2">
-                          <Button size="sm" onClick={handleSave}>Simpan</Button>
-                          <Button size="sm" variant="outline" onClick={handleCancel}>Batal</Button>
-                        </div>
-                      ) : (
-                        <Button size="sm" variant="outline" onClick={() => handleEdit(student)}>
-                          Edit
-                        </Button>
-                      )}
-                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                    Belum ada data keuangan santri
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                    Belum ada data keuangan
                   </TableCell>
                 </TableRow>
               )}

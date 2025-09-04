@@ -15,7 +15,7 @@ const Dashboard: React.FC = () => {
     <div className="p-6 space-y-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-2">Dashboard Overview</h1>
-        <p className="text-gray-600">Selamat Datang (Ustadz Ahmad Wijaya)</p>
+        <p className="text-gray-600">Ustadz Ahmad Wijaya</p>
       </div>
       
       <DashboardStats />
