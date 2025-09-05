@@ -3,11 +3,36 @@ import { Trophy, Eye, Medal, Award } from 'lucide-react';
 import DetailMemorizationModal from './DetailMemorizationModal';
 import { MemorizationRecord } from './MemorizationTable';
 
-const SantriRanking: React.FC = () => {
+interface SantriRankingProps {
+  memorizationRecords: MemorizationRecord[];
+}
+
+const SantriRanking: React.FC<SantriRankingProps> = ({ memorizationRecords }) => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<MemorizationRecord | null>(null);
 
-  const rankingData: any[] = [];
+  // Calculate ranking data from memorization records
+  const rankingData = memorizationRecords.reduce((acc: any[], record) => {
+    const existingStudent = acc.find(student => student.name === record.studentName);
+    
+    if (existingStudent) {
+      existingStudent.totalPages += record.actual;
+      existingStudent.memorizationDetail = record.memorizationDetail;
+    } else {
+      acc.push({
+        id: record.id,
+        name: record.studentName,
+        halaqah: 'Halaqah 1', // This would come from student data
+        totalPages: record.actual,
+        memorizationDetail: record.memorizationDetail
+      });
+    }
+    
+    return acc;
+  }, []).sort((a, b) => b.totalPages - a.totalPages).map((student, index) => ({
+    ...student,
+    rank: index + 1
+  }));
 
   const handleViewDetail = (student: typeof rankingData[0]) => {
     const record: MemorizationRecord = {

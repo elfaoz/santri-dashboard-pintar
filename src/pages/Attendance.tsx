@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 interface StudentAttendance {
   id: string;
   name: string;
-  status: 'hadir' | 'izin' | 'alfa';
+  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan';
   halaqah: string;
   remarks?: string;
 }
@@ -19,7 +19,7 @@ interface AttendanceRecord {
   studentId: string;
   studentName: string;
   date: string;
-  status: 'hadir' | 'izin' | 'alfa';
+  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan';
   remarks?: string;
 }
 
@@ -34,7 +34,7 @@ const Attendance: React.FC = () => {
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   
   // Input form state
-  const [attendanceStatus, setAttendanceStatus] = useState<'hadir' | 'izin' | 'alfa'>('hadir');
+  const [attendanceStatus, setAttendanceStatus] = useState<'hadir' | 'izin' | 'sakit' | 'tanpa keterangan'>('hadir');
   const [remarks, setRemarks] = useState('');
 
   const getStudentsByHalaqah = (halaqahId: string) => {
@@ -53,7 +53,8 @@ const Attendance: React.FC = () => {
     const statusStyles = {
       hadir: 'bg-green-100 text-green-800',
       izin: 'bg-yellow-100 text-yellow-800',
-      alfa: 'bg-red-100 text-red-800'
+      sakit: 'bg-orange-100 text-orange-800',
+      'tanpa keterangan': 'bg-red-100 text-red-800'
     };
 
     return (
@@ -175,8 +176,8 @@ const Attendance: React.FC = () => {
         </div>
         
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {(['hadir', 'izin', 'alfa'] as const).map((status) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {(['hadir', 'izin', 'sakit', 'tanpa keterangan'] as const).map((status) => (
               <div
                 key={status}
                 className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
@@ -297,7 +298,7 @@ const Attendance: React.FC = () => {
           halaqah: editingStudent.halaqah,
           studentId: editingStudent.id,
           studentName: editingStudent.name,
-          status: editingStudent.status === 'alfa' ? 'tanpa keterangan' : editingStudent.status,
+          status: editingStudent.status,
           remarks: editingStudent.remarks || ''
         } : null}
         onSave={(updatedStudent) => {

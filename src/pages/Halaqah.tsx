@@ -8,6 +8,7 @@ import SantriRanking from '../components/SantriRanking';
 import { MemorizationRecord } from '../components/MemorizationTable';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
+import { surahs, getSurahByName } from '@/utils/surahData';
 
 const Halaqah: React.FC = () => {
   const { students } = useStudents();
@@ -26,9 +27,13 @@ const Halaqah: React.FC = () => {
   // Input form state
   const [memorizationTarget, setMemorizationTarget] = useState('');
   const [memorizationActual, setMemorizationActual] = useState('');
-  const [surahName, setSurahName] = useState('');
+  const [selectedJuz, setSelectedJuz] = useState('');
+  const [selectedSurah, setSelectedSurah] = useState('');
   const [ayahFrom, setAyahFrom] = useState('');
   const [ayahTo, setAyahTo] = useState('');
+  
+  // Memorization records storage
+  const [memorizationRecords, setMemorizationRecords] = useState<MemorizationRecord[]>([]);
   
   // Detail modal state
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -50,24 +55,42 @@ const Halaqah: React.FC = () => {
     if (!recordsSelectedStudent || !memorizationTarget || !memorizationActual) return;
     
     const student = students.find(s => s.id.toString() === recordsSelectedStudent);
+    const selectedSurahData = surahs.find(s => s.name === selectedSurah);
     if (!student) return;
 
-    // Here you would save the memorization record
-    console.log('Saving memorization:', {
-      studentId: recordsSelectedStudent,
+    const target = parseInt(memorizationTarget);
+    const actual = parseInt(memorizationActual);
+    const percentage = Math.round((actual / target) * 100);
+    
+    let status = 'Not Achieved';
+    if (percentage === 100) status = 'Fully Achieved';
+    else if (percentage >= 75) status = 'Achieved';
+
+    const newRecord: MemorizationRecord = {
+      id: `${recordsSelectedStudent}-${selectedDate}-${Date.now()}`,
       studentName: student.name,
       date: selectedDate,
-      target: parseInt(memorizationTarget),
-      actual: parseInt(memorizationActual),
-      surahName,
-      ayahFrom: parseInt(ayahFrom),
-      ayahTo: parseInt(ayahTo)
-    });
+      target,
+      actual,
+      percentage,
+      status,
+      memorizationDetail: {
+        juz: parseInt(selectedJuz) || 1,
+        pageFrom: 1,
+        pageTo: actual,
+        surahName: selectedSurahData?.name || selectedSurah,
+        ayahFrom: parseInt(ayahFrom) || 1,
+        ayahTo: parseInt(ayahTo) || 1,
+      }
+    };
+
+    setMemorizationRecords(prev => [...prev, newRecord]);
 
     // Reset form
     setMemorizationTarget('');
     setMemorizationActual('');
-    setSurahName('');
+    setSelectedJuz('');
+    setSelectedSurah('');
     setAyahFrom('');
     setAyahTo('');
   };
@@ -186,14 +209,14 @@ const Halaqah: React.FC = () => {
             </div>
           </div>
             
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Pencapaian Hafalan - {selectedHalaqah ? 
-                    halaqahs.find(h => h.id.toString() === selectedHalaqah)?.name || 'Halaqah' 
-                    : 'All Halaqah'}
-                </h3>
-              </div>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Pencapaian Hafalan - {selectedHalaqah ? 
+                  halaqahs.find(h => h.id.toString() === selectedHalaqah)?.name || 'Halaqah' 
+                  : 'All Halaqah'}
+              </h3>
+            </div>
             
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -220,37 +243,48 @@ const Halaqah: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredStudents.length > 0 ? filteredStudents.map((student) => (
-                    <tr key={student.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {student.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                        -
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                        -
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="w-full bg-gray-200 rounded-full h-2.5">
-                          <div className="h-2.5 rounded-full bg-gray-300" style={{ width: '0%' }}></div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 rounded-full text-xs font-medium text-gray-600 bg-gray-100">
-                          0%
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => handleDetail(student)}
-                          className="inline-flex items-center justify-center h-8 w-8 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <Eye className="h-4 w-4 text-gray-600" />
-                        </button>
-                      </td>
-                    </tr>
-                  )) : (
+                  {filteredStudents.length > 0 ? filteredStudents.map((student) => {
+                    const studentRecords = memorizationRecords.filter(r => r.studentName === student.name);
+                    const totalActual = studentRecords.reduce((sum, record) => sum + record.actual, 0);
+                    const avgPercentage = studentRecords.length > 0 
+                      ? Math.round(studentRecords.reduce((sum, record) => sum + record.percentage, 0) / studentRecords.length)
+                      : 0;
+                    
+                    return (
+                      <tr key={student.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {student.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                          {studentRecords.length > 0 ? studentRecords.reduce((sum, record) => sum + record.target, 0) : '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
+                          {totalActual > 0 ? totalActual : '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="w-full bg-gray-200 rounded-full h-2.5">
+                            <div 
+                              className={`h-2.5 rounded-full ${getProgressBarColor(avgPercentage)}`} 
+                              style={{ width: `${Math.min(avgPercentage, 100)}%` }}
+                            ></div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPercentageColor(avgPercentage)}`}>
+                            {avgPercentage}%
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={() => handleDetail(student)}
+                            className="inline-flex items-center justify-center h-8 w-8 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <Eye className="h-4 w-4 text-gray-600" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  }) : (
                     <tr>
                       <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                         Belum ada data hafalan
@@ -261,6 +295,9 @@ const Halaqah: React.FC = () => {
               </table>
             </div>
           </div>
+
+          {/* Santri Ranking Section */}
+          <SantriRanking memorizationRecords={memorizationRecords} />
         </TabsContent>
         
         <TabsContent value="records" className="space-y-6">
@@ -323,7 +360,7 @@ const Halaqah: React.FC = () => {
             </div>
             
             <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Target Hafalan (halaman)
@@ -349,20 +386,47 @@ const Halaqah: React.FC = () => {
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Juz Ke
+                  </label>
+                  <select
+                    value={selectedJuz}
+                    onChange={(e) => setSelectedJuz(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Pilih Juz</option>
+                    {Array.from({ length: 30 }, (_, i) => (
+                      <option key={i + 1} value={i + 1}>
+                        Juz {i + 1}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nama Surah
+                    Nama Surat
                   </label>
-                  <input
-                    type="text"
-                    value={surahName}
-                    onChange={(e) => setSurahName(e.target.value)}
-                    placeholder="Masukkan nama surah..."
+                  <select
+                    value={selectedSurah}
+                    onChange={(e) => {
+                      setSelectedSurah(e.target.value);
+                      setAyahFrom('');
+                      setAyahTo('');
+                    }}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  >
+                    <option value="">Pilih Surat</option>
+                    {surahs.map(surah => (
+                      <option key={surah.number} value={surah.name}>
+                        {surah.number}. {surah.name} ({surah.arabicName})
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div>
@@ -370,20 +434,34 @@ const Halaqah: React.FC = () => {
                     Ayat (dari - sampai)
                   </label>
                   <div className="flex space-x-2">
-                    <input
-                      type="number"
+                    <select
                       value={ayahFrom}
                       onChange={(e) => setAyahFrom(e.target.value)}
-                      placeholder="Dari"
-                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                      type="number"
+                      disabled={!selectedSurah}
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                    >
+                      <option value="">Dari</option>
+                      {selectedSurah && Array.from({ length: getSurahByName(selectedSurah)?.verses || 0 }, (_, i) => (
+                        <option key={i + 1} value={i + 1}>
+                          {i + 1}
+                        </option>
+                      ))}
+                    </select>
+                    <select
                       value={ayahTo}
                       onChange={(e) => setAyahTo(e.target.value)}
-                      placeholder="Sampai"
-                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                      disabled={!selectedSurah || !ayahFrom}
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                    >
+                      <option value="">Sampai</option>
+                      {selectedSurah && ayahFrom && Array.from({ 
+                        length: (getSurahByName(selectedSurah)?.verses || 0) - parseInt(ayahFrom) + 1 
+                      }, (_, i) => (
+                        <option key={parseInt(ayahFrom) + i} value={parseInt(ayahFrom) + i}>
+                          {parseInt(ayahFrom) + i}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>
@@ -406,11 +484,97 @@ const Halaqah: React.FC = () => {
             </div>
           </div>
 
-          <MemorizationTable />
-          
-          {/* Santri Ranking Section */}
-          <div className="mt-8">
-            <SantriRanking />
+          {/* Riwayat Hafalan - 7 Hari Terakhir */}
+          {memorizationRecords.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Riwayat Hafalan - 7 Hari Terakhir
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Tanggal
+                      </th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        Santri
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                        Target
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                        Actual
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                        Persentase
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                        Surat
+                      </th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {memorizationRecords
+                      .filter(record => recordsSelectedStudent ? 
+                        students.find(s => s.id.toString() === recordsSelectedStudent)?.name === record.studentName 
+                        : true
+                      )
+                      .slice(-7)
+                      .map((record) => (
+                        <tr key={record.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {new Date(record.date).toLocaleDateString('id-ID')}
+                          </td>
+                          <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                            {record.studentName}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                            {record.target}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                            {record.actual}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPercentageColor(record.percentage)}`}>
+                              {record.percentage}%
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                            {record.memorizationDetail.surahName}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              record.status === 'Fully Achieved' ? 'bg-green-100 text-green-800' :
+                              record.status === 'Achieved' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {record.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Data Hafalan Harian */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800">Data Hafalan Harian</h3>
+              <p className="text-sm text-gray-600">Riwayat hafalan harian santri</p>
+            </div>
+            
+            <div className="p-6">
+              <MemorizationTable memorizationRecords={memorizationRecords} />
+            </div>
           </div>
         </TabsContent>
       </Tabs>

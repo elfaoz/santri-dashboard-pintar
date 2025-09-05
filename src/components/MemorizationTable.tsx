@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -40,12 +40,21 @@ interface Halaqah {
   selectedStudents?: string[];
 }
 
-const MemorizationTable: React.FC = () => {
+interface MemorizationTableProps {
+  memorizationRecords?: MemorizationRecord[];
+}
+
+const MemorizationTable: React.FC<MemorizationTableProps> = ({ memorizationRecords = [] }) => {
   const { students } = useStudents();
   const { halaqahs: registeredHalaqahs } = useHalaqahs();
   const [selectedHalaqah, setSelectedHalaqah] = useState('all');
   
-  const [records, setRecords] = useState<MemorizationRecord[]>([]);
+  const [records, setRecords] = useState<MemorizationRecord[]>(memorizationRecords);
+
+  // Update records when memorizationRecords prop changes
+  useEffect(() => {
+    setRecords(memorizationRecords);
+  }, [memorizationRecords]);
 
   const getStudentsByHalaqah = () => {
     if (selectedHalaqah === 'all') return records;
