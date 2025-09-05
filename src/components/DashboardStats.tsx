@@ -5,6 +5,7 @@ import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
 
 const DashboardStats: React.FC = () => {
+  // Update dashboard stats to use context data
   const { students } = useStudents();
   const { halaqahs } = useHalaqahs();
 

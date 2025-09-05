@@ -25,54 +25,8 @@ interface StudentContextType {
 
 const StudentContext = createContext<StudentContextType | undefined>(undefined);
 
-// Initial sample data
-const initialStudents: Student[] = [
-  {
-    id: 1,
-    studentId: '001',
-    name: 'Ahmad Fadil',
-    placeOfBirth: 'Jakarta',
-    dateOfBirth: '2005-01-15',
-    fatherName: 'Abdullah Fadil',
-    motherName: 'Siti Khadijah',
-    class: '10',
-    level: 'Mu\'allimin',
-    period: '2024-2025',
-    email: 'ahmad.fadil@email.com',
-    phoneNumber: '081234567890',
-    address: 'Jl. Merdeka No. 123, Jakarta'
-  },
-  {
-    id: 2,
-    studentId: '002',
-    name: 'Fatimah Zahra',
-    placeOfBirth: 'Bandung',
-    dateOfBirth: '2006-03-20',
-    fatherName: 'Muhammad Ali',
-    motherName: 'Aminah',
-    class: '9',
-    level: 'Tsanawiyyah',
-    period: '2024-2025',
-    email: 'fatimah.zahra@email.com',
-    phoneNumber: '081234567891',
-    address: 'Jl. Sudirman No. 456, Bandung'
-  },
-  {
-    id: 3,
-    studentId: '003',
-    name: 'Muhammad Hasan',
-    placeOfBirth: 'Surabaya',
-    dateOfBirth: '2004-07-10',
-    fatherName: 'Ahmad Hasan',
-    motherName: 'Fatimah',
-    class: '11',
-    level: 'Mu\'allimin',
-    period: '2024-2025',
-    email: 'muhammad.hasan@email.com',
-    phoneNumber: '081234567892',
-    address: 'Jl. Pemuda No. 789, Surabaya'
-  }
-];
+// Initial sample data - empty by default
+const initialStudents: Student[] = [];
 
 export const StudentProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [students, setStudents] = useState<Student[]>(initialStudents);

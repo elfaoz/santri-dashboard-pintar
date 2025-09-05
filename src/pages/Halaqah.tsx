@@ -496,27 +496,27 @@ const Halaqah: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Tanggal
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Santri
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                        Target
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                        Actual
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                        Persentase
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                        Surat
-                      </th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                        Status
-                      </th>
+                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                         Tanggal
+                       </th>
+                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                         Santri
+                       </th>
+                       <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                         Juz
+                       </th>
+                       <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                         Surat
+                       </th>
+                       <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                         Ayat Dari
+                       </th>
+                       <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                         Sampai
+                       </th>
+                       <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                         Status
+                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -528,35 +528,33 @@ const Halaqah: React.FC = () => {
                       .slice(-7)
                       .map((record) => (
                         <tr key={record.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm text-gray-900">
-                            {new Date(record.date).toLocaleDateString('id-ID')}
-                          </td>
-                          <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                            {record.studentName}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900 text-center">
-                            {record.target}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900 text-center">
-                            {record.actual}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPercentageColor(record.percentage)}`}>
-                              {record.percentage}%
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-gray-900 text-center">
-                            {record.memorizationDetail.surahName}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              record.status === 'Fully Achieved' ? 'bg-green-100 text-green-800' :
-                              record.status === 'Achieved' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
-                              {record.status}
-                            </span>
-                          </td>
+                           <td className="px-4 py-3 text-sm text-gray-900">
+                             {new Date(record.date).toLocaleDateString('id-ID')}
+                           </td>
+                           <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                             {record.studentName}
+                           </td>
+                           <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                             {record.memorizationDetail?.juz || '-'}
+                           </td>
+                           <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                             {record.memorizationDetail?.surahName || '-'}
+                           </td>
+                           <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                             {record.memorizationDetail?.ayahFrom || '-'}
+                           </td>
+                           <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                             {record.memorizationDetail?.ayahTo || '-'}
+                           </td>
+                           <td className="px-4 py-3 text-center">
+                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                               record.status === 'Fully Achieved' ? 'bg-green-100 text-green-800' :
+                               record.status === 'Achieved' ? 'bg-yellow-100 text-yellow-800' :
+                               'bg-red-100 text-red-800'
+                             }`}>
+                               {record.status}
+                             </span>
+                           </td>
                         </tr>
                       ))}
                   </tbody>
@@ -573,7 +571,10 @@ const Halaqah: React.FC = () => {
             </div>
             
             <div className="p-6">
-              <MemorizationTable memorizationRecords={memorizationRecords} />
+            <MemorizationTable 
+              memorizationRecords={memorizationRecords} 
+              selectedHalaqah={recordsSelectedHalaqah}
+            />
             </div>
           </div>
         </TabsContent>

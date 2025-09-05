@@ -42,32 +42,7 @@ const Profile: React.FC = () => {
     return { percentage: Math.round(percentage * 100), bonus };
   };
 
-  const bonusHistory = [
-    { 
-      month: 'September 2025', 
-      hafalan: 95, absensi: 98, mutabaah: 92,
-      ...calculateBonus(0.95, 0.98, 0.92),
-      status: 'Cair' 
-    },
-    { 
-      month: 'Agustus 2025', 
-      hafalan: 88, absensi: 90, mutabaah: 85,
-      ...calculateBonus(0.88, 0.90, 0.85),
-      status: 'Cair' 
-    },
-    { 
-      month: 'Juli 2025', 
-      hafalan: 92, absensi: 95, mutabaah: 88,
-      ...calculateBonus(0.92, 0.95, 0.88),
-      status: 'Disetujui' 
-    },
-    { 
-      month: 'Juni 2025', 
-      hafalan: 85, absensi: 82, mutabaah: 90,
-      ...calculateBonus(0.85, 0.82, 0.90),
-      status: 'Pending' 
-    },
-  ];
+  const bonusHistory: any[] = [];
 
   const handleAgreeMoU = () => {
     setHasAgreed(true);
@@ -90,7 +65,7 @@ const Profile: React.FC = () => {
     }
 
     // Send WhatsApp notification (mock)
-    const message = `Pengajuan Penarikan Dana%0A%0AData Pemohon:%0A%0ANama: ${profileData.name}%0AEmail: ${profileData.email || 'nashers.manziel@gmail.com'}%0ANo. HP: ${profileData.phone}%0AAlamat: ${profileData.address}%0A%0ATanggal Pengajuan:%0A${new Date().toLocaleDateString('id-ID')}%0A%0ATotal Pengajuan:%0ARp ${parseInt(withdrawAmount).toLocaleString('id-ID')}%0A%0AInformasi Rekening Penerima:%0A${profileData.bankInfo}%0ANo. Rekening: ${profileData.accountNumber || '4043-0101-5163-532'}%0AAtас Nama: ${profileData.name}%0A%0AMohon segera lakukan pembayaran dan konfirmasi. Terima kasih.`;
+    const message = `Pengajuan Penarikan Dana%0A%0AData Pemohon:%0A%0ANama: ${profileData.name}%0AEmail: ${profileData.email || 'nashers.manziel@gmail.com'}%0ANo. HP: ${profileData.phone}%0AAlamat: ${profileData.address}%0A%0ATanggal Pengajuan:%0A${new Date().toLocaleDateString('id-ID')}%0A%0ATotal Pengajuan:%0ARp ${parseInt(withdrawAmount).toLocaleString('id-ID')}%0A%0AInformasi Rekening Penerima:%0A${profileData.bankInfo}%0ANo. Rekening: ${profileData.accountNumber || '4043-0101-5163-532'}%0AAtас Nama: ${profileData.name}%0A%0ATerima Kasih.`;
     const whatsappUrl = `https://wa.me/6285223857484?text=${message}`;
     
     window.open(whatsappUrl, '_blank');
@@ -189,6 +164,13 @@ const Profile: React.FC = () => {
                     <Label>Rekening & Bank</Label>
                     <Input defaultValue={profileData.bankInfo} disabled={!isEditing} />
                   </div>
+                  
+                  {isEditing && (
+                    <div className="space-y-2">
+                      <Label>Ubah PIN</Label>
+                      <Input type="password" placeholder="Masukkan PIN baru (6 digit)" maxLength={6} />
+                    </div>
+                  )}
                 </div>
               </div>
               

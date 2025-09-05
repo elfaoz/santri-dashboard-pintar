@@ -42,12 +42,12 @@ interface Halaqah {
 
 interface MemorizationTableProps {
   memorizationRecords?: MemorizationRecord[];
+  selectedHalaqah?: string;
 }
 
-const MemorizationTable: React.FC<MemorizationTableProps> = ({ memorizationRecords = [] }) => {
+const MemorizationTable: React.FC<MemorizationTableProps> = ({ memorizationRecords = [], selectedHalaqah: propSelectedHalaqah = 'all' }) => {
   const { students } = useStudents();
   const { halaqahs: registeredHalaqahs } = useHalaqahs();
-  const [selectedHalaqah, setSelectedHalaqah] = useState('all');
   
   const [records, setRecords] = useState<MemorizationRecord[]>(memorizationRecords);
 
@@ -57,9 +57,9 @@ const MemorizationTable: React.FC<MemorizationTableProps> = ({ memorizationRecor
   }, [memorizationRecords]);
 
   const getStudentsByHalaqah = () => {
-    if (selectedHalaqah === 'all') return records;
+    if (propSelectedHalaqah === 'all') return records;
     
-    const halaqah = registeredHalaqahs.find(h => h.id.toString() === selectedHalaqah);
+    const halaqah = registeredHalaqahs.find(h => h.id.toString() === propSelectedHalaqah);
     if (!halaqah?.selectedStudents) return [];
     
     return records.filter(record => {
@@ -124,34 +124,8 @@ const MemorizationTable: React.FC<MemorizationTableProps> = ({ memorizationRecor
           <h2 className="text-xl font-bold text-gray-800">Data Hafalan Harian</h2>
           <p className="text-gray-600">Ringkasan Hafalan Harian Santri</p>
         </div>
-        <Button onClick={() => setIsInputModalOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-          <span className="mr-2">+</span>
-          Input Hafalan
-        </Button>
       </div>
 
-      {/* Halaqah Filter */}
-      <div className="flex items-center gap-3">
-        <Label htmlFor="halaqah-filter" className="text-sm font-medium text-gray-700">
-          Filter Halaqah:
-        </Label>
-        <Select value={selectedHalaqah} onValueChange={setSelectedHalaqah}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Pilih Halaqah" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Semua Halaqah</SelectItem>
-            {registeredHalaqahs.map((halaqah) => (
-              <SelectItem key={halaqah.id} value={halaqah.id.toString()}>
-                {halaqah.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <span className="text-sm text-gray-500">
-          ({filteredRecords.length} records)
-        </span>
-      </div>
 
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <Table>
