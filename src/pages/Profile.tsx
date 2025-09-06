@@ -122,41 +122,79 @@ const Profile: React.FC = () => {
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
     
-    // Add title
-    doc.setFontSize(16);
-    doc.text('Memorandum of Understanding (MoU)', 20, 20);
-    doc.setFontSize(12);
-    doc.text('Antara Kepala dan Musyrif/Muhafizh', 20, 30);
+    // Add title and institution info
+    doc.setFontSize(14);
+    doc.text('ASRAMA PESANTREN PERSATUAN ISLAM 80 Al-AMIN SINDANGKASIH', 20, 20);
+    doc.setFontSize(10);
+    doc.text('Jl. Raya Ancol No. 27 Sindangkasih Ciamis 46268', 20, 30);
     
-    // Add content (simplified version)
+    doc.setFontSize(16);
+    doc.text('Memorandum of Understanding (MoU)', 20, 50);
+    doc.setFontSize(12);
+    doc.text('Antara Kepala dan Musyrif/Muhafizh', 20, 60);
+    doc.text('Tentang: Amanah Pengasuhan, Pembinaan SKL Tahfizh, dan Sistem Penilaian Kinerja', 20, 70);
+    
+    // Add complete content
     doc.setFontSize(10);
     const content = [
+      '',
       'I. Latar Belakang',
-      'Dalam rangka mencapai Standar Kompetensi Lulusan (SKL) bidang tahfizh...',
+      'Dalam rangka mencapai Standar Kompetensi Lulusan (SKL) bidang tahfizh,',
+      'dibutuhkan sinergi antara kepala lembaga dan para musyrif/muhafizh dengan',
+      'pembagian tugas, target, hak, serta sistem penilaian kinerja yang jelas dan terukur.',
       '',
       'II. Tujuan Kesepakatan',
       '• Menjamin pencapaian target hafalan santri (SKL)',
       '• Menegaskan amanah dan tanggung jawab musyrif dalam pembinaan tahfizh',
       '• Memberikan kejelasan sistem penghargaan, evaluasi, dan bonus capaian berbasis kinerja',
       '',
-      'III. Hak Musyrif/Muhafizh',
-      '• Gaji pokok bulanan sebesar maksimal Rp600.000',
-      '• Bonus capaian bulanan: Persentase pencapaian SKL × Gaji pokok',
-      '• Contoh: Jika capaian 90%, bonus = 90% × 600.000 = Rp540.000',
+      'III. Ketentuan Amanah',
+      '• Setiap musyrif diberi amanah maksimal 20 orang santri',
+      '• Target capaian SKL untuk setiap santri adalah 3 juz dalam waktu 2 tahun',
+      '• Musyrif bertanggung jawab dalam:',
+      '  - Pembinaan hafalan harian (setoran, murojaah)',
+      '  - Pencatatan progres hafalan',
+      '  - Membina kedisiplinan dan motivasi santri',
+      '  - Berkoordinasi aktif dengan kepala tahfizh/asrama',
+      '',
+      'IV. Hak Musyrif/Muhafizh',
+      '• Gaji pokok bulanan sebesar maksimal Rp600.000, diberikan secara tetap',
+      '  tanpa bergantung pada capaian target',
+      '• Bonus capaian bulanan:',
+      '  - Dihitung berdasarkan: Persentase pencapaian SKL bulan tersebut × Gaji pokok',
+      '  - Contoh: Jika capaian bulan ini 90%, maka bonus = 90% × 600.000 = Rp540.000',
       '• Total penerimaan = gaji pokok + bonus capaian bulanan',
       '',
-      `Disepakati pada: ${new Date().toLocaleDateString('id-ID')}`,
+      'V. Evaluasi dan Rotasi',
+      '• Evaluasi dilakukan setiap bulan untuk memantau pencapaian SKL dan kinerja',
+      '• Jika selama 2 tahun rata-rata pencapaian bulanan di bawah 80%,',
+      '  maka akan dilakukan rotasi amanah oleh pihak kepala/lembaga',
+      '• Musyrif yang dirotasi berhak mendapatkan pembinaan dan penugasan',
+      '  sesuai kompetensinya',
       '',
-      'Kepala Asrama                    ' + profileData.name,
+      'VI. Penutup',
+      'Kesepakatan ini disusun atas dasar amanah, kepercayaan, dan semangat',
+      'kolaboratif demi kemajuan dan keberkahan lembaga, serta demi tumbuhnya',
+      'generasi penghafal Al-Qur\'an yang berkualitas.',
       '',
-      '_________________                _________________',
-      'Tanda Tangan                     NIK. ' + profileData.nik
+      `Disepakati pada: ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}`,
+      '',
+      '',
+      'Kepala Asrama                              ' + profileData.name,
+      '',
+      '',
+      '_________________                          _________________',
+      'Tanda Tangan                               NIK. ' + profileData.nik
     ];
     
-    let y = 50;
+    let y = 80;
     content.forEach(line => {
+      if (y > 280) {
+        doc.addPage();
+        y = 20;
+      }
       doc.text(line, 20, y);
-      y += 6;
+      y += 5;
     });
     
     doc.save('MoU_Agreement.pdf');
@@ -298,13 +336,17 @@ const Profile: React.FC = () => {
               <div className="bg-white p-8 rounded-lg border shadow-sm font-roboto">
                 <div className="text-center mb-8">
                   <div className="w-16 h-16 bg-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <span className="text-white font-bold text-xl">KDM</span>
+                    <span className="text-white font-bold text-xl">API</span>
                   </div>
                   <h1 className="text-xl font-bold text-gray-800">
                     Memorandum of Understanding (MoU)
                   </h1>
                   <p className="text-gray-600 mt-2">Antara Kepala dan Musyrif/Muhafizh</p>
                   <p className="text-gray-600">Tentang: Amanah Pengasuhan, Pembinaan SKL Tahfizh, dan Sistem Penilaian Kinerja</p>
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <p className="text-sm font-semibold text-blue-800">ASRAMA PESANTREN PERSATUAN ISLAM 80 Al-AMIN SINDANGKASIH</p>
+                    <p className="text-xs text-blue-600">Jl. Raya Ancol No. 27 Sindangkasih Ciamis 46268</p>
+                  </div>
                 </div>
 
                 <div className="space-y-6 text-sm text-gray-700 leading-relaxed">
@@ -473,28 +515,33 @@ const Profile: React.FC = () => {
                         <TableHead>Target (Halaman)</TableHead>
                         <TableHead>Pencapaian (Halaman)</TableHead>
                         <TableHead>Persentase</TableHead>
+                        <TableHead>IDR</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {memorizationData.length > 0 ? memorizationData.map((item) => (
-                        <TableRow key={item.no}>
-                          <TableCell>{item.no}</TableCell>
-                          <TableCell>{item.halaqah}</TableCell>
-                          <TableCell>{item.nama}</TableCell>
-                          <TableCell>{item.target}</TableCell>
-                          <TableCell>{item.pencapaian}</TableCell>
-                          <TableCell>{item.persentase}%</TableCell>
-                        </TableRow>
-                      )) : (
+                      {memorizationData.length > 0 ? memorizationData.map((item) => {
+                        const idrValue = Math.round((item.persentase / 100) * 50000);
+                        return (
+                          <TableRow key={item.no}>
+                            <TableCell>{item.no}</TableCell>
+                            <TableCell>{item.halaqah}</TableCell>
+                            <TableCell>{item.nama}</TableCell>
+                            <TableCell>{item.target}</TableCell>
+                            <TableCell>{item.pencapaian}</TableCell>
+                            <TableCell>{item.persentase}%</TableCell>
+                            <TableCell>Rp {idrValue.toLocaleString('id-ID')}</TableCell>
+                          </TableRow>
+                        );
+                      }) : (
                         <TableRow>
-                          <TableCell colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                          <TableCell colSpan={7} className="px-6 py-8 text-center text-gray-500">
                             Belum ada data hafalan
                           </TableCell>
                         </TableRow>
                       )}
                       {memorizationData.length > 0 && (
                         <TableRow className="bg-gray-50 font-semibold">
-                          <TableCell colSpan={5}>Total Rata-rata Persentase</TableCell>
+                          <TableCell colSpan={6}>Total Rata-rata Persentase</TableCell>
                           <TableCell>{Math.round(totalPercentage)}%</TableCell>
                         </TableRow>
                       )}

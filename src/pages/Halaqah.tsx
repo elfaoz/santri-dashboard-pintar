@@ -209,13 +209,30 @@ const Halaqah: React.FC = () => {
             </div>
           </div>
             
+          {/* Date Selector for Overview */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Calendar className="inline w-4 h-4 mr-1" />
+              Pilih Tanggal untuk Melihat Progress
+            </label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
             <div className="px-6 py-4 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-800">
-                Pencapaian Hafalan - {selectedHalaqah ? 
+                Progress Hafalan per Tanggal - {selectedHalaqah ? 
                   halaqahs.find(h => h.id.toString() === selectedHalaqah)?.name || 'Halaqah' 
                   : 'All Halaqah'}
               </h3>
+              <p className="text-sm text-gray-600">
+                Tanggal: {new Date(selectedDate).toLocaleDateString('id-ID')}
+              </p>
             </div>
             
             <div className="overflow-x-auto">
@@ -225,68 +242,73 @@ const Halaqah: React.FC = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Nama Santri
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Target (halaman/minggu)
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Progress Hafalan
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Setoran
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Visual Progress
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Progress
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Persentase
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Detail
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Riwayat
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredStudents.length > 0 ? filteredStudents.map((student) => {
-                    const studentRecords = memorizationRecords.filter(r => r.studentName === student.name);
-                    const totalActual = studentRecords.reduce((sum, record) => sum + record.actual, 0);
-                    const avgPercentage = studentRecords.length > 0 
-                      ? Math.round(studentRecords.reduce((sum, record) => sum + record.percentage, 0) / studentRecords.length)
-                      : 0;
+                    const studentRecords = memorizationRecords.filter(r => 
+                      r.studentName === student.name && 
+                      new Date(r.date) <= new Date(selectedDate)
+                    );
+                    const totalPages = studentRecords.reduce((sum, record) => sum + record.actual, 0);
+                    const totalQuranPages = 604; // Total pages in Quran
+                    const progressPercentage = Math.round((totalPages / totalQuranPages) * 100);
                     
                     return (
                       <tr key={student.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {student.name}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                          {studentRecords.length > 0 ? studentRecords.reduce((sum, record) => sum + record.target, 0) : '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center">
-                          {totalActual > 0 ? totalActual : '-'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div 
-                              className={`h-2.5 rounded-full ${getProgressBarColor(avgPercentage)}`} 
-                              style={{ width: `${Math.min(avgPercentage, 100)}%` }}
-                            ></div>
+                        <td className="px-6 py-4 text-center">
+                          <div className="text-lg font-bold text-blue-600">
+                            {totalPages}/{totalQuranPages}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {progressPercentage}% Complete
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPercentageColor(avgPercentage)}`}>
-                            {avgPercentage}%
-                          </span>
+                          <div className="w-full bg-gray-200 rounded-full h-3">
+                            <div 
+                              className={`h-3 rounded-full ${getProgressBarColor(progressPercentage)}`} 
+                              style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+                            ></div>
+                          </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            onClick={() => handleDetail(student)}
-                            className="inline-flex items-center justify-center h-8 w-8 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          >
-                            <Eye className="h-4 w-4 text-gray-600" />
-                          </button>
+                        <td className="px-6 py-4 text-center">
+                          <details className="inline-block">
+                            <summary className="cursor-pointer text-blue-600 hover:text-blue-800">
+                              <span className="text-sm">Lihat Riwayat ↓</span>
+                            </summary>
+                            <div className="mt-2 p-3 bg-gray-50 rounded-md text-left">
+                              {studentRecords.length > 0 ? (
+                                <div className="space-y-1 max-h-32 overflow-y-auto">
+                                  {studentRecords.slice(-5).reverse().map((record, index) => (
+                                    <div key={index} className="text-xs text-gray-600">
+                                      {new Date(record.date).toLocaleDateString('id-ID')}: {record.actual} halaman
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-xs text-gray-500">Belum ada data</div>
+                              )}
+                            </div>
+                          </details>
                         </td>
                       </tr>
                     );
                   }) : (
                     <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
                         Belum ada data hafalan
                       </td>
                     </tr>
@@ -563,18 +585,81 @@ const Halaqah: React.FC = () => {
             </div>
           )}
 
-          {/* Data Hafalan Harian */}
+          {/* Data Hafalan Harian - Ringkasan Hafalan Harian Santri */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-800">Data Hafalan Harian</h3>
-              <p className="text-sm text-gray-600">Riwayat hafalan harian santri</p>
+              <p className="text-sm text-gray-600">Ringkasan Hafalan Harian Santri</p>
             </div>
             
-            <div className="p-6">
-            <MemorizationTable 
-              memorizationRecords={memorizationRecords} 
-              selectedHalaqah={recordsSelectedHalaqah}
-            />
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nama Santri
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Sen
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Sel
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Rab
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Kam
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Jum
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Sab
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Min
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Total
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {getStudentsByHalaqah(recordsSelectedHalaqah).length > 0 ? getStudentsByHalaqah(recordsSelectedHalaqah).map((student) => {
+                    const studentRecords = memorizationRecords.filter(r => r.studentName === student.name);
+                    const weekTotal = studentRecords.reduce((sum, record) => sum + record.actual, 0);
+                    
+                    return (
+                      <tr key={student.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {student.name}
+                        </td>
+                        {[0,1,2,3,4,5,6].map(dayOffset => {
+                          const dayRecord = studentRecords.find(r => {
+                            const recordDate = new Date(r.date).getDay();
+                            return recordDate === (dayOffset + 1) % 7;
+                          });
+                          return (
+                            <td key={dayOffset} className="px-6 py-4 text-center text-sm text-gray-900">
+                              {dayRecord ? dayRecord.actual : '-'}
+                            </td>
+                          );
+                        })}
+                        <td className="px-6 py-4 text-center text-sm font-bold text-blue-600">
+                          {weekTotal > 0 ? weekTotal : '-'}
+                        </td>
+                      </tr>
+                    );
+                  }) : (
+                    <tr>
+                      <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
+                        Belum ada data hafalan
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </TabsContent>
