@@ -10,6 +10,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useStudents } from "@/contexts/StudentContext";
+import { useHalaqahs } from "@/contexts/HalaqahContext";
+import jsPDF from 'jspdf';
 
 const Profile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -19,7 +22,10 @@ const Profile: React.FC = () => {
   const [showPinModal, setShowPinModal] = useState(false);
   const [hasAgreed, setHasAgreed] = useState(false);
   const [showAgreementModal, setShowAgreementModal] = useState(false);
+  const [newPin, setNewPin] = useState('');
   const { toast } = useToast();
+  const { students } = useStudents();
+  const { halaqahs } = useHalaqahs();
 
   // Mock data - replace with actual data from context/API
   const profileData = {
@@ -31,16 +37,49 @@ const Profile: React.FC = () => {
     phone: '+62 812-3456-7890',
     email: 'ahmad.wijaya@pesantren.com',
     workPeriod: 'Sejak Juli 2019 – 6 Tahun',
-    currentBalance: 500000,
-    accountNumber: '4043-0101-5163-532'
+    currentBalance: 0,
+    accountNumber: '4043-0101-5163-532',
+    nik: '3174021585123456'
   };
 
-  // Calculate bonus based on formula: (Hafalan × 50%) + (Absensi × 30%) + (Mutabaah × 20%)
-  const calculateBonus = (hafalan: number, absensi: number, mutabaah: number) => {
-    const percentage = (hafalan * 0.5) + (absensi * 0.3) + (mutabaah * 0.2);
-    const bonus = Math.round(percentage * 600000); // Gaji pokok Rp 600.000
-    return { percentage: Math.round(percentage * 100), bonus };
+  // Get memorization data for bonus calculation
+  const getMemorizationData = () => {
+    // Get all students grouped by halaqah
+    const halaqahData: any[] = [];
+    
+    halaqahs.forEach(halaqah => {
+      if (halaqah.selectedStudents) {
+        halaqah.selectedStudents.forEach(studentId => {
+          const student = students.find(s => s.id.toString() === studentId);
+          if (student) {
+            // Mock calculation - replace with actual memorization data
+            const target = 30; // Target halaman per bulan
+            const achievement = Math.floor(Math.random() * 35); // Random achievement for demo
+            const percentage = Math.min((achievement / target) * 100, 100);
+            
+            halaqahData.push({
+              no: halaqahData.length + 1,
+              halaqah: halaqah.name,
+              nama: student.name,
+              target: target,
+              pencapaian: achievement,
+              persentase: Math.round(percentage)
+            });
+          }
+        });
+      }
+    });
+    
+    return halaqahData;
   };
+
+  const memorizationData = getMemorizationData();
+  
+  // Calculate total bonus
+  const totalPercentage = memorizationData.length > 0 
+    ? memorizationData.reduce((sum, item) => sum + item.persentase, 0) / memorizationData.length
+    : 0;
+  const totalBonus = Math.round(totalPercentage * 6000); // Total percentage × 6000
 
   const bonusHistory: any[] = [];
 
@@ -78,6 +117,49 @@ const Profile: React.FC = () => {
       title: "Pengajuan berhasil dikirim",
       description: "Pengajuan penarikan dana telah dikirim ke admin pusat melalui WhatsApp",
     });
+  };
+
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(16);
+    doc.text('Memorandum of Understanding (MoU)', 20, 20);
+    doc.setFontSize(12);
+    doc.text('Antara Kepala dan Musyrif/Muhafizh', 20, 30);
+    
+    // Add content (simplified version)
+    doc.setFontSize(10);
+    const content = [
+      'I. Latar Belakang',
+      'Dalam rangka mencapai Standar Kompetensi Lulusan (SKL) bidang tahfizh...',
+      '',
+      'II. Tujuan Kesepakatan',
+      '• Menjamin pencapaian target hafalan santri (SKL)',
+      '• Menegaskan amanah dan tanggung jawab musyrif dalam pembinaan tahfizh',
+      '• Memberikan kejelasan sistem penghargaan, evaluasi, dan bonus capaian berbasis kinerja',
+      '',
+      'III. Hak Musyrif/Muhafizh',
+      '• Gaji pokok bulanan sebesar maksimal Rp600.000',
+      '• Bonus capaian bulanan: Persentase pencapaian SKL × Gaji pokok',
+      '• Contoh: Jika capaian 90%, bonus = 90% × 600.000 = Rp540.000',
+      '• Total penerimaan = gaji pokok + bonus capaian bulanan',
+      '',
+      `Disepakati pada: ${new Date().toLocaleDateString('id-ID')}`,
+      '',
+      'Kepala Asrama                    ' + profileData.name,
+      '',
+      '_________________                _________________',
+      'Tanda Tangan                     NIK. ' + profileData.nik
+    ];
+    
+    let y = 50;
+    content.forEach(line => {
+      doc.text(line, 20, y);
+      y += 6;
+    });
+    
+    doc.save('MoU_Agreement.pdf');
   };
 
   return (
@@ -165,10 +247,21 @@ const Profile: React.FC = () => {
                     <Input defaultValue={profileData.bankInfo} disabled={!isEditing} />
                   </div>
                   
+                  <div className="space-y-2">
+                    <Label>NIK</Label>
+                    <Input defaultValue={profileData.nik} disabled={!isEditing} />
+                  </div>
+                  
                   {isEditing && (
                     <div className="space-y-2">
                       <Label>Ubah PIN</Label>
-                      <Input type="password" placeholder="Masukkan PIN baru (6 digit)" maxLength={6} />
+                      <Input 
+                        type="password" 
+                        placeholder="Masukkan PIN baru (6 digit)" 
+                        maxLength={6} 
+                        value={newPin}
+                        onChange={(e) => setNewPin(e.target.value)}
+                      />
                     </div>
                   )}
                 </div>
@@ -208,7 +301,7 @@ const Profile: React.FC = () => {
                     <span className="text-white font-bold text-xl">KDM</span>
                   </div>
                   <h1 className="text-xl font-bold text-gray-800">
-                    Nota Kesepahaman (MoU)
+                    Memorandum of Understanding (MoU)
                   </h1>
                   <p className="text-gray-600 mt-2">Antara Kepala dan Musyrif/Muhafizh</p>
                   <p className="text-gray-600">Tentang: Amanah Pengasuhan, Pembinaan SKL Tahfizh, dan Sistem Penilaian Kinerja</p>
@@ -249,23 +342,14 @@ const Profile: React.FC = () => {
                     <h2 className="text-lg font-semibold text-gray-800 mb-3">IV. Hak Musyrif/Muhafizh</h2>
                     <ul className="list-disc pl-6 space-y-2">
                       <li>Gaji pokok bulanan sebesar maksimal Rp600.000, diberikan secara tetap tanpa bergantung pada capaian target.</li>
-                      <li>Bonus capaian bulanan dihitung berdasarkan persentase pencapaian kinerja, dengan komponen:
+                      <li>Bonus capaian bulanan:
                         <ul className="list-disc pl-6 mt-2 space-y-1">
-                          <li>Hafalan Qur'an = 50% bobot.</li>
-                          <li>Absensi Santri = 30% bobot.</li>
-                          <li>Mutabaah Ibadah = 20% bobot.</li>
-                          <li>Laporan Keuangan = Transparansi dan ketepatan pelaporan keuangan santri.</li>
+                          <li>Dihitung berdasarkan: Persentase pencapaian SKL bulan tersebut × Gaji pokok.</li>
+                          <li>Contoh: Jika capaian bulan ini 90%, maka bonus = 90% × 600.000 = Rp540.000.</li>
                         </ul>
                       </li>
+                      <li>Total penerimaan = gaji pokok + bonus capaian bulanan.</li>
                     </ul>
-                    <div className="bg-gray-50 p-4 rounded-lg mt-4">
-                      <p className="font-semibold">Rumus:</p>
-                      <p className="mb-2">Persentase Capaian Bulanan = (Hafalan × 50%) + (Absensi × 30%) + (Mutabaah × 20%)</p>
-                      <p className="mb-2">Bonus = Persentase capaian bulanan × gaji pokok.</p>
-                      <p className="text-sm italic">Contoh: Jika capaian bulan ini 90%, maka bonus = 90% × Rp600.000 = Rp540.000.</p>
-                      <p className="font-semibold">Total penerimaan = gaji pokok + bonus capaian bulanan.</p>
-                      <p className="text-sm mt-2 text-blue-600">*Laporan keuangan menjadi faktor penilaian tambahan untuk transparansi dan akuntabilitas.</p>
-                    </div>
                   </section>
 
                   <section>
@@ -293,9 +377,9 @@ const Profile: React.FC = () => {
                         <p className="text-xs">Tanda Tangan & Nama</p>
                       </div>
                       <div className="text-center">
-                        <p className="mb-16">Rizal Fauzan Nasherudin K.</p>
+                        <p className="mb-16">{profileData.name}</p>
                         <div className="border-b border-gray-400 w-32 mx-auto mb-2"></div>
-                        <p className="text-xs">NPP. 67-010715-004</p>
+                        <p className="text-xs">NIK. {profileData.nik}</p>
                       </div>
                     </div>
                   </section>
@@ -326,7 +410,7 @@ const Profile: React.FC = () => {
                 )}
 
                 <div className="mt-8 text-center">
-                  <Button className="flex items-center gap-2 mx-auto">
+                  <Button onClick={handleDownloadPDF} className="flex items-center gap-2 mx-auto">
                     <Download size={16} />
                     Download PDF
                   </Button>
@@ -365,7 +449,7 @@ const Profile: React.FC = () => {
                     <div>
                       <h3 className="text-lg font-semibold text-gray-800">Total Saldo Bonus</h3>
                       <p className="text-3xl font-bold text-green-600 mt-2">
-                        Rp {profileData.currentBalance.toLocaleString('id-ID')}
+                        Rp {totalBonus.toLocaleString('id-ID')}
                       </p>
                       <p className="text-sm text-gray-600 mt-1">Periode September 2025</p>
                     </div>
@@ -375,40 +459,58 @@ const Profile: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Bonus History Table */}
+                {/* Memorization Data Table */}
                 <div className="bg-white rounded-lg border">
                   <div className="p-4 border-b">
-                    <h3 className="text-lg font-semibold text-gray-800">Riwayat Bonus & Penarikan</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">Data Hafalan untuk Perhitungan Bonus</h3>
                   </div>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Bulan</TableHead>
-                        <TableHead>Persentase Capaian</TableHead>
-                        <TableHead>Bonus (Rp)</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>No</TableHead>
+                        <TableHead>Halaqah</TableHead>
+                        <TableHead>Nama</TableHead>
+                        <TableHead>Target (Halaman)</TableHead>
+                        <TableHead>Pencapaian (Halaman)</TableHead>
+                        <TableHead>Persentase</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {bonusHistory.map((item, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{item.month}</TableCell>
-                          <TableCell>{item.percentage}%</TableCell>
-                          <TableCell>Rp {item.bonus.toLocaleString('id-ID')}</TableCell>
-                          <TableCell>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              item.status === 'Cair' ? 'bg-green-100 text-green-700' :
-                              item.status === 'Disetujui' ? 'bg-blue-100 text-blue-700' :
-                              'bg-yellow-100 text-yellow-700'
-                            }`}>
-                              {item.status}
-                            </span>
+                      {memorizationData.length > 0 ? memorizationData.map((item) => (
+                        <TableRow key={item.no}>
+                          <TableCell>{item.no}</TableCell>
+                          <TableCell>{item.halaqah}</TableCell>
+                          <TableCell>{item.nama}</TableCell>
+                          <TableCell>{item.target}</TableCell>
+                          <TableCell>{item.pencapaian}</TableCell>
+                          <TableCell>{item.persentase}%</TableCell>
+                        </TableRow>
+                      )) : (
+                        <TableRow>
+                          <TableCell colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                            Belum ada data hafalan
                           </TableCell>
                         </TableRow>
-                      ))}
+                      )}
+                      {memorizationData.length > 0 && (
+                        <TableRow className="bg-gray-50 font-semibold">
+                          <TableCell colSpan={5}>Total Rata-rata Persentase</TableCell>
+                          <TableCell>{Math.round(totalPercentage)}%</TableCell>
+                        </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 </div>
+
+                {/* Bonus Calculation Summary */}
+                {memorizationData.length > 0 && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-blue-800 mb-2">Perhitungan Bonus</h4>
+                    <p className="text-sm text-blue-700">
+                      Rata-rata Persentase: {Math.round(totalPercentage)}% × Rp 6.000 = <span className="font-bold">Rp {totalBonus.toLocaleString('id-ID')}</span>
+                    </p>
+                  </div>
+                )}
 
                 {/* Withdraw Button */}
                 <div className="text-center">
@@ -416,7 +518,7 @@ const Profile: React.FC = () => {
                     <DialogTrigger asChild>
                       <Button 
                         className="bg-orange-600 hover:bg-orange-700 mb-4"
-                        onClick={() => setWithdrawAmount(profileData.currentBalance.toString())}
+                        onClick={() => setWithdrawAmount(totalBonus.toString())}
                       >
                         Ajukan Penarikan
                       </Button>
@@ -425,7 +527,7 @@ const Profile: React.FC = () => {
                       <DialogHeader>
                         <DialogTitle>Konfirmasi Penarikan Dana</DialogTitle>
                         <DialogDescription>
-                          Apakah Anda yakin akan melakukan penarikan sebesar Rp {profileData.currentBalance.toLocaleString('id-ID')}?
+                          Apakah Anda yakin akan melakukan penarikan sebesar Rp {totalBonus.toLocaleString('id-ID')}?
                         </DialogDescription>
                       </DialogHeader>
                       <DialogFooter>
