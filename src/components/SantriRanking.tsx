@@ -80,8 +80,7 @@ const SantriRanking: React.FC<SantriRankingProps> = ({ memorizationRecords }) =>
       <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-purple-50">
         <div className="flex items-center space-x-2">
           <Trophy className="h-5 w-5 text-blue-600" />
-          <h3 className="text-lg font-semibold text-gray-800">Santri Ranking</h3>
-          <span className="text-sm text-gray-600">(Hafalan Terbanyak)</span>
+          <h3 className="text-lg font-semibold text-gray-800">Leaderboard Hafalan Terbanyak per Tanggal - All Halaqah</h3>
         </div>
       </div>
       
@@ -99,10 +98,13 @@ const SantriRanking: React.FC<SantriRankingProps> = ({ memorizationRecords }) =>
                 Halaqah
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Total Memorized (Jumlah Hafalan)
+                Level
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Detail
+                Pembina Halaqah
+              </th>
+              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Total Memorized (Jumlah Hafalan)
               </th>
             </tr>
           </thead>
@@ -126,21 +128,21 @@ const SantriRanking: React.FC<SantriRankingProps> = ({ memorizationRecords }) =>
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
-                  <div className="text-sm font-bold text-green-600">{student.totalPages} pages</div>
-                  <div className="text-xs text-gray-500">~ {Math.floor(student.totalPages / 20)} Juz</div>
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    {student.level || 'Tahfidz 1'}
+                  </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
-                  <button
-                    onClick={() => handleViewDetail(student)}
-                    className="inline-flex items-center justify-center h-8 w-8 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <Eye className="h-4 w-4 text-gray-600" />
-                  </button>
+                  <div className="text-sm text-gray-900">{student.pembina || 'Ustadz Ahmad'}</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  <div className="text-sm font-bold text-green-600">{student.totalPages} pages</div>
+                  <div className="text-xs text-gray-500">~ {Math.floor(student.totalPages / 20)} Juz</div>
                 </td>
               </tr>
             )) : (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                   Belum ada data ranking santri
                 </td>
               </tr>

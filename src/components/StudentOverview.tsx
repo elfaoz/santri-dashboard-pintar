@@ -1,10 +1,10 @@
 
 import React from 'react';
 import StudentFilters from './StudentFilters';
-import StudentProfile from './StudentProfile';
 import AttendanceSummary from './AttendanceSummary';
 import HafalanTable from './HafalanTable';
 import FinanceSummary from './FinanceSummary';
+import { useStudents } from '@/contexts/StudentContext';
 
 interface StudentOverviewProps {
   selectedStudents: string[];
@@ -23,6 +23,7 @@ const StudentOverview: React.FC<StudentOverviewProps> = ({
   selectedCategories,
   onCategoriesChange
 }) => {
+  const { students } = useStudents();
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -39,23 +40,66 @@ const StudentOverview: React.FC<StudentOverviewProps> = ({
       
       {selectedStudents.length > 0 && (
         <div className="space-y-6">
-          {selectedStudents.map((studentId) => (
-            <div key={studentId} className="border-b border-gray-200 pb-6 last:border-b-0">
-              <StudentProfile studentId={studentId} />
-              
-              {selectedCategories.includes('Attendance') && (
-                <AttendanceSummary studentId={studentId} dateRange={dateRange} />
-              )}
-              
-              {selectedCategories.includes('Memorization') && (
-                <HafalanTable studentId={studentId} dateRange={dateRange} />
-              )}
-              
-              {selectedCategories.includes('Finance') && (
-                <FinanceSummary studentId={studentId} dateRange={dateRange} />
-              )}
-            </div>
-          ))}
+          {selectedStudents.map((studentId) => {
+            const student = students.find(s => s.id.toString() === studentId);
+            if (!student) return null;
+            
+            return (
+              <div key={studentId} className="border-b border-gray-200 pb-6 last:border-b-0">
+                <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-3">{student.name}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-600">Santri Kelas:</span>
+                      <p className="text-gray-800">{student.class}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Date of Birth:</span>
+                      <p className="text-gray-800">{student.dateOfBirth}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Class:</span>
+                      <p className="text-gray-800">{student.class}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Level:</span>
+                      <p className="text-gray-800">{student.level}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Address:</span>
+                      <p className="text-gray-800">{student.address}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-600">Phone Number:</span>
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-800">{student.phoneNumber}</p>
+                        <a
+                          href={`https://wa.me/${student.phoneNumber.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs"
+                        >
+                          💬 Send Message
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {selectedCategories.includes('Attendance') && (
+                  <AttendanceSummary studentId={studentId} dateRange={dateRange} />
+                )}
+                
+                {selectedCategories.includes('Memorization') && (
+                  <HafalanTable studentId={studentId} dateRange={dateRange} />
+                )}
+                
+                {selectedCategories.includes('Finance') && (
+                  <FinanceSummary studentId={studentId} dateRange={dateRange} />
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

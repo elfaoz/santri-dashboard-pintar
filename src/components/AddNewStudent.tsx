@@ -21,7 +21,7 @@ const AddNewStudent: React.FC = () => {
     class: '',
     level: '',
     email: '',
-    phoneNumber: '',
+    phoneNumber: '+62',
     address: ''
   });
 
@@ -67,7 +67,7 @@ const AddNewStudent: React.FC = () => {
       class: '',
       level: '',
       email: '',
-      phoneNumber: '',
+      phoneNumber: '+62',
       address: ''
     });
   };
