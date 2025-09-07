@@ -506,12 +506,12 @@ const Halaqah: React.FC = () => {
             </div>
           </div>
 
-          {/* Riwayat Hafalan - 7 Hari Terakhir */}
+          {/* Riwayat Hafalan */}
           {memorizationRecords.length > 0 && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h3 className="text-lg font-semibold text-gray-800">
-                  Riwayat Hafalan - 7 Hari Terakhir
+                  Riwayat Hafalan
                 </h3>
               </div>
               <div className="overflow-x-auto">
@@ -523,6 +523,12 @@ const Halaqah: React.FC = () => {
                        </th>
                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                          Santri
+                       </th>
+                       <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                         Target (Halaman)
+                       </th>
+                       <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                         Pencapaian (Halaman)
                        </th>
                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                          Juz
@@ -547,7 +553,6 @@ const Halaqah: React.FC = () => {
                         students.find(s => s.id.toString() === recordsSelectedStudent)?.name === record.studentName 
                         : true
                       )
-                      .slice(-7)
                       .map((record) => (
                         <tr key={record.id} className="hover:bg-gray-50">
                            <td className="px-4 py-3 text-sm text-gray-900">
@@ -555,6 +560,12 @@ const Halaqah: React.FC = () => {
                            </td>
                            <td className="px-4 py-3 text-sm font-medium text-gray-900">
                              {record.studentName}
+                           </td>
+                           <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                             {record.target}
+                           </td>
+                           <td className="px-4 py-3 text-sm text-gray-900 text-center">
+                             {record.actual}
                            </td>
                            <td className="px-4 py-3 text-sm text-gray-900 text-center">
                              {record.memorizationDetail?.juz || '-'}
@@ -628,24 +639,28 @@ const Halaqah: React.FC = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {getStudentsByHalaqah(recordsSelectedHalaqah).length > 0 ? getStudentsByHalaqah(recordsSelectedHalaqah).map((student) => {
                     const studentRecords = memorizationRecords.filter(r => r.studentName === student.name);
-                    const weekTotal = studentRecords.reduce((sum, record) => sum + record.actual, 0);
+                    
+                    // Group records by date and sum pages for each day
+                    const weekData = [0,1,2,3,4,5,6].map(dayOffset => {
+                      const dayRecords = studentRecords.filter(r => {
+                        const recordDate = new Date(r.date).getDay();
+                        return recordDate === (dayOffset + 1) % 7;
+                      });
+                      return dayRecords.reduce((sum, record) => sum + record.actual, 0);
+                    });
+                    
+                    const weekTotal = weekData.reduce((sum, pages) => sum + pages, 0);
                     
                     return (
                       <tr key={student.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {student.name}
                         </td>
-                        {[0,1,2,3,4,5,6].map(dayOffset => {
-                          const dayRecord = studentRecords.find(r => {
-                            const recordDate = new Date(r.date).getDay();
-                            return recordDate === (dayOffset + 1) % 7;
-                          });
-                          return (
-                            <td key={dayOffset} className="px-6 py-4 text-center text-sm text-gray-900">
-                              {dayRecord ? dayRecord.actual : '-'}
-                            </td>
-                          );
-                        })}
+                        {weekData.map((pages, index) => (
+                          <td key={index} className="px-6 py-4 text-center text-sm text-gray-900">
+                            {pages > 0 ? pages : '-'}
+                          </td>
+                        ))}
                         <td className="px-6 py-4 text-center text-sm font-bold text-blue-600">
                           {weekTotal > 0 ? weekTotal : '-'}
                         </td>

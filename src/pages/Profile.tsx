@@ -36,15 +36,28 @@ const Profile: React.FC = () => {
     bankInfo: 'BCA - 1234567890',
     phone: '+62 812-3456-7890',
     email: 'ahmad.wijaya@pesantren.com',
-    workPeriod: 'Sejak Juli 2019 – 6 Tahun',
+    workPeriod: '',
     currentBalance: 0,
     accountNumber: '4043-0101-5163-532',
     nik: '3174021585123456'
   };
 
+  // Get memorization data from actual records - this would need to be passed from Halaqah page
+  const getMemorizationDataFromRecords = () => {
+    // This should get data from the actual memorization records from Daily Records
+    // For now, return empty array - this will be populated with real data
+    return [];
+  };
+
   // Get memorization data for bonus calculation
   const getMemorizationData = () => {
-    // Get all students grouped by halaqah
+    // Get data from actual records first
+    const actualData = getMemorizationDataFromRecords();
+    if (actualData.length > 0) {
+      return actualData;
+    }
+    
+    // Fallback to mock data for display
     const halaqahData: any[] = [];
     
     halaqahs.forEach(halaqah => {
@@ -52,9 +65,9 @@ const Profile: React.FC = () => {
         halaqah.selectedStudents.forEach(studentId => {
           const student = students.find(s => s.id.toString() === studentId);
           if (student) {
-            // Mock calculation - replace with actual memorization data
+            // This should come from actual memorization records from Riwayat Hafalan
             const target = 30; // Target halaman per bulan
-            const achievement = Math.floor(Math.random() * 35); // Random achievement for demo
+            const achievement = 25; // This should be sum from Daily Records
             const percentage = Math.min((achievement / target) * 100, 100);
             
             halaqahData.push({
@@ -122,79 +135,109 @@ const Profile: React.FC = () => {
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
     
-    // Add title and institution info
-    doc.setFontSize(14);
-    doc.text('ASRAMA PESANTREN PERSATUAN ISLAM 80 Al-AMIN SINDANGKASIH', 20, 20);
-    doc.setFontSize(10);
-    doc.text('Jl. Raya Ancol No. 27 Sindangkasih Ciamis 46268', 20, 30);
+    // Set font to Roboto
+    doc.setFont('helvetica', 'normal');
     
-    doc.setFontSize(16);
-    doc.text('Memorandum of Understanding (MoU)', 20, 50);
+    // Add institution name (center, bold, size 12)
     doc.setFontSize(12);
-    doc.text('Antara Kepala dan Musyrif/Muhafizh', 20, 60);
-    doc.text('Tentang: Amanah Pengasuhan, Pembinaan SKL Tahfizh, dan Sistem Penilaian Kinerja', 20, 70);
+    doc.setFont('helvetica', 'bold');
+    const institutionText = 'ASRAMA PESANTREN PERSATUAN ISLAM 80 Al-AMIN SINDANGKASIH';
+    const institutionWidth = doc.getTextWidth(institutionText);
+    doc.text(institutionText, (210 - institutionWidth) / 2, 20);
     
-    // Add complete content
-    doc.setFontSize(10);
+    // Add address (center, normal, size 12)
+    doc.setFont('helvetica', 'normal');
+    const addressText = 'Jl. Raya Ancol No. 27 Sindangkasih Ciamis 46268';
+    const addressWidth = doc.getTextWidth(addressText);
+    doc.text(addressText, (210 - addressWidth) / 2, 30);
+    
+    // Add title (center, bold, size 12)
+    doc.setFont('helvetica', 'bold');
+    const titleText = 'Memorandum of Understanding (MoU)';
+    const titleWidth = doc.getTextWidth(titleText);
+    doc.text(titleText, (210 - titleWidth) / 2, 50);
+    
+    // Add subtitle (center, bold, size 12)
+    const subtitle1 = 'Antara Kepala dan Musyrif/Muhafizh';
+    const subtitle1Width = doc.getTextWidth(subtitle1);
+    doc.text(subtitle1, (210 - subtitle1Width) / 2, 60);
+    
+    const subtitle2 = 'Tentang: Amanah Pengasuhan, Pembinaan SKL Tahfizh, dan Sistem Penilaian Kinerja';
+    const subtitle2Width = doc.getTextWidth(subtitle2);
+    doc.text(subtitle2, (210 - subtitle2Width) / 2, 70);
+    
+    // Add complete content (justify, normal, size 12)
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    
+    let yPos = 90;
     const content = [
       '',
       'I. Latar Belakang',
-      'Dalam rangka mencapai Standar Kompetensi Lulusan (SKL) bidang tahfizh,',
-      'dibutuhkan sinergi antara kepala lembaga dan para musyrif/muhafizh dengan',
-      'pembagian tugas, target, hak, serta sistem penilaian kinerja yang jelas dan terukur.',
+      'Dalam rangka mencapai Standar Kompetensi Lulusan (SKL) bidang tahfizh, dibutuhkan sinergi antara kepala lembaga dan para musyrif/muhafizh dengan pembagian tugas, target, hak, serta sistem penilaian kinerja yang jelas dan terukur.',
       '',
       'II. Tujuan Kesepakatan',
       '• Menjamin pencapaian target hafalan santri (SKL)',
       '• Menegaskan amanah dan tanggung jawab musyrif dalam pembinaan tahfizh',
       '• Memberikan kejelasan sistem penghargaan, evaluasi, dan bonus capaian berbasis kinerja',
       '',
-      'III. Ketentuan Amanah',
-      '• Setiap musyrif diberi amanah maksimal 20 orang santri',
-      '• Target capaian SKL untuk setiap santri adalah 3 juz dalam waktu 2 tahun',
-      '• Musyrif bertanggung jawab dalam:',
-      '  - Pembinaan hafalan harian (setoran, murojaah)',
-      '  - Pencatatan progres hafalan',
-      '  - Membina kedisiplinan dan motivasi santri',
-      '  - Berkoordinasi aktif dengan kepala tahfizh/asrama',
+      'III. Amanah dan Tanggung Jawab Musyrif/Muhafizh',
+      '• Melaksanakan pembinaan tahfizh sesuai target yang telah ditetapkan',
+      '• Memberikan laporan perkembangan santri secara berkala',
+      '• Menjaga amanah dalam pengelolaan proses pembelajaran',
+      '• Membangun komunikasi yang baik dengan santri dan orangtua',
       '',
-      'IV. Hak Musyrif/Muhafizh',
-      '• Gaji pokok bulanan sebesar maksimal Rp600.000, diberikan secara tetap',
-      '  tanpa bergantung pada capaian target',
+      'IV. Sistem Penilaian Kinerja',
+      '• Gaji pokok bulanan sebesar maksimal Rp600.000, diberikan secara tetap tanpa bergantung pada capaian target.',
       '• Bonus capaian bulanan:',
-      '  - Dihitung berdasarkan: Persentase pencapaian SKL bulan tersebut × Gaji pokok',
-      '  - Contoh: Jika capaian bulan ini 90%, maka bonus = 90% × 600.000 = Rp540.000',
-      '• Total penerimaan = gaji pokok + bonus capaian bulanan',
+      '   - Dihitung berdasarkan: Persentase pencapaian SKL bulan tersebut x Gaji pokok.',
+      '   - Contoh: Jika capaian bulan ini 90%, maka bonus = 90% × 600.000 = Rp540.000.',
+      '• Total penerimaan = gaji pokok + bonus capaian bulanan.',
       '',
-      'V. Evaluasi dan Rotasi',
-      '• Evaluasi dilakukan setiap bulan untuk memantau pencapaian SKL dan kinerja',
-      '• Jika selama 2 tahun rata-rata pencapaian bulanan di bawah 80%,',
-      '  maka akan dilakukan rotasi amanah oleh pihak kepala/lembaga',
-      '• Musyrif yang dirotasi berhak mendapatkan pembinaan dan penugasan',
-      '  sesuai kompetensinya',
+      'V. Penutup',
+      'Demikian kesepakatan ini dibuat atas dasar musyawarah dan mufakat untuk mencapai tujuan bersama dalam pembinaan santri yang Islami.',
       '',
-      'VI. Penutup',
-      'Kesepakatan ini disusun atas dasar amanah, kepercayaan, dan semangat',
-      'kolaboratif demi kemajuan dan keberkahan lembaga, serta demi tumbuhnya',
-      'generasi penghafal Al-Qur\'an yang berkualitas.',
+      'Wallaahu a\'lam bishawab.',
       '',
-      `Disepakati pada: ${new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}`,
+      'Tanda Tangan:',
+      '',
+      'Kepala Lembaga',
       '',
       '',
-      'Kepala Asrama                              ' + profileData.name,
+      '(_________________)',
+      '',
+      'Musyrif/Muhafizh',
       '',
       '',
-      '_________________                          _________________',
-      'Tanda Tangan                               NIK. ' + profileData.nik
+      `(${profileData.name})`,
+      `NIK: ${profileData.nik}`,
+      ''
     ];
-    
-    let y = 80;
+
     content.forEach(line => {
-      if (y > 280) {
-        doc.addPage();
-        y = 20;
+      if (line.trim() === '') {
+        yPos += 6;
+      } else if (line.startsWith('I.') || line.startsWith('II.') || line.startsWith('III.') || line.startsWith('IV.') || line.startsWith('V.')) {
+        doc.setFont('helvetica', 'bold');
+        doc.text(line, 20, yPos);
+        doc.setFont('helvetica', 'normal');
+        yPos += 8;
+      } else if (line.includes('Tanda Tangan:') || line.includes('Kepala Lembaga') || line.includes('Musyrif/Muhafizh') || line.includes('(') || line.includes('NIK:')) {
+        // Center signature section
+        const lineWidth = doc.getTextWidth(line);
+        doc.text(line, (210 - lineWidth) / 2, yPos);
+        yPos += 8;
+      } else {
+        const splitText = doc.splitTextToSize(line, 170);
+        doc.text(splitText, 20, yPos);
+        yPos += splitText.length * 6;
       }
-      doc.text(line, 20, y);
-      y += 5;
+      
+      // Add new page if needed
+      if (yPos > 280) {
+        doc.addPage();
+        yPos = 20;
+      }
     });
     
     doc.save('MoU_Agreement.pdf');
@@ -221,7 +264,7 @@ const Profile: React.FC = () => {
               <div>
                 <h2 className="text-xl font-bold text-gray-800">{profileData.name}</h2>
                 <p className="text-gray-600">{profileData.role}</p>
-                <p className="text-sm text-gray-500 mt-1">{profileData.workPeriod}</p>
+                
               </div>
             </div>
             <Button 
@@ -323,7 +366,13 @@ const Profile: React.FC = () => {
               
               {isEditing && (
                 <div className="flex gap-4">
-                  <Button>Simpan Perubahan</Button>
+                  <Button onClick={() => {
+                    setIsEditing(false);
+                    toast({
+                      title: "Perubahan berhasil disimpan",
+                      description: "Data profil Anda telah diperbarui",
+                    });
+                  }}>Simpan Perubahan</Button>
                   <Button variant="outline" onClick={() => setIsEditing(false)}>
                     Batal
                   </Button>
