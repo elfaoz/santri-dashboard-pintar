@@ -24,9 +24,11 @@ const StudentFilters: React.FC<StudentFiltersProps> = ({
   const { students: registeredStudents } = useStudents();
   
   const categories = [
+    { id: 'Student Identity', name: 'Student Identity' },
     { id: 'Finance', name: 'Finance' },
     { id: 'Attendance', name: 'Attendance' },
     { id: 'Memorization', name: 'Memorization' },
+    { id: 'Activities', name: 'Activities' },
   ];
 
   const students = registeredStudents.map(student => ({

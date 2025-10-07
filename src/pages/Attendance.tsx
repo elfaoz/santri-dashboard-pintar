@@ -3,6 +3,8 @@ import { Calendar, CheckCircle, Circle } from 'lucide-react';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
 import InputAbsensiModal from '@/components/InputAbsensiModal';
+import AttendanceMonthlySection from '@/components/AttendanceMonthlySection';
+import AttendanceSemesterSection from '@/components/AttendanceSemesterSection';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -237,7 +239,7 @@ const Attendance: React.FC = () => {
 
       {/* Weekly Attendance Table */}
       {studentRecords.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
           <div className="px-6 py-4 border-b border-gray-100">
             <h3 className="text-lg font-semibold text-gray-800">
               Riwayat Absensi - 7 Hari Terakhir
@@ -290,6 +292,12 @@ const Attendance: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Monthly Attendance Section */}
+      <AttendanceMonthlySection attendanceRecords={attendanceRecords} selectedStudent={selectedStudent} students={students} />
+
+      {/* Semester Attendance Section */}
+      <AttendanceSemesterSection attendanceRecords={attendanceRecords} selectedStudent={selectedStudent} students={students} />
 
       <InputAbsensiModal
         isOpen={isModalOpen}

@@ -5,6 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MemorizationTable from '../components/MemorizationTable';
 import DetailMemorizationModal from '../components/DetailMemorizationModal';
 import SantriRanking from '../components/SantriRanking';
+import MemorizationMonthlySection from '../components/MemorizationMonthlySection';
+import MemorizationSemesterSection from '../components/MemorizationSemesterSection';
 import { MemorizationRecord } from '../components/MemorizationTable';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
@@ -677,6 +679,20 @@ const Halaqah: React.FC = () => {
               </table>
             </div>
           </div>
+
+          {/* Monthly Memorization Section */}
+          <MemorizationMonthlySection 
+            memorizationRecords={memorizationRecords}
+            selectedStudent={recordsSelectedStudent}
+            students={students}
+          />
+
+          {/* Semester Memorization Section */}
+          <MemorizationSemesterSection 
+            memorizationRecords={memorizationRecords}
+            selectedStudent={recordsSelectedStudent}
+            students={students}
+          />
         </TabsContent>
       </Tabs>
 

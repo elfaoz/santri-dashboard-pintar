@@ -35,6 +35,13 @@ const HalaqahManagement: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Check for duplicate name
+    const duplicateName = halaqahs.find(h => h.name.toLowerCase() === formData.name.toLowerCase());
+    if (duplicateName) {
+      alert('Nama halaqah sudah ada. Silakan gunakan nama yang berbeda.');
+      return;
+    }
+    
     // Create new halaqah object
     const newHalaqah = {
       name: formData.name,

@@ -28,6 +28,8 @@ import {
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
 import { toast } from '@/hooks/use-toast';
+import FinanceMonthlySection from '@/components/FinanceMonthlySection';
+import FinanceSemesterSection from '@/components/FinanceSemesterSection';
 
 interface StudentFinance {
   id: number;
@@ -433,6 +435,20 @@ const Finance: React.FC = () => {
           </Table>
         </div>
       </div>
+
+      {/* Monthly Finance Section */}
+      <FinanceMonthlySection 
+        expenseRecords={expenseRecords}
+        selectedStudent={selectedStudent}
+        students={students}
+      />
+
+      {/* Semester Finance Section */}
+      <FinanceSemesterSection 
+        expenseRecords={expenseRecords}
+        selectedStudent={selectedStudent}
+        students={students}
+      />
     </div>
   );
 };

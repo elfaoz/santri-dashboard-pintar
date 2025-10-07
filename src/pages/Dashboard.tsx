@@ -9,7 +9,7 @@ import ShareResultsSection from '../components/ShareResultsSection';
 const Dashboard: React.FC = () => {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(['Finance', 'Attendance', 'Memorization']);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['Student Identity', 'Finance', 'Attendance', 'Memorization', 'Activities']);
 
   return (
     <div className="p-6 space-y-8">

@@ -54,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+    <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100 px-6 py-4 flex items-center justify-between">
       <div className="flex items-center">
         <button
           onClick={onToggleSidebar}

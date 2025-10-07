@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Calendar, CheckCircle, Circle } from 'lucide-react';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
+import ActivitiesMonthlySection from '@/components/ActivitiesMonthlySection';
+import ActivitiesSemesterSection from '@/components/ActivitiesSemesterSection';
 
 interface ActivityRecord {
   id: string;
@@ -263,6 +265,22 @@ const Activities: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Monthly Activities Section */}
+      <ActivitiesMonthlySection 
+        activityRecords={activityRecords}
+        selectedStudent={selectedStudent}
+        students={students}
+        activities={activities}
+      />
+
+      {/* Semester Activities Section */}
+      <ActivitiesSemesterSection 
+        activityRecords={activityRecords}
+        selectedStudent={selectedStudent}
+        students={students}
+        activities={activities}
+      />
     </div>
   );
 };

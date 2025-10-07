@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useStudents } from '@/contexts/StudentContext';
+import { useHalaqahs } from '@/contexts/HalaqahContext';
 import { X } from 'lucide-react';
 
 interface Halaqah {
@@ -31,6 +32,7 @@ const EditHalaqahModal: React.FC<EditHalaqahModalProps> = ({
   onSave
 }) => {
   const { students } = useStudents();
+  const { halaqahs } = useHalaqahs();
   const [formData, setFormData] = useState({
     name: '',
     membersCount: '',
@@ -64,18 +66,34 @@ const EditHalaqahModal: React.FC<EditHalaqahModalProps> = ({
     const maxMembers = parseInt(formData.membersCount) || 0;
     
     setSelectedStudents(prev => {
-      const newSelection = prev.includes(studentId)
-        ? prev.filter(id => id !== studentId)
-        : [...prev, studentId];
+      const isRemoving = prev.includes(studentId);
       
-      // Validate against member count
-      if (newSelection.length > maxMembers && maxMembers > 0) {
-        setValidationError(`Maksimal ${maxMembers} santri sesuai dengan jumlah members`);
-        return prev; // Don't update if exceeds limit
+      if (isRemoving) {
+        // Allow removal
+        setValidationError('');
+        return prev.filter(id => id !== studentId);
+      } else {
+        // Check if student is already in another halaqah
+        const studentInOtherHalaqah = halaqahs.find(h => 
+          h.id !== halaqah?.id && 
+          h.selectedStudents?.includes(studentId)
+        );
+        
+        if (studentInOtherHalaqah) {
+          setValidationError(`Santri sudah terdaftar di ${studentInOtherHalaqah.name}. Satu santri hanya bisa di satu halaqah.`);
+          return prev;
+        }
+        
+        // Check member count limit
+        const newSelection = [...prev, studentId];
+        if (newSelection.length > maxMembers && maxMembers > 0) {
+          setValidationError(`Maksimal ${maxMembers} santri sesuai dengan jumlah members`);
+          return prev;
+        }
+        
+        setValidationError('');
+        return newSelection;
       }
-      
-      setValidationError('');
-      return newSelection;
     });
   };
 
