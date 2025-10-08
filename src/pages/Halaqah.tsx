@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
-import { Book, Plus, TrendingUp, Calendar, Search, Filter, Eye } from 'lucide-react';
+import { Book, Plus, TrendingUp, Calendar, Search, Filter, Eye, Edit, Trash2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MemorizationTable from '../components/MemorizationTable';
 import DetailMemorizationModal from '../components/DetailMemorizationModal';
+import EditMemorizationModal from '../components/EditMemorizationModal';
 import SantriRanking from '../components/SantriRanking';
 import MemorizationMonthlySection from '../components/MemorizationMonthlySection';
 import MemorizationSemesterSection from '../components/MemorizationSemesterSection';
@@ -11,6 +12,17 @@ import { MemorizationRecord } from '../components/MemorizationTable';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
 import { surahs, getSurahByName } from '@/utils/surahData';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const Halaqah: React.FC = () => {
   const { students } = useStudents();
@@ -18,13 +30,15 @@ const Halaqah: React.FC = () => {
   const [selectedHalaqah, setSelectedHalaqah] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   
-  // Overview filters
-  const [overviewDateRange, setOverviewDateRange] = useState({ from: '', to: '' });
-  const [overviewSelectedStudent, setOverviewSelectedStudent] = useState('');
-  
   // Daily Records filters
   const [recordsSelectedHalaqah, setRecordsSelectedHalaqah] = useState('');
   const [recordsSelectedStudent, setRecordsSelectedStudent] = useState('');
+  
+  // Edit and delete modals
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<MemorizationRecord | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState<MemorizationRecord | null>(null);
   
   // Input form state
   const [memorizationTarget, setMemorizationTarget] = useState('');
@@ -129,6 +143,36 @@ const Halaqah: React.FC = () => {
     setIsDetailModalOpen(true);
   };
 
+  const handleEditRecord = (record: MemorizationRecord) => {
+    setEditingRecord(record);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateRecord = (updatedRecord: MemorizationRecord) => {
+    setMemorizationRecords(prev => 
+      prev.map(record => record.id === updatedRecord.id ? updatedRecord : record)
+    );
+    toast.success('Data hafalan berhasil diperbarui');
+    setIsEditModalOpen(false);
+    setEditingRecord(null);
+  };
+
+  const handleDeleteClick = (record: MemorizationRecord) => {
+    setRecordToDelete(record);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (recordToDelete) {
+      setMemorizationRecords(prev => 
+        prev.filter(record => record.id !== recordToDelete.id)
+      );
+      toast.success('Data hafalan berhasil dihapus');
+      setIsDeleteDialogOpen(false);
+      setRecordToDelete(null);
+    }
+  };
+
   const getPercentageColor = (percentage: number) => {
     if (percentage >= 80) return 'text-green-600 bg-green-100';
     if (percentage >= 60) return 'text-yellow-600 bg-yellow-100';
@@ -202,6 +246,9 @@ const Halaqah: React.FC = () => {
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Riwayat
                     </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Aksi
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -218,6 +265,11 @@ const Halaqah: React.FC = () => {
                     const totalTarget = studentRecords.reduce((sum, record) => sum + record.target, 0);
                     const totalPages = studentRecords.reduce((sum, record) => sum + record.actual, 0);
                     const progressPercentage = totalTarget > 0 ? Math.round((totalPages / totalTarget) * 100) : 0;
+                    
+                    // Get the latest record for this student on the selected date
+                    const latestRecord = memorizationRecords
+                      .filter(r => r.studentName === student.name && r.date === selectedDate)
+                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
                     
                     return (
                       <tr key={student.id} className="hover:bg-gray-50">
@@ -270,11 +322,33 @@ const Halaqah: React.FC = () => {
                             </div>
                           </details>
                         </td>
+                        <td className="px-6 py-4 text-center">
+                          {latestRecord ? (
+                            <div className="flex items-center justify-center space-x-2">
+                              <button
+                                onClick={() => handleEditRecord(latestRecord)}
+                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                title="Edit"
+                              >
+                                <Edit size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteClick(latestRecord)}
+                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                title="Hapus"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-400">-</span>
+                          )}
+                        </td>
                       </tr>
                     );
                   }) : (
                     <tr>
-                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                         Belum ada data hafalan
                       </td>
                     </tr>
@@ -665,6 +739,41 @@ const Halaqah: React.FC = () => {
         onClose={() => setIsDetailModalOpen(false)}
         record={selectedRecord}
       />
+
+      <EditMemorizationModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingRecord(null);
+        }}
+        onSubmit={handleUpdateRecord}
+        record={editingRecord}
+      />
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus Data Hafalan</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus data hafalan ini? Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setIsDeleteDialogOpen(false);
+              setRecordToDelete(null);
+            }}>
+              Batal
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteConfirm}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
