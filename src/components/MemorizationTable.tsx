@@ -29,6 +29,9 @@ export interface MemorizationRecord {
   percentage: number;
   status: string;
   memorizationDetail?: MemorizationDetail;
+  halaqah?: string;
+  level?: string;
+  pembina?: string;
 }
 
 interface Halaqah {

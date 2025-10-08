@@ -68,6 +68,11 @@ const Halaqah: React.FC = () => {
     if (percentage === 100) status = 'Fully Achieved';
     else if (percentage >= 75) status = 'Achieved';
 
+    // Find student's halaqah
+    const studentHalaqah = halaqahs.find(h => 
+      h.selectedStudents?.includes(student.id.toString())
+    );
+
     const newRecord: MemorizationRecord = {
       id: `${recordsSelectedStudent}-${selectedDate}-${Date.now()}`,
       studentName: student.name,
@@ -76,6 +81,9 @@ const Halaqah: React.FC = () => {
       actual,
       percentage,
       status,
+      halaqah: studentHalaqah?.name || '-',
+      level: studentHalaqah?.level || 'Tahfidz 1',
+      pembina: studentHalaqah?.pembina || 'Ustadz Ahmad',
       memorizationDetail: {
         juz: parseInt(selectedJuz) || 1,
         pageFrom: 1,
@@ -147,69 +155,6 @@ const Halaqah: React.FC = () => {
         </TabsList>
         
         <TabsContent value="overview" className="space-y-6">
-          {/* Overview Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Calendar className="inline w-4 h-4 mr-1" />
-                Date Range
-              </label>
-              <div className="flex space-x-2">
-                <input
-                  type="date"
-                  value={overviewDateRange.from}
-                  onChange={(e) => setOverviewDateRange({ ...overviewDateRange, from: e.target.value })}
-                  className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="dd/mm/yyyy"
-                />
-                <input
-                  type="date"
-                  value={overviewDateRange.to}
-                  onChange={(e) => setOverviewDateRange({ ...overviewDateRange, to: e.target.value })}
-                  className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="dd/mm/yyyy"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Book className="inline w-4 h-4 mr-1" />
-                Halaqah
-              </label>
-              <select 
-                value={selectedHalaqah}
-                onChange={(e) => setSelectedHalaqah(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">All Halaqah</option>
-                {halaqahs.map(halaqah => (
-                  <option key={halaqah.id} value={halaqah.id.toString()}>
-                    {halaqah.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Search className="inline w-4 h-4 mr-1" />
-                Select Student
-              </label>
-              <select
-                value={overviewSelectedStudent}
-                onChange={(e) => setOverviewSelectedStudent(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">All Students</option>
-                {filteredStudents.map((student) => (
-                  <option key={student.id} value={student.id.toString()}>
-                    {student.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
             
           {/* Date Selector for Overview */}
           <div className="mb-4">
@@ -228,9 +173,7 @@ const Halaqah: React.FC = () => {
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
             <div className="px-6 py-4 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-800">
-                Progress Hafalan per Tanggal - {selectedHalaqah ? 
-                  halaqahs.find(h => h.id.toString() === selectedHalaqah)?.name || 'Halaqah' 
-                  : 'All Halaqah'}
+                Progress Hafalan per Tanggal - All Halaqah
               </h3>
               <p className="text-sm text-gray-600">
                 Tanggal: {new Date(selectedDate).toLocaleDateString('id-ID')}
@@ -242,13 +185,19 @@ const Halaqah: React.FC = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Halaqah
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Nama Santri
                     </th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Progress Hafalan
+                      Target (Halaman)
                     </th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Visual Progress
+                      Pencapaian (Halaman)
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Progress Pencapaian
                     </th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Riwayat
@@ -256,26 +205,38 @@ const Halaqah: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredStudents.length > 0 ? filteredStudents.map((student) => {
+                  {students.length > 0 ? students.map((student) => {
+                    // Find student's halaqah
+                    const studentHalaqah = halaqahs.find(h => 
+                      h.selectedStudents?.includes(student.id.toString())
+                    );
+                    
                     const studentRecords = memorizationRecords.filter(r => 
                       r.studentName === student.name && 
                       new Date(r.date) <= new Date(selectedDate)
                     );
+                    const totalTarget = studentRecords.reduce((sum, record) => sum + record.target, 0);
                     const totalPages = studentRecords.reduce((sum, record) => sum + record.actual, 0);
-                    const totalQuranPages = 604; // Total pages in Quran
-                    const progressPercentage = Math.round((totalPages / totalQuranPages) * 100);
+                    const progressPercentage = totalTarget > 0 ? Math.round((totalPages / totalTarget) * 100) : 0;
                     
                     return (
                       <tr key={student.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {studentHalaqah?.name || '-'}
+                          </span>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {student.name}
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <div className="text-lg font-bold text-blue-600">
-                            {totalPages}/{totalQuranPages}
+                          <div className="text-sm font-medium text-gray-900">
+                            {totalTarget}
                           </div>
-                          <div className="text-xs text-gray-500">
-                            {progressPercentage}% Complete
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <div className="text-lg font-bold text-blue-600">
+                            {totalPages}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -284,6 +245,9 @@ const Halaqah: React.FC = () => {
                               className={`h-3 rounded-full ${getProgressBarColor(progressPercentage)}`} 
                               style={{ width: `${Math.min(progressPercentage, 100)}%` }}
                             ></div>
+                          </div>
+                          <div className="text-xs text-center text-gray-500 mt-1">
+                            {progressPercentage}%
                           </div>
                         </td>
                         <td className="px-6 py-4 text-center">
@@ -310,7 +274,7 @@ const Halaqah: React.FC = () => {
                     );
                   }) : (
                     <tr>
-                      <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                         Belum ada data hafalan
                       </td>
                     </tr>

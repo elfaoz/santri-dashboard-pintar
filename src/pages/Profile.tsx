@@ -49,36 +49,32 @@ const Profile: React.FC = () => {
     return [];
   };
 
-  // Get memorization data for bonus calculation
+  // Get memorization data for bonus calculation from Progress Hafalan per Tanggal
   const getMemorizationData = () => {
-    // Get data from actual records first
-    const actualData = getMemorizationDataFromRecords();
-    if (actualData.length > 0) {
-      return actualData;
-    }
-    
-    // Fallback to mock data for display
     const halaqahData: any[] = [];
     
-    halaqahs.forEach(halaqah => {
-      if (halaqah.selectedStudents) {
-        halaqah.selectedStudents.forEach(studentId => {
-          const student = students.find(s => s.id.toString() === studentId);
-          if (student) {
-            // This should come from actual memorization records from Riwayat Hafalan
-            const target = 30; // Target halaman per bulan
-            const achievement = 25; // This should be sum from Daily Records
-            const percentage = Math.min((achievement / target) * 100, 100);
-            
-            halaqahData.push({
-              no: halaqahData.length + 1,
-              halaqah: halaqah.name,
-              nama: student.name,
-              target: target,
-              pencapaian: achievement,
-              persentase: Math.round(percentage)
-            });
-          }
+    students.forEach(student => {
+      // Find student's halaqah
+      const studentHalaqah = halaqahs.find(h => 
+        h.selectedStudents?.includes(student.id.toString())
+      );
+      
+      if (studentHalaqah) {
+        // These would come from actual memorization records from Progress Hafalan per Tanggal
+        // For now using mock data - should be replaced with actual data
+        const target = 30; // Target halaman (from Daily Records)
+        const pencapaian = 25; // Pencapaian halaman (from Daily Records)
+        const persentase = Math.min(Math.round((pencapaian / target) * 100), 100);
+        const idr = pencapaian * 1500; // IDR = Pencapaian × 1,500
+        
+        halaqahData.push({
+          no: halaqahData.length + 1,
+          halaqah: studentHalaqah.name,
+          nama: student.name,
+          target: target,
+          pencapaian: pencapaian,
+          persentase: persentase,
+          idr: idr
         });
       }
     });
@@ -88,11 +84,21 @@ const Profile: React.FC = () => {
 
   const memorizationData = getMemorizationData();
   
-  // Calculate total bonus
-  const totalPercentage = memorizationData.length > 0 
+  // Calculate totals
+  const averagePercentage = memorizationData.length > 0 
     ? memorizationData.reduce((sum, item) => sum + item.persentase, 0) / memorizationData.length
     : 0;
-  const totalBonus = Math.round(totalPercentage * 6000); // Total percentage × 6000
+  const totalBonus = memorizationData.reduce((sum, item) => sum + item.idr, 0);
+  
+  // KPI Evaluation based on average percentage
+  const getKPIEvaluation = (percentage: number) => {
+    if (percentage >= 91) return { status: 'Bimbingan Sangat Efektif', message: 'Luar biasa! Pertahankan kinerja yang sangat baik ini!' };
+    if (percentage >= 76) return { status: 'Bimbingan Efektif', message: 'Kerja bagus! Terus tingkatkan kualitas bimbingan Anda!' };
+    if (percentage >= 61) return { status: 'Bimbingan Cukup Efektif', message: 'Cukup baik, masih ada ruang untuk peningkatan. Tetap semangat!' };
+    return { status: 'Bimbingan Tidak Efektif', message: 'Mari tingkatkan strategi bimbingan agar lebih efektif. Semangat!' };
+  };
+  
+  const kpiEvaluation = getKPIEvaluation(averagePercentage);
 
   const bonusHistory: any[] = [];
 
@@ -116,8 +122,8 @@ const Profile: React.FC = () => {
       return;
     }
 
-    // Send WhatsApp notification (mock)
-    const message = `Pengajuan Penarikan Dana%0A%0AData Pemohon:%0A%0ANama: ${profileData.name}%0AEmail: ${profileData.email || 'nashers.manziel@gmail.com'}%0ANo. HP: ${profileData.phone}%0AAlamat: ${profileData.address}%0A%0ATanggal Pengajuan:%0A${new Date().toLocaleDateString('id-ID')}%0A%0ATotal Pengajuan:%0ARp ${parseInt(withdrawAmount).toLocaleString('id-ID')}%0A%0AInformasi Rekening Penerima:%0A${profileData.bankInfo}%0ANo. Rekening: ${profileData.accountNumber || '4043-0101-5163-532'}%0AAtас Nama: ${profileData.name}%0A%0ATerima Kasih.`;
+    // Send WhatsApp notification with Total Bonus yang Diperoleh
+    const message = `Pengajuan Penarikan Dana%0A%0AData Pemohon:%0A%0ANama: ${profileData.name}%0AEmail: ${profileData.email || 'nashers.manziel@gmail.com'}%0ANo. HP: ${profileData.phone}%0AAlamat: ${profileData.address}%0A%0ATanggal Pengajuan:%0A${new Date().toLocaleDateString('id-ID')}%0A%0ANominal Pengajuan:%0ARp ${totalBonus.toLocaleString('id-ID')}%0A%0AInformasi Rekening Penerima:%0A${profileData.bankInfo}%0ANo. Rekening: ${profileData.accountNumber || '4043-0101-5163-532'}%0AAtас Nama: ${profileData.name}%0A%0ATerima Kasih.`;
     const whatsappUrl = `https://wa.me/6285223857484?text=${message}`;
     
     window.open(whatsappUrl, '_blank');
@@ -534,11 +540,11 @@ const Profile: React.FC = () => {
             {/* Bonus Tab */}
             <TabsContent value="bonus" className="mt-6">
               <div className="space-y-6">
-                {/* Saldo Display */}
+                {/* Bonus Display */}
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg border">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-800">Total Saldo Bonus</h3>
+                      <h3 className="text-lg font-semibold text-gray-800">Total Bonus yang Diperoleh</h3>
                       <p className="text-3xl font-bold text-green-600 mt-2">
                         Rp {totalBonus.toLocaleString('id-ID')}
                       </p>
@@ -569,7 +575,6 @@ const Profile: React.FC = () => {
                     </TableHeader>
                     <TableBody>
                       {memorizationData.length > 0 ? memorizationData.map((item) => {
-                        const idrValue = Math.round((item.persentase / 100) * 50000);
                         return (
                           <TableRow key={item.no}>
                             <TableCell>{item.no}</TableCell>
@@ -578,7 +583,7 @@ const Profile: React.FC = () => {
                             <TableCell>{item.target}</TableCell>
                             <TableCell>{item.pencapaian}</TableCell>
                             <TableCell>{item.persentase}%</TableCell>
-                            <TableCell>Rp {idrValue.toLocaleString('id-ID')}</TableCell>
+                            <TableCell>Rp {item.idr.toLocaleString('id-ID')}</TableCell>
                           </TableRow>
                         );
                       }) : (
@@ -590,21 +595,35 @@ const Profile: React.FC = () => {
                       )}
                       {memorizationData.length > 0 && (
                         <TableRow className="bg-gray-50 font-semibold">
-                          <TableCell colSpan={6}>Total Rata-rata Persentase</TableCell>
-                          <TableCell>{Math.round(totalPercentage)}%</TableCell>
+                          <TableCell colSpan={6}>Total Bonus</TableCell>
+                          <TableCell>Rp {totalBonus.toLocaleString('id-ID')}</TableCell>
                         </TableRow>
                       )}
                     </TableBody>
                   </Table>
                 </div>
 
-                {/* Bonus Calculation Summary */}
+                {/* Hasil Bimbingan Summary */}
                 {memorizationData.length > 0 && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-blue-800 mb-2">Perhitungan Bonus</h4>
-                    <p className="text-sm text-blue-700">
-                      Rata-rata Persentase: {Math.round(totalPercentage)}% × Rp 6.000 = <span className="font-bold">Rp {totalBonus.toLocaleString('id-ID')}</span>
-                    </p>
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-blue-800 mb-3">Perhitungan Hasil Bimbingan</h4>
+                      <div className="space-y-2 text-sm text-blue-700">
+                        <div>
+                          <span className="font-medium">1. Persentase Hasil Bimbingan:</span>
+                          <div className="mt-1 ml-4">
+                            <span className="font-bold">{Math.round(averagePercentage)}%</span> - <span className="font-semibold">{kpiEvaluation.status}</span>
+                            <p className="text-xs mt-1 italic">{kpiEvaluation.message}</p>
+                          </div>
+                        </div>
+                        <div className="pt-2 border-t border-blue-200">
+                          <span className="font-medium">2. Perolehan bonus sebesar:</span>
+                          <div className="mt-1 ml-4">
+                            <span className="font-bold text-lg">Rp {totalBonus.toLocaleString('id-ID')}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
 

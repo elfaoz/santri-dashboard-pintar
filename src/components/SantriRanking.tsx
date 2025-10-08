@@ -22,7 +22,9 @@ const SantriRanking: React.FC<SantriRankingProps> = ({ memorizationRecords }) =>
       acc.push({
         id: record.id,
         name: record.studentName,
-        halaqah: 'Halaqah 1', // This would come from student data
+        halaqah: record.halaqah || '-',
+        level: record.level || 'Tahfidz 1',
+        pembina: record.pembina || 'Ustadz Ahmad',
         totalPages: record.actual,
         memorizationDetail: record.memorizationDetail
       });
