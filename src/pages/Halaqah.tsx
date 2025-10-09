@@ -50,6 +50,14 @@ const Halaqah: React.FC = () => {
   const [ayahFrom, setAyahFrom] = useState('');
   const [ayahTo, setAyahTo] = useState('');
   
+  // Additional surah fields
+  const [selectedSurah2, setSelectedSurah2] = useState('');
+  const [ayahFrom2, setAyahFrom2] = useState('');
+  const [ayahTo2, setAyahTo2] = useState('');
+  const [selectedSurah3, setSelectedSurah3] = useState('');
+  const [ayahFrom3, setAyahFrom3] = useState('');
+  const [ayahTo3, setAyahTo3] = useState('');
+  
   // Detail modal state
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<MemorizationRecord | null>(null);
@@ -116,6 +124,12 @@ const Halaqah: React.FC = () => {
     setSelectedSurah('');
     setAyahFrom('');
     setAyahTo('');
+    setSelectedSurah2('');
+    setAyahFrom2('');
+    setAyahTo2('');
+    setSelectedSurah3('');
+    setAyahFrom3('');
+    setAyahTo3('');
   };
 
   const handleDetail = (student: any) => {
@@ -353,6 +367,117 @@ const Halaqah: React.FC = () => {
             </div>
           </div>
 
+          {/* Progress Hafalan Berdasarkan Level */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Progress Hafalan Berdasarkan Level
+              </h3>
+              <p className="text-sm text-gray-600">
+                Target berdasarkan level masing-masing santri
+              </p>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Halaqah
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nama Santri
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Level
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Target Per Level (Halaman)
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Pencapaian (Halaman)
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Progress Pencapaian
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {students.length > 0 ? students.map((student) => {
+                    // Find student's halaqah
+                    const studentHalaqah = halaqahs.find(h => 
+                      h.selectedStudents?.includes(student.id.toString())
+                    );
+                    
+                    const studentRecords = memorizationRecords.filter(r => 
+                      r.studentName === student.name && 
+                      new Date(r.date) <= new Date(selectedDate)
+                    );
+                    const totalPages = studentRecords.reduce((sum, record) => sum + record.actual, 0);
+                    
+                    // Determine target based on level
+                    const level = studentHalaqah?.level || '';
+                    let targetPerLevel = 0;
+                    if (level.includes('Pra Marhalah')) {
+                      targetPerLevel = 23;
+                    } else if (level.includes('Marhalah 1')) {
+                      targetPerLevel = 60;
+                    } else if (level.includes('Marhalah 2')) {
+                      targetPerLevel = 100;
+                    }
+                    
+                    const progressPercentage = targetPerLevel > 0 ? Math.round((totalPages / targetPerLevel) * 100) : 0;
+                    
+                    return (
+                      <tr key={student.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {studentHalaqah?.name || '-'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {student.name}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                            {level || '-'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <div className="text-sm font-medium text-gray-900">
+                            {targetPerLevel}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <div className="text-lg font-bold text-blue-600">
+                            {totalPages}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="w-full bg-gray-200 rounded-full h-3">
+                            <div 
+                              className={`h-3 rounded-full ${getProgressBarColor(progressPercentage)}`} 
+                              style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+                            ></div>
+                          </div>
+                          <div className="text-xs text-center text-gray-500 mt-1">
+                            {progressPercentage}%
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }) : (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                        Belum ada data hafalan
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           {/* Santri Ranking Section */}
           <SantriRanking memorizationRecords={memorizationRecords} />
         </TabsContent>
@@ -420,7 +545,7 @@ const Halaqah: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Target Hafalan (halaman)
+                    Target Hafalan Harian (halaman)
                   </label>
                   <input
                     type="number"
@@ -466,7 +591,7 @@ const Halaqah: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Nama Surat
+                    Nama Surat (1)
                   </label>
                   <select
                     value={selectedSurah}
@@ -488,7 +613,7 @@ const Halaqah: React.FC = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ayat (dari - sampai)
+                    Ayat (dari - sampai) (1)
                   </label>
                   <div className="flex space-x-2">
                     <select
@@ -516,6 +641,126 @@ const Halaqah: React.FC = () => {
                       }, (_, i) => (
                         <option key={parseInt(ayahFrom) + i} value={parseInt(ayahFrom) + i}>
                           {parseInt(ayahFrom) + i}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nama Surat (2)
+                  </label>
+                  <select
+                    value={selectedSurah2}
+                    onChange={(e) => {
+                      setSelectedSurah2(e.target.value);
+                      setAyahFrom2('');
+                      setAyahTo2('');
+                    }}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Pilih Surat</option>
+                    {surahs.map(surah => (
+                      <option key={surah.number} value={surah.name}>
+                        {surah.number}. {surah.name} ({surah.arabicName})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ayat (dari - sampai) (2)
+                  </label>
+                  <div className="flex space-x-2">
+                    <select
+                      value={ayahFrom2}
+                      onChange={(e) => setAyahFrom2(e.target.value)}
+                      disabled={!selectedSurah2}
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                    >
+                      <option value="">Dari</option>
+                      {selectedSurah2 && Array.from({ length: getSurahByName(selectedSurah2)?.verses || 0 }, (_, i) => (
+                        <option key={i + 1} value={i + 1}>
+                          {i + 1}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={ayahTo2}
+                      onChange={(e) => setAyahTo2(e.target.value)}
+                      disabled={!selectedSurah2 || !ayahFrom2}
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                    >
+                      <option value="">Sampai</option>
+                      {selectedSurah2 && ayahFrom2 && Array.from({ 
+                        length: (getSurahByName(selectedSurah2)?.verses || 0) - parseInt(ayahFrom2) + 1 
+                      }, (_, i) => (
+                        <option key={parseInt(ayahFrom2) + i} value={parseInt(ayahFrom2) + i}>
+                          {parseInt(ayahFrom2) + i}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Nama Surat (3)
+                  </label>
+                  <select
+                    value={selectedSurah3}
+                    onChange={(e) => {
+                      setSelectedSurah3(e.target.value);
+                      setAyahFrom3('');
+                      setAyahTo3('');
+                    }}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Pilih Surat</option>
+                    {surahs.map(surah => (
+                      <option key={surah.number} value={surah.name}>
+                        {surah.number}. {surah.name} ({surah.arabicName})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ayat (dari - sampai) (3)
+                  </label>
+                  <div className="flex space-x-2">
+                    <select
+                      value={ayahFrom3}
+                      onChange={(e) => setAyahFrom3(e.target.value)}
+                      disabled={!selectedSurah3}
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                    >
+                      <option value="">Dari</option>
+                      {selectedSurah3 && Array.from({ length: getSurahByName(selectedSurah3)?.verses || 0 }, (_, i) => (
+                        <option key={i + 1} value={i + 1}>
+                          {i + 1}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={ayahTo3}
+                      onChange={(e) => setAyahTo3(e.target.value)}
+                      disabled={!selectedSurah3 || !ayahFrom3}
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                    >
+                      <option value="">Sampai</option>
+                      {selectedSurah3 && ayahFrom3 && Array.from({ 
+                        length: (getSurahByName(selectedSurah3)?.verses || 0) - parseInt(ayahFrom3) + 1 
+                      }, (_, i) => (
+                        <option key={parseInt(ayahFrom3) + i} value={parseInt(ayahFrom3) + i}>
+                          {parseInt(ayahFrom3) + i}
                         </option>
                       ))}
                     </select>
@@ -580,6 +825,9 @@ const Halaqah: React.FC = () => {
                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                          Status
                        </th>
+                       <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                         Aksi
+                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -622,6 +870,24 @@ const Halaqah: React.FC = () => {
                              }`}>
                                {record.status}
                              </span>
+                           </td>
+                           <td className="px-4 py-3 text-center">
+                             <div className="flex items-center justify-center space-x-2">
+                               <button
+                                 onClick={() => handleEditRecord(record)}
+                                 className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                 title="Edit"
+                               >
+                                 <Edit size={16} />
+                               </button>
+                               <button
+                                 onClick={() => handleDeleteClick(record)}
+                                 className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                 title="Hapus"
+                               >
+                                 <Trash2 size={16} />
+                               </button>
+                             </div>
                            </td>
                         </tr>
                       ))}
