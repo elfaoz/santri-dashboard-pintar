@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Calendar } from 'lucide-react';
+import { Plus, Calendar, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -30,6 +30,7 @@ import { useHalaqahs } from '@/contexts/HalaqahContext';
 import { toast } from '@/hooks/use-toast';
 import FinanceMonthlySection from '@/components/FinanceMonthlySection';
 import FinanceSemesterSection from '@/components/FinanceSemesterSection';
+import EditExpenseModal from '@/components/EditExpenseModal';
 
 interface StudentFinance {
   id: number;
@@ -64,6 +65,8 @@ const Finance: React.FC = () => {
   const [dateTo, setDateTo] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<StudentFinance | null>(null);
+  const [editingExpense, setEditingExpense] = useState<ExpenseRecord | null>(null);
+  const [isEditExpenseModalOpen, setIsEditExpenseModalOpen] = useState(false);
   
   // Input form state
   const [expenseAmount, setExpenseAmount] = useState('');
@@ -182,6 +185,29 @@ const Finance: React.FC = () => {
       return `Rp ${(amount / 1000).toFixed(0)}k`;
     }
     return formatCurrency(amount);
+  };
+
+  const handleEditExpense = (expense: ExpenseRecord) => {
+    setEditingExpense(expense);
+    setIsEditExpenseModalOpen(true);
+  };
+
+  const handleUpdateExpense = (updatedExpense: ExpenseRecord) => {
+    setExpenseRecords(prev =>
+      prev.map(record => (record.id === updatedExpense.id ? updatedExpense : record))
+    );
+    toast({
+      title: "Berhasil",
+      description: "Data pengeluaran telah diperbarui",
+    });
+  };
+
+  const handleDeleteExpense = (id: number) => {
+    setExpenseRecords(prev => prev.filter(record => record.id !== id));
+    toast({
+      title: "Berhasil",
+      description: "Data pengeluaran telah dihapus",
+    });
   };
 
   return (
@@ -371,6 +397,70 @@ const Finance: React.FC = () => {
         </div>
       )}
 
+      {/* Expense History Detail Section */}
+      {expenseRecords.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-800">
+              Rincian Riwayat Pengeluaran
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tanggal</TableHead>
+                  <TableHead>Nama</TableHead>
+                  <TableHead>Jumlah Pengeluaran</TableHead>
+                  <TableHead>Kategori</TableHead>
+                  <TableHead>Catatan</TableHead>
+                  <TableHead>Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {expenseRecords.map((record) => (
+                  <TableRow key={record.id}>
+                    <TableCell>
+                      {new Date(record.tanggal).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                      })}
+                    </TableCell>
+                    <TableCell className="font-medium">{record.nama}</TableCell>
+                    <TableCell>{formatCurrency(record.jumlah)}</TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                        {record.kategori}
+                      </span>
+                    </TableCell>
+                    <TableCell>{record.catatan || '-'}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEditExpense(record)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteExpense(record.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Hapus"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
+
       {/* Summary Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="p-6 border-b border-gray-200">
@@ -383,7 +473,6 @@ const Finance: React.FC = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Nama Santri</TableHead>
-                <TableHead>Halaqah</TableHead>
                 <TableHead>Budget Harian</TableHead>
                 <TableHead>Budget Mingguan</TableHead>
                 <TableHead>Pengeluaran Minggu Ini</TableHead>
@@ -396,11 +485,6 @@ const Finance: React.FC = () => {
                 studentsFinance.map((student) => (
                   <TableRow key={student.id}>
                     <TableCell className="font-medium">{student.nama}</TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                        {registeredHalaqahs.find(h => h.id.toString() === student.halaqah)?.name || `Halaqah ${student.halaqah}`}
-                      </span>
-                    </TableCell>
                     <TableCell>{formatCurrencyShort(student.budgetHarian)}</TableCell>
                     <TableCell>{formatCurrencyShort(student.budgetMingguan)}</TableCell>
                     <TableCell>{formatCurrencyShort(student.pengeluaranMingguIni)}</TableCell>
@@ -426,7 +510,7 @@ const Finance: React.FC = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                     Belum ada data keuangan
                   </TableCell>
                 </TableRow>
@@ -448,6 +532,14 @@ const Finance: React.FC = () => {
         expenseRecords={expenseRecords}
         selectedStudent={selectedStudent}
         students={students}
+      />
+
+      {/* Edit Expense Modal */}
+      <EditExpenseModal
+        isOpen={isEditExpenseModalOpen}
+        onClose={() => setIsEditExpenseModalOpen(false)}
+        expense={editingExpense}
+        onSave={handleUpdateExpense}
       />
     </div>
   );

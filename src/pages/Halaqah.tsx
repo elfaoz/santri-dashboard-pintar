@@ -11,6 +11,7 @@ import MemorizationSemesterSection from '../components/MemorizationSemesterSecti
 import { MemorizationRecord } from '../components/MemorizationTable';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
+import { useMemorization } from '@/contexts/MemorizationContext';
 import { surahs, getSurahByName } from '@/utils/surahData';
 import { toast } from 'sonner';
 import {
@@ -27,6 +28,7 @@ import {
 const Halaqah: React.FC = () => {
   const { students } = useStudents();
   const { halaqahs } = useHalaqahs();
+  const { memorizationRecords, addMemorizationRecord, updateMemorizationRecord, deleteMemorizationRecord } = useMemorization();
   const [selectedHalaqah, setSelectedHalaqah] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   
@@ -47,9 +49,6 @@ const Halaqah: React.FC = () => {
   const [selectedSurah, setSelectedSurah] = useState('');
   const [ayahFrom, setAyahFrom] = useState('');
   const [ayahTo, setAyahTo] = useState('');
-  
-  // Memorization records storage
-  const [memorizationRecords, setMemorizationRecords] = useState<MemorizationRecord[]>([]);
   
   // Detail modal state
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -108,7 +107,7 @@ const Halaqah: React.FC = () => {
       }
     };
 
-    setMemorizationRecords(prev => [...prev, newRecord]);
+    addMemorizationRecord(newRecord);
 
     // Reset form
     setMemorizationTarget('');
@@ -149,9 +148,7 @@ const Halaqah: React.FC = () => {
   };
 
   const handleUpdateRecord = (updatedRecord: MemorizationRecord) => {
-    setMemorizationRecords(prev => 
-      prev.map(record => record.id === updatedRecord.id ? updatedRecord : record)
-    );
+    updateMemorizationRecord(updatedRecord.id, updatedRecord);
     toast.success('Data hafalan berhasil diperbarui');
     setIsEditModalOpen(false);
     setEditingRecord(null);
@@ -164,9 +161,7 @@ const Halaqah: React.FC = () => {
 
   const handleDeleteConfirm = () => {
     if (recordToDelete) {
-      setMemorizationRecords(prev => 
-        prev.filter(record => record.id !== recordToDelete.id)
-      );
+      deleteMemorizationRecord(recordToDelete.id);
       toast.success('Data hafalan berhasil dihapus');
       setIsDeleteDialogOpen(false);
       setRecordToDelete(null);

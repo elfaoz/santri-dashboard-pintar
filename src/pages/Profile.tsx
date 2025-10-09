@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useStudents } from "@/contexts/StudentContext";
 import { useHalaqahs } from "@/contexts/HalaqahContext";
+import { useMemorization } from "@/contexts/MemorizationContext";
 import jsPDF from 'jspdf';
 
 const Profile: React.FC = () => {
@@ -26,6 +27,7 @@ const Profile: React.FC = () => {
   const { toast } = useToast();
   const { students } = useStudents();
   const { halaqahs } = useHalaqahs();
+  const { memorizationRecords } = useMemorization();
 
   // Mock data - replace with actual data from context/API
   const profileData = {
@@ -42,41 +44,43 @@ const Profile: React.FC = () => {
     nik: '3174021585123456'
   };
 
-  // Get memorization data from actual records - this would need to be passed from Halaqah page
-  const getMemorizationDataFromRecords = () => {
-    // This should get data from the actual memorization records from Daily Records
-    // For now, return empty array - this will be populated with real data
-    return [];
-  };
-
   // Get memorization data for bonus calculation from Progress Hafalan per Tanggal
   const getMemorizationData = () => {
     const halaqahData: any[] = [];
     
-    students.forEach(student => {
-      // Find student's halaqah
-      const studentHalaqah = halaqahs.find(h => 
-        h.selectedStudents?.includes(student.id.toString())
-      );
-      
-      if (studentHalaqah) {
-        // These would come from actual memorization records from Progress Hafalan per Tanggal
-        // For now using mock data - should be replaced with actual data
-        const target = 30; // Target halaman (from Daily Records)
-        const pencapaian = 25; // Pencapaian halaman (from Daily Records)
-        const persentase = Math.min(Math.round((pencapaian / target) * 100), 100);
-        const idr = pencapaian * 1500; // IDR = Pencapaian × 1,500
-        
-        halaqahData.push({
-          no: halaqahData.length + 1,
-          halaqah: studentHalaqah.name,
-          nama: student.name,
-          target: target,
-          pencapaian: pencapaian,
-          persentase: persentase,
-          idr: idr
+    // Get unique students from memorization records
+    const uniqueStudents = new Map<string, any>();
+    
+    memorizationRecords.forEach(record => {
+      if (!uniqueStudents.has(record.studentName)) {
+        uniqueStudents.set(record.studentName, {
+          studentName: record.studentName,
+          halaqah: record.halaqah || '',
+          target: record.target,
+          actual: record.actual,
+          totalActual: record.actual
         });
+      } else {
+        const existing = uniqueStudents.get(record.studentName);
+        existing.totalActual += record.actual;
       }
+    });
+    
+    // Convert to array format for table
+    let counter = 1;
+    uniqueStudents.forEach((data) => {
+      const persentase = Math.min(Math.round((data.totalActual / data.target) * 100), 100);
+      const idr = data.totalActual * 1500; // IDR = Pencapaian × 1,500
+      
+      halaqahData.push({
+        no: counter++,
+        halaqah: data.halaqah,
+        nama: data.studentName,
+        target: data.target,
+        pencapaian: data.totalActual,
+        persentase: persentase,
+        idr: idr
+      });
     });
     
     return halaqahData;
