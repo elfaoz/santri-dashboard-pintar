@@ -7,7 +7,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { surahs, getSurahByName, calculateMemorizationStatus } from '@/utils/surahData';
-import { MemorizationRecord, MemorizationDetail } from './MemorizationTable';
+import { MemorizationRecord, MemorizationDetail } from '@/contexts/MemorizationContext';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
 
@@ -112,13 +112,20 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
     const percentage = Math.min((data.actual / data.target) * 100, 100);
     const { status } = calculateMemorizationStatus(data.actual, data.target);
 
+    const surahDetails = [];
+    if (data.surahName && data.ayahFrom && data.ayahTo) {
+      surahDetails.push({
+        surahName: data.surahName,
+        ayahFrom: data.ayahFrom,
+        ayahTo: data.ayahTo,
+      });
+    }
+
     const memorizationDetail: MemorizationDetail = {
       juz: data.juz,
       pageFrom: data.pageFrom,
       pageTo: data.pageTo,
-      surahName: data.surahName,
-      ayahFrom: data.ayahFrom,
-      ayahTo: data.ayahTo
+      surahDetails,
     };
 
     const newRecord: Omit<MemorizationRecord, 'id'> = {

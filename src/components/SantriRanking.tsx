@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Trophy, Eye, Medal, Award } from 'lucide-react';
 import DetailMemorizationModal from './DetailMemorizationModal';
-import { MemorizationRecord } from './MemorizationTable';
+import { MemorizationRecord } from '@/contexts/MemorizationContext';
 
 interface SantriRankingProps {
   memorizationRecords: MemorizationRecord[];

@@ -1,12 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+export interface SurahDetail {
+  surahName: string;
+  ayahFrom: number;
+  ayahTo: number;
+}
+
 export interface MemorizationDetail {
   juz: number;
   pageFrom: number;
   pageTo: number;
-  surahName: string;
-  ayahFrom: number;
-  ayahTo: number;
+  surahDetails: SurahDetail[];
 }
 
 export interface MemorizationRecord {

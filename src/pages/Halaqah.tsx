@@ -8,7 +8,7 @@ import EditMemorizationModal from '../components/EditMemorizationModal';
 import SantriRanking from '../components/SantriRanking';
 import MemorizationMonthlySection from '../components/MemorizationMonthlySection';
 import MemorizationSemesterSection from '../components/MemorizationSemesterSection';
-import { MemorizationRecord } from '../components/MemorizationTable';
+import { MemorizationRecord } from '@/contexts/MemorizationContext';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
 import { useMemorization } from '@/contexts/MemorizationContext';
@@ -94,6 +94,32 @@ const Halaqah: React.FC = () => {
       h.selectedStudents?.includes(student.id.toString())
     );
 
+    // Collect all surah details
+    const surahDetails = [];
+    if (selectedSurah && ayahFrom && ayahTo) {
+      surahDetails.push({
+        surahName: selectedSurahData?.name || selectedSurah,
+        ayahFrom: parseInt(ayahFrom),
+        ayahTo: parseInt(ayahTo),
+      });
+    }
+    if (selectedSurah2 && ayahFrom2 && ayahTo2) {
+      const selectedSurahData2 = surahs.find(s => s.name === selectedSurah2);
+      surahDetails.push({
+        surahName: selectedSurahData2?.name || selectedSurah2,
+        ayahFrom: parseInt(ayahFrom2),
+        ayahTo: parseInt(ayahTo2),
+      });
+    }
+    if (selectedSurah3 && ayahFrom3 && ayahTo3) {
+      const selectedSurahData3 = surahs.find(s => s.name === selectedSurah3);
+      surahDetails.push({
+        surahName: selectedSurahData3?.name || selectedSurah3,
+        ayahFrom: parseInt(ayahFrom3),
+        ayahTo: parseInt(ayahTo3),
+      });
+    }
+
     const newRecord: MemorizationRecord = {
       id: `${recordsSelectedStudent}-${selectedDate}-${Date.now()}`,
       studentName: student.name,
@@ -109,9 +135,7 @@ const Halaqah: React.FC = () => {
         juz: parseInt(selectedJuz) || 1,
         pageFrom: 1,
         pageTo: actual,
-        surahName: selectedSurahData?.name || selectedSurah,
-        ayahFrom: parseInt(ayahFrom) || 1,
-        ayahTo: parseInt(ayahTo) || 1,
+        surahDetails,
       }
     };
 
@@ -147,9 +171,7 @@ const Halaqah: React.FC = () => {
         juz: 1,
         pageFrom: 1,
         pageTo: 1,
-        surahName: 'No data',
-        ayahFrom: 1,
-        ayahTo: 1,
+        surahDetails: [],
       }
     };
     setSelectedRecord(record);
@@ -854,13 +876,31 @@ const Halaqah: React.FC = () => {
                              {record.memorizationDetail?.juz || '-'}
                            </td>
                            <td className="px-4 py-3 text-sm text-gray-900 text-center">
-                             {record.memorizationDetail?.surahName || '-'}
+                             {record.memorizationDetail?.surahDetails && record.memorizationDetail.surahDetails.length > 0 ? (
+                               <div className="space-y-1">
+                                 {record.memorizationDetail.surahDetails.map((detail, idx) => (
+                                   <div key={idx}>{detail.surahName}</div>
+                                 ))}
+                               </div>
+                             ) : '-'}
                            </td>
                            <td className="px-4 py-3 text-sm text-gray-900 text-center">
-                             {record.memorizationDetail?.ayahFrom || '-'}
+                             {record.memorizationDetail?.surahDetails && record.memorizationDetail.surahDetails.length > 0 ? (
+                               <div className="space-y-1">
+                                 {record.memorizationDetail.surahDetails.map((detail, idx) => (
+                                   <div key={idx}>{detail.ayahFrom}</div>
+                                 ))}
+                               </div>
+                             ) : '-'}
                            </td>
                            <td className="px-4 py-3 text-sm text-gray-900 text-center">
-                             {record.memorizationDetail?.ayahTo || '-'}
+                             {record.memorizationDetail?.surahDetails && record.memorizationDetail.surahDetails.length > 0 ? (
+                               <div className="space-y-1">
+                                 {record.memorizationDetail.surahDetails.map((detail, idx) => (
+                                   <div key={idx}>{detail.ayahTo}</div>
+                                 ))}
+                               </div>
+                             ) : '-'}
                            </td>
                            <td className="px-4 py-3 text-center">
                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${

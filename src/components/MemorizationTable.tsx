@@ -8,31 +8,9 @@ import InputMemorizationModal from './InputMemorizationModal';
 import DetailMemorizationModal from './DetailMemorizationModal';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
+import { MemorizationRecord, MemorizationDetail } from '@/contexts/MemorizationContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-
-export interface MemorizationDetail {
-  juz: number;
-  pageFrom: number;
-  pageTo: number;
-  surahName: string;
-  ayahFrom: number;
-  ayahTo: number;
-}
-
-export interface MemorizationRecord {
-  id: string;
-  studentName: string;
-  date: string;
-  target: number;
-  actual: number;
-  percentage: number;
-  status: string;
-  memorizationDetail?: MemorizationDetail;
-  halaqah?: string;
-  level?: string;
-  pembina?: string;
-}
 
 interface Halaqah {
   id: number;
@@ -162,13 +140,22 @@ const MemorizationTable: React.FC<MemorizationTableProps> = ({ memorizationRecor
                   }
                 </TableCell>
                 <TableCell>
-                  {record.memorizationDetail?.surahName || '-'}
+                  {record.memorizationDetail?.surahDetails && record.memorizationDetail.surahDetails.length > 0 ? (
+                    <div className="space-y-1">
+                      {record.memorizationDetail.surahDetails.map((detail, idx) => (
+                        <div key={idx}>{detail.surahName}</div>
+                      ))}
+                    </div>
+                  ) : '-'}
                 </TableCell>
                 <TableCell>
-                  {record.memorizationDetail ? 
-                    `${record.memorizationDetail.ayahFrom} - ${record.memorizationDetail.ayahTo}` : 
-                    '-'
-                  }
+                  {record.memorizationDetail?.surahDetails && record.memorizationDetail.surahDetails.length > 0 ? (
+                    <div className="space-y-1">
+                      {record.memorizationDetail.surahDetails.map((detail, idx) => (
+                        <div key={idx}>{detail.ayahFrom} - {detail.ayahTo}</div>
+                      ))}
+                    </div>
+                  ) : '-'}
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">

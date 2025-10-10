@@ -2,7 +2,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { MemorizationRecord } from './MemorizationTable';
+import { MemorizationRecord } from '@/contexts/MemorizationContext';
 
 interface DetailMemorizationModalProps {
   isOpen: boolean;
@@ -79,14 +79,20 @@ const DetailMemorizationModal: React.FC<DetailMemorizationModalProps> = ({
               <div className="pt-2 border-t">
                 <div className="mb-2">
                   <span className="text-sm font-medium text-gray-600">Surah:</span>
-                  <p className="text-gray-900 font-medium">{record.memorizationDetail.surahName}</p>
-                </div>
-                
-                <div>
-                  <span className="text-sm font-medium text-gray-600">Ayah Range:</span>
-                  <p className="text-gray-900">
-                    Ayah {record.memorizationDetail.ayahFrom} - {record.memorizationDetail.ayahTo}
-                  </p>
+                  {record.memorizationDetail.surahDetails && record.memorizationDetail.surahDetails.length > 0 ? (
+                    <div className="space-y-2">
+                      {record.memorizationDetail.surahDetails.map((detail, idx) => (
+                        <div key={idx} className="p-2 bg-white rounded border border-gray-200">
+                          <p className="text-gray-900 font-medium">{detail.surahName}</p>
+                          <p className="text-sm text-gray-600">
+                            Ayah {detail.ayahFrom} - {detail.ayahTo}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-400">No surah details</p>
+                  )}
                 </div>
               </div>
 
