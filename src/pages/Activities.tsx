@@ -5,6 +5,7 @@ import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
 import ActivitiesMonthlySection from '@/components/ActivitiesMonthlySection';
 import ActivitiesSemesterSection from '@/components/ActivitiesSemesterSection';
+import LeaderboardActivities from '@/components/LeaderboardActivities';
 
 interface ActivityRecord {
   id: string;
@@ -281,6 +282,11 @@ const Activities: React.FC = () => {
         students={students}
         activities={activities}
       />
+
+      {/* Leaderboard Section */}
+      <div className="mt-8">
+        <LeaderboardActivities activityRecords={activityRecords} />
+      </div>
     </div>
   );
 };

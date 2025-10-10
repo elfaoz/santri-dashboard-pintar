@@ -31,6 +31,7 @@ import { toast } from '@/hooks/use-toast';
 import FinanceMonthlySection from '@/components/FinanceMonthlySection';
 import FinanceSemesterSection from '@/components/FinanceSemesterSection';
 import EditExpenseModal from '@/components/EditExpenseModal';
+import LeaderboardFinance from '@/components/LeaderboardFinance';
 
 interface StudentFinance {
   id: number;
@@ -533,6 +534,11 @@ const Finance: React.FC = () => {
         selectedStudent={selectedStudent}
         students={students}
       />
+
+      {/* Leaderboard Section */}
+      <div className="mt-8">
+        <LeaderboardFinance expenseRecords={expenseRecords} />
+      </div>
 
       {/* Edit Expense Modal */}
       <EditExpenseModal

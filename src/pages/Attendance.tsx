@@ -5,6 +5,7 @@ import { useHalaqahs } from '@/contexts/HalaqahContext';
 import InputAbsensiModal from '@/components/InputAbsensiModal';
 import AttendanceMonthlySection from '@/components/AttendanceMonthlySection';
 import AttendanceSemesterSection from '@/components/AttendanceSemesterSection';
+import LeaderboardAttendance from '@/components/LeaderboardAttendance';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -298,6 +299,11 @@ const Attendance: React.FC = () => {
 
       {/* Semester Attendance Section */}
       <AttendanceSemesterSection attendanceRecords={attendanceRecords} selectedStudent={selectedStudent} students={students} />
+
+      {/* Leaderboard Section */}
+      <div className="mt-8">
+        <LeaderboardAttendance attendanceRecords={attendanceRecords} />
+      </div>
 
       <InputAbsensiModal
         isOpen={isModalOpen}
