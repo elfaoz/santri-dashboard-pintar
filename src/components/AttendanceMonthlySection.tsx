@@ -7,7 +7,7 @@ interface AttendanceRecord {
   studentId: string;
   studentName: string;
   date: string;
-  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan';
+  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan' | 'pulang';
   remarks?: string;
 }
 
@@ -39,7 +39,7 @@ const AttendanceMonthlySection: React.FC<AttendanceMonthlyProps> = ({
   };
 
   const getMonthlyStats = () => {
-    if (!selectedStudent) return { hadir: 0, izin: 0, sakit: 0, tanpaKeterangan: 0 };
+    if (!selectedStudent) return { hadir: 0, izin: 0, sakit: 0, tanpaKeterangan: 0, pulang: 0 };
     
     const monthRecords = attendanceRecords.filter(record => {
       const recordDate = new Date(record.date);
@@ -52,6 +52,7 @@ const AttendanceMonthlySection: React.FC<AttendanceMonthlyProps> = ({
       izin: monthRecords.filter(r => r.status === 'izin').length,
       sakit: monthRecords.filter(r => r.status === 'sakit').length,
       tanpaKeterangan: monthRecords.filter(r => r.status === 'tanpa keterangan').length,
+      pulang: monthRecords.filter(r => r.status === 'pulang').length,
     };
   };
 
@@ -100,6 +101,7 @@ const AttendanceMonthlySection: React.FC<AttendanceMonthlyProps> = ({
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Izin</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sakit</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanpa Keterangan</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pulang</th>
             </tr>
           </thead>
           <tbody className="bg-white">
@@ -115,6 +117,9 @@ const AttendanceMonthlySection: React.FC<AttendanceMonthlyProps> = ({
               </td>
               <td className="px-6 py-4 text-sm">
                 <Badge className="bg-red-100 text-red-800">{stats.tanpaKeterangan}</Badge>
+              </td>
+              <td className="px-6 py-4 text-sm">
+                <Badge className="bg-purple-100 text-purple-800">{stats.pulang}</Badge>
               </td>
             </tr>
           </tbody>

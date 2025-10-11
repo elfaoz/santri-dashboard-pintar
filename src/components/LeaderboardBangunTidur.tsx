@@ -1,36 +1,37 @@
 import React from 'react';
 import { Trophy, Medal, Award } from 'lucide-react';
 
-interface ExpenseRecord {
-  id: number;
-  nama: string;
-  halaqah: string;
-  jumlah: number;
-  tanggal: string;
+interface ActivityRecord {
+  id: string;
+  studentId: string;
+  studentName: string;
+  date: string;
+  activities: Record<string, boolean>;
 }
 
-interface LeaderboardFinanceProps {
-  expenseRecords: ExpenseRecord[];
+interface LeaderboardBangunTidurProps {
+  activityRecords: ActivityRecord[];
 }
 
-const LeaderboardFinance: React.FC<LeaderboardFinanceProps> = ({ expenseRecords }) => {
-  // Calculate total expenses per student
-  const studentExpenses = expenseRecords.reduce((acc: any[], record) => {
-    const existing = acc.find(item => item.nama === record.nama);
+const LeaderboardBangunTidur: React.FC<LeaderboardBangunTidurProps> = ({ activityRecords }) => {
+  // Calculate total "Bangun Tidur" activities per student
+  const studentActivities = activityRecords.reduce((acc: any[], record) => {
+    const completed = record.activities['bangun'] ? 1 : 0;
+    const existing = acc.find(item => item.nama === record.studentName);
+    
     if (existing) {
-      existing.totalPengeluaran += record.jumlah;
+      existing.totalAktivitas += completed;
     } else {
       acc.push({
-        nama: record.nama,
-        halaqah: record.halaqah,
-        totalPengeluaran: record.jumlah
+        nama: record.studentName,
+        totalAktivitas: completed
       });
     }
     return acc;
   }, []);
 
-  // Sort by lowest expenses (most economical)
-  const leaderboard = studentExpenses.sort((a, b) => a.totalPengeluaran - b.totalPengeluaran).slice(0, 10);
+  // Sort by highest activity completion
+  const leaderboard = studentActivities.sort((a, b) => b.totalAktivitas - a.totalAktivitas).slice(0, 10);
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -58,20 +59,12 @@ const LeaderboardFinance: React.FC<LeaderboardFinanceProps> = ({ expenseRecords 
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50">
+      <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-pink-50">
         <div className="flex items-center space-x-2">
-          <Trophy className="h-5 w-5 text-green-600" />
-          <h3 className="text-lg font-semibold text-gray-800">Leaderboard Pengeluaran Terhemat per Tanggal</h3>
+          <Trophy className="h-5 w-5 text-purple-600" />
+          <h3 className="text-lg font-semibold text-gray-800">Leaderboard Aktivitas Bangun Tidur ⏰</h3>
         </div>
       </div>
       
@@ -86,7 +79,7 @@ const LeaderboardFinance: React.FC<LeaderboardFinanceProps> = ({ expenseRecords 
                 Student Name
               </th>
               <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Total Pengeluaran
+                Total Aktivitas
               </th>
             </tr>
           </thead>
@@ -105,13 +98,13 @@ const LeaderboardFinance: React.FC<LeaderboardFinanceProps> = ({ expenseRecords 
                   <div className="text-sm font-medium text-gray-900">{student.nama}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-center">
-                  <div className="text-sm font-bold text-green-600">{formatCurrency(student.totalPengeluaran)}</div>
+                  <div className="text-sm font-bold text-purple-600">{student.totalAktivitas} hari</div>
                 </td>
               </tr>
             )) : (
               <tr>
                 <td colSpan={3} className="px-6 py-8 text-center text-gray-500">
-                  Belum ada data pengeluaran
+                  Belum ada data aktivitas
                 </td>
               </tr>
             )}
@@ -122,4 +115,4 @@ const LeaderboardFinance: React.FC<LeaderboardFinanceProps> = ({ expenseRecords 
   );
 };
 
-export default LeaderboardFinance;
+export default LeaderboardBangunTidur;

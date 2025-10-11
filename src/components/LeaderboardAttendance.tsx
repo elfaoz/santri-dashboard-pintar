@@ -6,7 +6,7 @@ interface AttendanceRecord {
   studentId: string;
   studentName: string;
   date: string;
-  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan';
+  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan' | 'pulang';
 }
 
 interface LeaderboardAttendanceProps {

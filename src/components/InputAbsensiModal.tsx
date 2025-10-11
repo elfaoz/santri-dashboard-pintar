@@ -18,7 +18,7 @@ interface AttendanceData {
   halaqah: string;
   studentId: string;
   studentName: string;
-  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan';
+  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan' | 'pulang';
   remarks: string;
 }
 
@@ -58,7 +58,8 @@ const InputAbsensiModal: React.FC<InputAbsensiModalProps> = ({
     { value: 'hadir', label: 'Hadir' },
     { value: 'izin', label: 'Izin' },
     { value: 'sakit', label: 'Sakit' },
-    { value: 'tanpa keterangan', label: 'Tanpa Keterangan' }
+    { value: 'tanpa keterangan', label: 'Tanpa Keterangan' },
+    { value: 'pulang', label: 'Pulang' }
   ];
 
   const handleHalaqahChange = (halaqah: string) => {

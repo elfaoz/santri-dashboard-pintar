@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 interface StudentAttendance {
   id: string;
   name: string;
-  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan';
+  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan' | 'pulang';
   halaqah: string;
   remarks?: string;
 }
@@ -22,7 +22,7 @@ interface AttendanceRecord {
   studentId: string;
   studentName: string;
   date: string;
-  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan';
+  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan' | 'pulang';
   remarks?: string;
 }
 
@@ -37,7 +37,7 @@ const Attendance: React.FC = () => {
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   
   // Input form state
-  const [attendanceStatus, setAttendanceStatus] = useState<'hadir' | 'izin' | 'sakit' | 'tanpa keterangan'>('hadir');
+  const [attendanceStatus, setAttendanceStatus] = useState<'hadir' | 'izin' | 'sakit' | 'tanpa keterangan' | 'pulang'>('hadir');
   const [remarks, setRemarks] = useState('');
 
   const getStudentsByHalaqah = (halaqahId: string) => {
@@ -57,7 +57,8 @@ const Attendance: React.FC = () => {
       hadir: 'bg-green-100 text-green-800',
       izin: 'bg-yellow-100 text-yellow-800',
       sakit: 'bg-orange-100 text-orange-800',
-      'tanpa keterangan': 'bg-red-100 text-red-800'
+      'tanpa keterangan': 'bg-red-100 text-red-800',
+      pulang: 'bg-purple-100 text-purple-800'
     };
 
     return (
@@ -179,8 +180,8 @@ const Attendance: React.FC = () => {
         </div>
         
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {(['hadir', 'izin', 'sakit', 'tanpa keterangan'] as const).map((status) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {(['hadir', 'izin', 'sakit', 'tanpa keterangan', 'pulang'] as const).map((status) => (
               <div
                 key={status}
                 className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${

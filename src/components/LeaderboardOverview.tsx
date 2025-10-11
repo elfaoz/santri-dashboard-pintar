@@ -4,12 +4,36 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useMemorization } from '@/contexts/MemorizationContext';
 import SantriRanking from './SantriRanking';
 
+interface AttendanceRecord {
+  id: string;
+  studentId: string;
+  studentName: string;
+  date: string;
+  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan' | 'pulang';
+}
+
+interface ActivityRecord {
+  id: string;
+  studentId: string;
+  studentName: string;
+  date: string;
+  activities: Record<string, boolean>;
+}
+
+interface ExpenseRecord {
+  id: number;
+  nama: string;
+  halaqah: string;
+  jumlah: number;
+  tanggal: string;
+}
+
 interface LeaderboardOverviewProps {
   selectedCategories: string[];
   onCategoriesChange: (categories: string[]) => void;
-  attendanceRecords?: any[];
-  expenseRecords?: any[];
-  activityRecords?: any[];
+  attendanceRecords?: AttendanceRecord[];
+  expenseRecords?: ExpenseRecord[];
+  activityRecords?: ActivityRecord[];
 }
 
 const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
@@ -80,6 +104,7 @@ const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
   };
 
   const getTop3Activities = () => {
+    // Calculate combined activities from all activity types
     const studentActivities = activityRecords.reduce((acc: any[], record) => {
       const completedCount = Object.values(record.activities).filter(Boolean).length;
       const existing = acc.find(item => item.nama === record.studentName);
@@ -168,7 +193,7 @@ const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
           {/* Memorization Top 3 */}
           {selectedCategories.includes('Memorization') && (
             <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Top 3 Memorization</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Leaderboard Hafalan</h3>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50">
@@ -199,7 +224,7 @@ const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
           {/* Attendance Top 3 */}
           {selectedCategories.includes('Attendance') && (
             <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Top 3 Attendance</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Leaderboard Kehadiran</h3>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50">
@@ -226,7 +251,7 @@ const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
           {/* Activities Top 3 */}
           {selectedCategories.includes('Activities') && (
             <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Top 3 Activities</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Leaderboard Kegiatan Harian</h3>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50">
@@ -253,7 +278,7 @@ const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
           {/* Finance Top 3 */}
           {selectedCategories.includes('Finance') && (
             <div className="border-t pt-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Top 3 Finance (Most Economical)</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Leaderboard Keuangan</h3>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50">

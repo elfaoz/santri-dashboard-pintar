@@ -7,7 +7,7 @@ interface AttendanceRecord {
   studentId: string;
   studentName: string;
   date: string;
-  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan';
+  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan' | 'pulang';
   remarks?: string;
 }
 
@@ -44,7 +44,7 @@ const AttendanceSemesterSection: React.FC<AttendanceSemesterProps> = ({
   };
 
   const getSemesterStats = () => {
-    if (!selectedStudent) return { hadir: 0, izin: 0, sakit: 0, tanpaKeterangan: 0 };
+    if (!selectedStudent) return { hadir: 0, izin: 0, sakit: 0, tanpaKeterangan: 0, pulang: 0 };
     
     const semesterRecords = attendanceRecords.filter(record => {
       const recordDate = new Date(record.date);
@@ -65,6 +65,7 @@ const AttendanceSemesterSection: React.FC<AttendanceSemesterProps> = ({
       izin: semesterRecords.filter(r => r.status === 'izin').length,
       sakit: semesterRecords.filter(r => r.status === 'sakit').length,
       tanpaKeterangan: semesterRecords.filter(r => r.status === 'tanpa keterangan').length,
+      pulang: semesterRecords.filter(r => r.status === 'pulang').length,
     };
   };
 
@@ -113,6 +114,7 @@ const AttendanceSemesterSection: React.FC<AttendanceSemesterProps> = ({
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Izin</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sakit</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanpa Keterangan</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pulang</th>
             </tr>
           </thead>
           <tbody className="bg-white">
@@ -128,6 +130,9 @@ const AttendanceSemesterSection: React.FC<AttendanceSemesterProps> = ({
               </td>
               <td className="px-6 py-4 text-sm">
                 <Badge className="bg-red-100 text-red-800">{stats.tanpaKeterangan}</Badge>
+              </td>
+              <td className="px-6 py-4 text-sm">
+                <Badge className="bg-purple-100 text-purple-800">{stats.pulang}</Badge>
               </td>
             </tr>
           </tbody>

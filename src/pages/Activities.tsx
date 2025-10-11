@@ -5,7 +5,12 @@ import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
 import ActivitiesMonthlySection from '@/components/ActivitiesMonthlySection';
 import ActivitiesSemesterSection from '@/components/ActivitiesSemesterSection';
-import LeaderboardActivities from '@/components/LeaderboardActivities';
+import LeaderboardBangunTidur from '@/components/LeaderboardBangunTidur';
+import LeaderboardTahajud from '@/components/LeaderboardTahajud';
+import LeaderboardRawatib from '@/components/LeaderboardRawatib';
+import LeaderboardShaum from '@/components/LeaderboardShaum';
+import LeaderboardTilawah from '@/components/LeaderboardTilawah';
+import LeaderboardPiket from '@/components/LeaderboardPiket';
 
 interface ActivityRecord {
   id: string;
@@ -283,9 +288,14 @@ const Activities: React.FC = () => {
         activities={activities}
       />
 
-      {/* Leaderboard Section */}
-      <div className="mt-8">
-        <LeaderboardActivities activityRecords={activityRecords} />
+      {/* Leaderboard Sections */}
+      <div className="mt-8 space-y-6">
+        <LeaderboardBangunTidur activityRecords={activityRecords} />
+        <LeaderboardTahajud activityRecords={activityRecords} />
+        <LeaderboardRawatib activityRecords={activityRecords} />
+        <LeaderboardShaum activityRecords={activityRecords} />
+        <LeaderboardTilawah activityRecords={activityRecords} />
+        <LeaderboardPiket activityRecords={activityRecords} />
       </div>
     </div>
   );
