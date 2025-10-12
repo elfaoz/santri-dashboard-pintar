@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import DashboardStats from '../components/DashboardStats';
 import LeaderboardOverview from '../components/LeaderboardOverview';
@@ -6,11 +5,6 @@ import ShareResultsSection from '../components/ShareResultsSection';
 
 const Dashboard: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['Attendance', 'Memorization', 'Activities', 'Finance']);
-  
-  // Mock data for ShareResultsSection - in real app, this would come from contexts
-  const [attendanceRecords] = useState<any[]>([]);
-  const [expenseRecords] = useState<any[]>([]);
-  const [activityRecords] = useState<any[]>([]);
 
   return (
     <div className="p-6 space-y-8">
@@ -24,17 +18,10 @@ const Dashboard: React.FC = () => {
       <LeaderboardOverview 
         selectedCategories={selectedCategories}
         onCategoriesChange={setSelectedCategories}
-        attendanceRecords={attendanceRecords}
-        expenseRecords={expenseRecords}
-        activityRecords={activityRecords}
       />
       
       {/* Report Download and Share Section */}
-      <ShareResultsSection 
-        attendanceRecords={attendanceRecords}
-        expenseRecords={expenseRecords}
-        activityRecords={activityRecords}
-      />
+      <ShareResultsSection />
     </div>
   );
 };

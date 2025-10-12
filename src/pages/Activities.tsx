@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Calendar, CheckCircle, Circle } from 'lucide-react';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
+import { useActivity } from '@/contexts/ActivityContext';
 import ActivitiesMonthlySection from '@/components/ActivitiesMonthlySection';
 import ActivitiesSemesterSection from '@/components/ActivitiesSemesterSection';
 import LeaderboardBangunTidur from '@/components/LeaderboardBangunTidur';
@@ -23,10 +24,10 @@ interface ActivityRecord {
 const Activities: React.FC = () => {
   const { students } = useStudents();
   const { halaqahs } = useHalaqahs();
+  const { activityRecords, addActivityRecord } = useActivity();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedHalaqah, setSelectedHalaqah] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState('');
-  const [activityRecords, setActivityRecords] = useState<ActivityRecord[]>([]);
 
   const getStudentsByHalaqah = (halaqahId: string) => {
     if (halaqahId === 'all') return students;
@@ -77,10 +78,7 @@ const Activities: React.FC = () => {
       activities: { ...activityStatus }
     };
 
-    setActivityRecords(prev => {
-      const existing = prev.filter(record => record.id !== newRecord.id);
-      return [...existing, newRecord];
-    });
+    addActivityRecord(newRecord);
   };
 
   const getActivityRecordsForWeek = () => {

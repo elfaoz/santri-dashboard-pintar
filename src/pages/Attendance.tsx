@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Calendar, CheckCircle, Circle } from 'lucide-react';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
+import { useAttendance } from '@/contexts/AttendanceContext';
 import InputAbsensiModal from '@/components/InputAbsensiModal';
 import AttendanceMonthlySection from '@/components/AttendanceMonthlySection';
 import AttendanceSemesterSection from '@/components/AttendanceSemesterSection';
@@ -29,12 +30,12 @@ interface AttendanceRecord {
 const Attendance: React.FC = () => {
   const { students } = useStudents();
   const { halaqahs } = useHalaqahs();
+  const { attendanceRecords, addAttendanceRecord } = useAttendance();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedHalaqah, setSelectedHalaqah] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<StudentAttendance | null>(null);
-  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   
   // Input form state
   const [attendanceStatus, setAttendanceStatus] = useState<'hadir' | 'izin' | 'sakit' | 'tanpa keterangan' | 'pulang'>('hadir');
@@ -83,10 +84,7 @@ const Attendance: React.FC = () => {
       remarks: remarks
     };
 
-    setAttendanceRecords(prev => {
-      const existing = prev.filter(record => record.id !== newRecord.id);
-      return [...existing, newRecord];
-    });
+    addAttendanceRecord(newRecord);
 
     // Reset form
     setAttendanceStatus('hadir');

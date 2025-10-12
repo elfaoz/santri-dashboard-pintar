@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/select';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
+import { useFinance } from '@/contexts/FinanceContext';
 import { toast } from '@/hooks/use-toast';
 import FinanceMonthlySection from '@/components/FinanceMonthlySection';
 import FinanceSemesterSection from '@/components/FinanceSemesterSection';
@@ -58,6 +59,7 @@ interface ExpenseRecord {
 const Finance: React.FC = () => {
   const { students } = useStudents();
   const { halaqahs: registeredHalaqahs } = useHalaqahs();
+  const { expenseRecords, addExpenseRecord, updateExpenseRecord, deleteExpenseRecord } = useFinance();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedHalaqah, setSelectedHalaqah] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState('');
@@ -75,7 +77,6 @@ const Finance: React.FC = () => {
   const [expenseNotes, setExpenseNotes] = useState('');
 
   const [studentsFinance, setStudentsFinance] = useState<StudentFinance[]>([]);
-  const [expenseRecords, setExpenseRecords] = useState<ExpenseRecord[]>([]);
 
   const getStudentsByHalaqah = (halaqahId: string) => {
     if (halaqahId === 'all') return students;
@@ -105,7 +106,7 @@ const Finance: React.FC = () => {
       catatan: expenseNotes,
     };
     
-    setExpenseRecords(prev => [...prev, newExpense]);
+    addExpenseRecord(newExpense);
     
     // Update or create student finance record
     const existingStudentFinance = studentsFinance.find(sf => sf.nama === student.name);
@@ -194,9 +195,7 @@ const Finance: React.FC = () => {
   };
 
   const handleUpdateExpense = (updatedExpense: ExpenseRecord) => {
-    setExpenseRecords(prev =>
-      prev.map(record => (record.id === updatedExpense.id ? updatedExpense : record))
-    );
+    updateExpenseRecord(updatedExpense);
     toast({
       title: "Berhasil",
       description: "Data pengeluaran telah diperbarui",
@@ -204,7 +203,7 @@ const Finance: React.FC = () => {
   };
 
   const handleDeleteExpense = (id: number) => {
-    setExpenseRecords(prev => prev.filter(record => record.id !== id));
+    deleteExpenseRecord(id);
     toast({
       title: "Berhasil",
       description: "Data pengeluaran telah dihapus",

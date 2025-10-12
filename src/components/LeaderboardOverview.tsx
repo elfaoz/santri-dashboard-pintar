@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useMemorization } from '@/contexts/MemorizationContext';
+import { useAttendance } from '@/contexts/AttendanceContext';
+import { useActivity } from '@/contexts/ActivityContext';
+import { useFinance } from '@/contexts/FinanceContext';
 import SantriRanking from './SantriRanking';
 
 interface AttendanceRecord {
@@ -31,19 +34,16 @@ interface ExpenseRecord {
 interface LeaderboardOverviewProps {
   selectedCategories: string[];
   onCategoriesChange: (categories: string[]) => void;
-  attendanceRecords?: AttendanceRecord[];
-  expenseRecords?: ExpenseRecord[];
-  activityRecords?: ActivityRecord[];
 }
 
 const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
   selectedCategories,
-  onCategoriesChange,
-  attendanceRecords = [],
-  expenseRecords = [],
-  activityRecords = []
+  onCategoriesChange
 }) => {
   const { memorizationRecords } = useMemorization();
+  const { attendanceRecords } = useAttendance();
+  const { activityRecords } = useActivity();
+  const { expenseRecords } = useFinance();
   const [showResults, setShowResults] = useState(false);
 
   const categories = [

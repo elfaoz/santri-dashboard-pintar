@@ -7,6 +7,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { StudentProvider } from "@/contexts/StudentContext";
 import { HalaqahProvider } from "@/contexts/HalaqahContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { MemorizationProvider } from "@/contexts/MemorizationContext";
+import { AttendanceProvider } from "@/contexts/AttendanceContext";
+import { ActivityProvider } from "@/contexts/ActivityContext";
+import { FinanceProvider } from "@/contexts/FinanceContext";
 import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
@@ -27,7 +31,11 @@ const App = () => (
     <AuthProvider>
       <StudentProvider>
         <HalaqahProvider>
-          <TooltipProvider>
+          <MemorizationProvider>
+            <AttendanceProvider>
+              <ActivityProvider>
+                <FinanceProvider>
+                  <TooltipProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
@@ -87,6 +95,10 @@ const App = () => (
               </Routes>
             </BrowserRouter>
           </TooltipProvider>
+                </FinanceProvider>
+              </ActivityProvider>
+            </AttendanceProvider>
+          </MemorizationProvider>
         </HalaqahProvider>
       </StudentProvider>
     </AuthProvider>

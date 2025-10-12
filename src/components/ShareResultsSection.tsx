@@ -11,6 +11,9 @@ import {
 } from '@/components/ui/select';
 import { useStudents } from '@/contexts/StudentContext';
 import { useMemorization } from '@/contexts/MemorizationContext';
+import { useAttendance } from '@/contexts/AttendanceContext';
+import { useActivity } from '@/contexts/ActivityContext';
+import { useFinance } from '@/contexts/FinanceContext';
 
 interface AttendanceRecord {
   id: string;
@@ -38,19 +41,12 @@ interface ExpenseRecord {
   catatan: string;
 }
 
-interface ShareResultsSectionProps {
-  attendanceRecords?: AttendanceRecord[];
-  expenseRecords?: ExpenseRecord[];
-  activityRecords?: ActivityRecord[];
-}
-
-const ShareResultsSection: React.FC<ShareResultsSectionProps> = ({
-  attendanceRecords = [],
-  expenseRecords = [],
-  activityRecords = []
-}) => {
+const ShareResultsSection: React.FC = () => {
   const { students } = useStudents();
   const { memorizationRecords } = useMemorization();
+  const { attendanceRecords } = useAttendance();
+  const { activityRecords } = useActivity();
+  const { expenseRecords } = useFinance();
   const [selectedStudent, setSelectedStudent] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [linkCopied, setLinkCopied] = useState(false);
