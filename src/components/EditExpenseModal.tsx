@@ -95,6 +95,7 @@ const EditExpenseModal: React.FC<EditExpenseModalProps> = ({
                 <SelectItem value="Pribadi">Pribadi</SelectItem>
                 <SelectItem value="Kesehatan">Kesehatan</SelectItem>
                 <SelectItem value="Pendidikan">Pendidikan</SelectItem>
+                <SelectItem value="Lain-lain">Lain-lain</SelectItem>
               </SelectContent>
             </Select>
           </div>

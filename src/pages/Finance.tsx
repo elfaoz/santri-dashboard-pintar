@@ -307,6 +307,7 @@ const Finance: React.FC = () => {
                 <option value="Pribadi">Pribadi</option>
                 <option value="Kesehatan">Kesehatan</option>
                 <option value="Pendidikan">Pendidikan</option>
+                <option value="Lain-lain">Lain-lain</option>
               </select>
             </div>
           </div>

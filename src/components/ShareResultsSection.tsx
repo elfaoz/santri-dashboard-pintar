@@ -1,130 +1,388 @@
-import React from 'react';
-import { Share, Download, MessageCircle, Link, Calendar } from 'lucide-react';
+import React, { useState } from 'react';
+import { Download, Share2, Link2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useStudents } from '@/contexts/StudentContext';
+import { useMemorization } from '@/contexts/MemorizationContext';
+
+interface AttendanceRecord {
+  id: string;
+  studentId: string;
+  studentName: string;
+  date: string;
+  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan' | 'pulang';
+}
+
+interface ActivityRecord {
+  id: string;
+  studentId: string;
+  studentName: string;
+  date: string;
+  activities: Record<string, boolean>;
+}
+
+interface ExpenseRecord {
+  id: number;
+  nama: string;
+  halaqah: string;
+  jumlah: number;
+  tanggal: string;
+  kategori: string;
+  catatan: string;
+}
 
 interface ShareResultsSectionProps {
-  selectedStudents: string[];
-  dateRange: { from: string; to: string };
-  selectedCategories: string[];
+  attendanceRecords?: AttendanceRecord[];
+  expenseRecords?: ExpenseRecord[];
+  activityRecords?: ActivityRecord[];
 }
 
 const ShareResultsSection: React.FC<ShareResultsSectionProps> = ({
-  selectedStudents,
-  dateRange,
-  selectedCategories
+  attendanceRecords = [],
+  expenseRecords = [],
+  activityRecords = []
 }) => {
+  const { students } = useStudents();
+  const { memorizationRecords } = useMemorization();
+  const [selectedStudent, setSelectedStudent] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const categories = [
+    { id: 'profile', label: 'Nama Santri' },
+    { id: 'attendance', label: 'Attendance' },
+    { id: 'memorization', label: 'Memorization' },
+    { id: 'activities', label: 'Activities' },
+    { id: 'finance', label: 'Finance' }
+  ];
+
+  const handleCategoryToggle = (categoryId: string) => {
+    if (selectedCategories.includes(categoryId)) {
+      setSelectedCategories(selectedCategories.filter(c => c !== categoryId));
+    } else {
+      setSelectedCategories([...selectedCategories, categoryId]);
+    }
+  };
+
+  const getStudentData = () => {
+    if (!selectedStudent) return null;
+    
+    const student = students.find(s => s.id.toString() === selectedStudent);
+    if (!student) return null;
+
+    const profileData = {
+      name: student.name,
+      class: student.class,
+      level: student.level,
+      period: student.period
+    };
+
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth();
+    const currentSemester = currentMonth >= 6 ? 1 : 2;
+    
+    const semesterAttendance = attendanceRecords.filter(record => {
+      const recordDate = new Date(record.date);
+      const recordYear = recordDate.getFullYear();
+      const recordMonth = recordDate.getMonth();
+      const inSemester = currentSemester === 1 
+        ? recordMonth >= 6 && recordMonth <= 11
+        : recordMonth >= 0 && recordMonth <= 5;
+      return record.studentId === selectedStudent && recordYear === currentYear && inSemester;
+    });
+
+    const attendanceData = {
+      hadir: semesterAttendance.filter(r => r.status === 'hadir').length,
+      izin: semesterAttendance.filter(r => r.status === 'izin').length,
+      sakit: semesterAttendance.filter(r => r.status === 'sakit').length,
+      tanpaKeterangan: semesterAttendance.filter(r => r.status === 'tanpa keterangan').length,
+      pulang: semesterAttendance.filter(r => r.status === 'pulang').length,
+    };
+
+    const semesterMemorization = memorizationRecords.filter(record => {
+      const recordDate = new Date(record.date);
+      const recordYear = recordDate.getFullYear();
+      const recordMonth = recordDate.getMonth();
+      const inSemester = currentSemester === 1 
+        ? recordMonth >= 6 && recordMonth <= 11
+        : recordMonth >= 0 && recordMonth <= 5;
+      return record.studentName === student.name && recordYear === currentYear && inSemester;
+    });
+
+    const memorizationData = {
+      target: semesterMemorization.reduce((sum, r) => sum + r.target, 0),
+      actual: semesterMemorization.reduce((sum, r) => sum + r.actual, 0),
+    };
+
+    const semesterActivities = activityRecords.filter(record => {
+      const recordDate = new Date(record.date);
+      const recordYear = recordDate.getFullYear();
+      const recordMonth = recordDate.getMonth();
+      const inSemester = currentSemester === 1 
+        ? recordMonth >= 6 && recordMonth <= 11
+        : recordMonth >= 0 && recordMonth <= 5;
+      return record.studentId === selectedStudent && recordYear === currentYear && inSemester;
+    });
+
+    const activitiesData = {
+      bangunTidur: semesterActivities.filter(r => r.activities['bangun_tidur']).length,
+      tahajud: semesterActivities.filter(r => r.activities['tahajud']).length,
+      rawatib: semesterActivities.filter(r => r.activities['rawatib']).length,
+      shaum: semesterActivities.filter(r => r.activities['shaum']).length,
+      tilawah: semesterActivities.filter(r => r.activities['tilawah']).length,
+      piket: semesterActivities.filter(r => r.activities['piket']).length,
+    };
+
+    const semesterExpenses = expenseRecords.filter(record => {
+      const recordDate = new Date(record.tanggal);
+      const recordYear = recordDate.getFullYear();
+      const recordMonth = recordDate.getMonth();
+      const inSemester = currentSemester === 1 
+        ? recordMonth >= 6 && recordMonth <= 11
+        : recordMonth >= 0 && recordMonth <= 5;
+      return record.nama === student.name && recordYear === currentYear && inSemester;
+    });
+
+    const financeData = {
+      totalExpense: semesterExpenses.reduce((sum, record) => sum + record.jumlah, 0)
+    };
+
+    return {
+      profile: profileData,
+      attendance: attendanceData,
+      memorization: memorizationData,
+      activities: activitiesData,
+      finance: financeData
+    };
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+    }).format(amount);
+  };
 
   const handleWhatsAppShare = () => {
-    const studentList = selectedStudents.length > 0 ? selectedStudents.join(', ') : 'Semua santri';
-    const categoriesList = selectedCategories.join(', ');
-    const dateRangeText = dateRange.from && dateRange.to 
-      ? `${dateRange.from} to ${dateRange.to}` 
-      : 'Tanggal belum dipilih';
-    
-    const message = encodeURIComponent(
-      `📊 Laporan Santri - ${dateRangeText}\n\n` +
-      `👥 Santri: ${studentList}\n` +
-      `📋 Kategori: ${categoriesList}\n\n` +
-      `🎯 Pencapaian Hafalan: 75%\n` +
-      `📚 Total Hafalan: 45 halaman\n` +
-      `✅ Kehadiran: 95%\n` +
-      `💰 Keuangan: Lunas\n\n` +
-      `Lihat detail lengkap: [Link akan ditambahkan]`
-    );
-    window.open(`https://wa.me/?text=${message}`, '_blank');
+    const studentData = getStudentData();
+    if (!studentData || selectedCategories.length === 0) return;
+
+    const student = students.find(s => s.id.toString() === selectedStudent);
+    if (!student) return;
+
+    let message = `*Laporan Santri - ${student.name}*\n\n`;
+
+    if (selectedCategories.includes('profile')) {
+      message += `📋 *Data Santri*\n`;
+      message += `• Nama: ${studentData.profile.name}\n`;
+      message += `• Kelas: ${studentData.profile.class}\n`;
+      message += `• Level: ${studentData.profile.level}\n`;
+      message += `• Periode: ${studentData.profile.period}\n\n`;
+    }
+
+    if (selectedCategories.includes('attendance')) {
+      message += `✅ *Kehadiran (Per Semester)*\n`;
+      message += `• Hadir: ${studentData.attendance.hadir} hari\n`;
+      message += `• Izin: ${studentData.attendance.izin} hari\n`;
+      message += `• Sakit: ${studentData.attendance.sakit} hari\n`;
+      message += `• Tanpa Keterangan: ${studentData.attendance.tanpaKeterangan} hari\n`;
+      message += `• Pulang: ${studentData.attendance.pulang} hari\n\n`;
+    }
+
+    if (selectedCategories.includes('memorization')) {
+      message += `📖 *Hafalan (Per Semester)*\n`;
+      message += `• Target: ${studentData.memorization.target} halaman\n`;
+      message += `• Pencapaian: ${studentData.memorization.actual} halaman\n\n`;
+    }
+
+    if (selectedCategories.includes('activities')) {
+      message += `🌟 *Aktivitas (Per Semester)*\n`;
+      message += `• Bangun Tidur: ${studentData.activities.bangunTidur} hari\n`;
+      message += `• Tahajud: ${studentData.activities.tahajud} hari\n`;
+      message += `• Rawatib: ${studentData.activities.rawatib} hari\n`;
+      message += `• Shaum: ${studentData.activities.shaum} hari\n`;
+      message += `• Tilawah: ${studentData.activities.tilawah} hari\n`;
+      message += `• Piket: ${studentData.activities.piket} hari\n\n`;
+    }
+
+    if (selectedCategories.includes('finance')) {
+      message += `💰 *Keuangan (Per Semester)*\n`;
+      message += `• Total Pengeluaran: ${formatCurrency(studentData.finance.totalExpense)}\n\n`;
+    }
+
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
   };
 
   const handleDirectLink = () => {
     const params = new URLSearchParams({
-      students: selectedStudents.join(','),
-      categories: selectedCategories.join(','),
-      from: dateRange.from || '',
-      to: dateRange.to || ''
+      student: selectedStudent,
+      categories: selectedCategories.join(',')
     });
-    const reportUrl = `${window.location.origin}/report?${params.toString()}`;
-    navigator.clipboard.writeText(reportUrl);
-    // You can add a toast notification here
-    alert('Link copied to clipboard!');
+    const link = `${window.location.origin}/report?${params.toString()}`;
+    navigator.clipboard.writeText(link);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
   };
 
   const handlePDFDownload = () => {
-    // This would generate and download a PDF report
-    // For now, we'll just show an alert
-    alert('PDF download functionality will be implemented with a PDF generation library.');
+    alert('PDF download feature will be implemented soon!');
   };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-bold text-gray-800">Share Results</h2>
-          <p className="text-gray-600 text-sm">Generate reports for parents or principal</p>
-        </div>
-        <Share className="h-6 w-6 text-blue-600" />
+      <h3 className="text-lg font-semibold text-gray-800 mb-4">Download & Share Report</h3>
+      <p className="text-sm text-gray-600 mb-6">
+        Pilih santri dan kategori data yang ingin diunduh atau dibagikan
+      </p>
+
+      {/* Student Selection */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Pilih Santri:
+        </label>
+        <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Pilih santri..." />
+          </SelectTrigger>
+          <SelectContent>
+            {students.map((student) => (
+              <SelectItem key={student.id} value={student.id.toString()}>
+                {student.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      {/* Selected Data Summary */}
-      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-        <h3 className="text-sm font-medium text-gray-700 mb-3">Data yang Dipilih untuk Laporan</h3>
-        <div className="space-y-2 text-sm text-gray-600">
-          <div>
-            <span className="font-medium">👥 Santri: </span>
-            {selectedStudents.length > 0 ? selectedStudents.join(', ') : 'Belum ada santri dipilih'}
-          </div>
-          <div>
-            <span className="font-medium">📋 Kategori: </span>
-            {selectedCategories.join(', ')}
-          </div>
-          <div>
-            <span className="font-medium">📅 Periode: </span>
-            {dateRange.from && dateRange.to 
-              ? `${dateRange.from} s/d ${dateRange.to}` 
-              : 'Tanggal belum dipilih'}
-          </div>
+      {/* Category Selection */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Pilih Kategori:
+        </label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {categories.map((category) => (
+            <div key={category.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={`share-${category.id}`}
+                checked={selectedCategories.includes(category.id)}
+                onCheckedChange={() => handleCategoryToggle(category.id)}
+              />
+              <label
+                htmlFor={`share-${category.id}`}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              >
+                {category.label}
+              </label>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <Button
           onClick={handleWhatsAppShare}
-          className="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white"
+          disabled={!selectedStudent || selectedCategories.length === 0}
+          className="flex-1 bg-green-600 hover:bg-green-700"
         >
-          <MessageCircle className="h-4 w-4" />
-          <span>Share via WhatsApp</span>
+          <Share2 className="mr-2 h-4 w-4" />
+          Share via WhatsApp
         </Button>
-
         <Button
           onClick={handleDirectLink}
+          disabled={!selectedStudent || selectedCategories.length === 0}
           variant="outline"
-          className="flex items-center justify-center space-x-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+          className="flex-1"
         >
-          <Link className="h-4 w-4" />
-          <span>Copy Direct Link</span>
+          {linkCopied ? (
+            <>
+              <Check className="mr-2 h-4 w-4" />
+              Link Copied!
+            </>
+          ) : (
+            <>
+              <Link2 className="mr-2 h-4 w-4" />
+              Copy Direct Link
+            </>
+          )}
         </Button>
-
         <Button
           onClick={handlePDFDownload}
+          disabled={!selectedStudent || selectedCategories.length === 0}
           variant="outline"
-          className="flex items-center justify-center space-x-2 border-red-500 text-red-600 hover:bg-red-50"
+          className="flex-1"
         >
-          <Download className="h-4 w-4" />
-          <span>Download PDF</span>
+          <Download className="mr-2 h-4 w-4" />
+          Download PDF
         </Button>
       </div>
 
-      {/* Preview Summary */}
-      <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <h3 className="text-sm font-medium text-blue-800 mb-2">Preview Laporan</h3>
-        <div className="text-xs text-blue-700 space-y-1">
-          <div>• Santri: {selectedStudents.length > 0 ? `${selectedStudents.length} santri` : 'Belum ada santri dipilih'}</div>
-          <div>• Kategori: {selectedCategories.join(', ')}</div>
-          {selectedCategories.includes('Memorization') && <div>• Progress Hafalan: 75% (45/60 halaman)</div>}
-          {selectedCategories.includes('Attendance') && <div>• Tingkat Kehadiran: 95%</div>}
-          {selectedCategories.includes('Finance') && <div>• Status Keuangan: Lunas</div>}
-          <div>• Periode: {dateRange.from && dateRange.to ? `${dateRange.from} s/d ${dateRange.to}` : 'Tanggal belum dipilih'}</div>
+      {/* Preview */}
+      {selectedStudent && selectedCategories.length > 0 && (
+        <div className="border-t pt-6">
+          <h4 className="text-sm font-semibold text-gray-800 mb-3">Preview Report:</h4>
+          <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+            {(() => {
+              const studentData = getStudentData();
+              if (!studentData) return null;
+
+              return (
+                <>
+                  {selectedCategories.includes('profile') && (
+                    <div>
+                      <p className="font-semibold text-sm">Data Santri</p>
+                      <p className="text-xs text-gray-600">
+                        {studentData.profile.name} - {studentData.profile.class} - {studentData.profile.level} - {studentData.profile.period}
+                      </p>
+                    </div>
+                  )}
+                  {selectedCategories.includes('attendance') && (
+                    <div>
+                      <p className="font-semibold text-sm">Kehadiran (Semester)</p>
+                      <p className="text-xs text-gray-600">
+                        Hadir: {studentData.attendance.hadir}, Izin: {studentData.attendance.izin}, Sakit: {studentData.attendance.sakit}
+                      </p>
+                    </div>
+                  )}
+                  {selectedCategories.includes('memorization') && (
+                    <div>
+                      <p className="font-semibold text-sm">Hafalan (Semester)</p>
+                      <p className="text-xs text-gray-600">
+                        Target: {studentData.memorization.target} hal, Pencapaian: {studentData.memorization.actual} hal
+                      </p>
+                    </div>
+                  )}
+                  {selectedCategories.includes('activities') && (
+                    <div>
+                      <p className="font-semibold text-sm">Aktivitas (Semester)</p>
+                      <p className="text-xs text-gray-600">
+                        Bangun Tidur: {studentData.activities.bangunTidur}, Tahajud: {studentData.activities.tahajud}, Rawatib: {studentData.activities.rawatib}
+                      </p>
+                    </div>
+                  )}
+                  {selectedCategories.includes('finance') && (
+                    <div>
+                      <p className="font-semibold text-sm">Keuangan (Semester)</p>
+                      <p className="text-xs text-gray-600">
+                        Total Pengeluaran: {formatCurrency(studentData.finance.totalExpense)}
+                      </p>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
