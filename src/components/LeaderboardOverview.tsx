@@ -103,19 +103,18 @@ const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
     return studentAttendance.sort((a, b) => b.totalHadir - a.totalHadir).slice(0, 3);
   };
 
-  const getTop3Activities = () => {
-    // Calculate combined activities from all activity types
+  const getTop3ByActivity = (activityId: string) => {
     const studentActivities = activityRecords.reduce((acc: any[], record) => {
-      const completedCount = Object.values(record.activities).filter(Boolean).length;
-      const existing = acc.find(item => item.nama === record.studentName);
-      
-      if (existing) {
-        existing.totalAktivitas += completedCount;
-      } else {
-        acc.push({
-          nama: record.studentName,
-          totalAktivitas: completedCount
-        });
+      if (record.activities[activityId]) {
+        const existing = acc.find(item => item.nama === record.studentName);
+        if (existing) {
+          existing.totalAktivitas += 1;
+        } else {
+          acc.push({
+            nama: record.studentName,
+            totalAktivitas: 1
+          });
+        }
       }
       return acc;
     }, []);
@@ -248,29 +247,171 @@ const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
             </div>
           )}
 
-          {/* Activities Top 3 */}
+          {/* Activities - Separate Tables for Each Activity */}
           {selectedCategories.includes('Activities') && (
-            <div className="border-t pt-6">
+            <div className="border-t pt-6 space-y-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Leaderboard Kegiatan Harian</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Rank</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total Aktivitas</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {getTop3Activities().map((student, index) => (
-                      <tr key={student.nama}>
-                        <td className="px-4 py-3 text-center font-bold text-blue-600">#{index + 1}</td>
-                        <td className="px-4 py-3 text-sm font-medium">{student.nama}</td>
-                        <td className="px-4 py-3 text-center font-bold text-purple-600">{student.totalAktivitas} aktivitas</td>
+              
+              {/* Bangun Tidur */}
+              <div>
+                <h4 className="text-md font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <span>⏰</span> Aktivitas Bangun Tidur
+                </h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Rank</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total Hari</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {getTop3ByActivity('bangun').map((student, index) => (
+                        <tr key={student.nama}>
+                          <td className="px-4 py-3 text-center font-bold text-blue-600">#{index + 1}</td>
+                          <td className="px-4 py-3 text-sm font-medium">{student.nama}</td>
+                          <td className="px-4 py-3 text-center font-bold text-purple-600">{student.totalAktivitas} hari</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Tahajud */}
+              <div>
+                <h4 className="text-md font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <span>🌙</span> Aktivitas Tahajud
+                </h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Rank</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total Hari</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {getTop3ByActivity('tahajud').map((student, index) => (
+                        <tr key={student.nama}>
+                          <td className="px-4 py-3 text-center font-bold text-blue-600">#{index + 1}</td>
+                          <td className="px-4 py-3 text-sm font-medium">{student.nama}</td>
+                          <td className="px-4 py-3 text-center font-bold text-purple-600">{student.totalAktivitas} hari</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Rawatib */}
+              <div>
+                <h4 className="text-md font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <span>🕌</span> Aktivitas Rawatib
+                </h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Rank</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total Hari</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {getTop3ByActivity('rawatib').map((student, index) => (
+                        <tr key={student.nama}>
+                          <td className="px-4 py-3 text-center font-bold text-blue-600">#{index + 1}</td>
+                          <td className="px-4 py-3 text-sm font-medium">{student.nama}</td>
+                          <td className="px-4 py-3 text-center font-bold text-purple-600">{student.totalAktivitas} hari</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Shaum */}
+              <div>
+                <h4 className="text-md font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <span>🕋</span> Aktivitas Shaum
+                </h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Rank</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total Hari</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {getTop3ByActivity('shaum').map((student, index) => (
+                        <tr key={student.nama}>
+                          <td className="px-4 py-3 text-center font-bold text-blue-600">#{index + 1}</td>
+                          <td className="px-4 py-3 text-sm font-medium">{student.nama}</td>
+                          <td className="px-4 py-3 text-center font-bold text-purple-600">{student.totalAktivitas} hari</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Tilawah */}
+              <div>
+                <h4 className="text-md font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <span>📖</span> Aktivitas Tilawah
+                </h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Rank</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total Hari</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {getTop3ByActivity('tilawah').map((student, index) => (
+                        <tr key={student.nama}>
+                          <td className="px-4 py-3 text-center font-bold text-blue-600">#{index + 1}</td>
+                          <td className="px-4 py-3 text-sm font-medium">{student.nama}</td>
+                          <td className="px-4 py-3 text-center font-bold text-purple-600">{student.totalAktivitas} hari</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Piket */}
+              <div>
+                <h4 className="text-md font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <span>🧹</span> Aktivitas Piket
+                </h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Rank</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total Hari</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {getTop3ByActivity('piket').map((student, index) => (
+                        <tr key={student.nama}>
+                          <td className="px-4 py-3 text-center font-bold text-blue-600">#{index + 1}</td>
+                          <td className="px-4 py-3 text-sm font-medium">{student.nama}</td>
+                          <td className="px-4 py-3 text-center font-bold text-purple-600">{student.totalAktivitas} hari</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
