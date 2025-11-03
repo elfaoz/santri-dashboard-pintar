@@ -51,11 +51,32 @@ const FinanceSemesterSection: React.FC<FinanceSemesterProps> = ({
     }).format(amount);
   };
 
-  const getSemesterStats = () => {
-    if (!selectedStudent) return 0;
+  const formatCurrencyShort = (amount: number) => {
+    if (amount >= 1000) {
+      return `Rp ${(amount / 1000).toFixed(0)}k`;
+    }
+    return formatCurrency(amount);
+  };
+
+  const getDaysInSemester = () => {
+    // Semester 1: July-December (6 months)
+    // Semester 2: January-June (6 months)
+    // Approximate days: 31+31+30+31+30+31 = 184 for Jul-Dec
+    // 31+28/29+31+30+31+30 = 181/182 for Jan-Jun
+    if (currentSemester === 1) {
+      return 184; // Jul-Dec
+    } else {
+      // Check if leap year
+      const isLeapYear = currentYear % 4 === 0 && (currentYear % 100 !== 0 || currentYear % 400 === 0);
+      return isLeapYear ? 182 : 181; // Jan-Jun
+    }
+  };
+
+  const getStudentFinanceData = () => {
+    if (!selectedStudent) return [];
     
     const student = students.find(s => s.id.toString() === selectedStudent);
-    if (!student) return 0;
+    if (!student) return [];
     
     const semesterRecords = expenseRecords.filter(record => {
       const recordDate = new Date(record.tanggal);
@@ -69,13 +90,26 @@ const FinanceSemesterSection: React.FC<FinanceSemesterProps> = ({
       return record.nama === student.name && recordYear === currentYear && inSemester;
     });
 
-    return semesterRecords.reduce((sum, record) => sum + record.jumlah, 0);
+    const totalExpense = semesterRecords.reduce((sum, record) => sum + record.jumlah, 0);
+    const daysInSemester = getDaysInSemester();
+    const budgetHarian = 15000;
+    const budgetSemesteran = budgetHarian * daysInSemester;
+    const persentase = Math.round((totalExpense / budgetSemesteran) * 100);
+    const status = persentase <= 100 ? 'Hemat' : 'Over Budget';
+
+    return [{
+      nama: student.name,
+      budgetHarian,
+      budgetSemesteran,
+      pengeluaranSemester: totalExpense,
+      status,
+      persentase
+    }];
   };
 
-  const totalExpense = getSemesterStats();
-  const studentName = selectedStudent ? students.find(s => s.id.toString() === selectedStudent)?.name : '';
+  const studentData = getStudentFinanceData();
 
-  if (!selectedStudent || expenseRecords.length === 0) {
+  if (!selectedStudent) {
     return null;
   }
 
@@ -104,24 +138,43 @@ const FinanceSemesterSection: React.FC<FinanceSemesterProps> = ({
             </button>
           </div>
         </div>
-        {studentName && (
-          <p className="text-sm text-gray-600 mt-1">Santri: {studentName}</p>
-        )}
       </div>
       
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Pengeluaran</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Santri</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Budget Harian</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Budget Semesteran</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Pengeluaran Semester Ini</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Persentase</th>
             </tr>
           </thead>
-          <tbody className="bg-white">
-            <tr>
-              <td className="px-6 py-4 text-sm font-medium text-green-600">
-                {formatCurrency(totalExpense)}
-              </td>
-            </tr>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {studentData.map((student, index) => (
+              <tr key={index}>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900">{student.nama}</td>
+                <td className="px-4 py-3 text-center text-sm">{formatCurrencyShort(student.budgetHarian)}</td>
+                <td className="px-4 py-3 text-center text-sm">{formatCurrencyShort(student.budgetSemesteran)}</td>
+                <td className="px-4 py-3 text-center text-sm font-medium text-green-600">{formatCurrencyShort(student.pengeluaranSemester)}</td>
+                <td className="px-4 py-3 text-center">
+                  <span className={`font-medium ${
+                    student.status === 'Hemat' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {student.status}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <span className={`font-medium ${
+                    student.persentase <= 100 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {student.persentase}%
+                  </span>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

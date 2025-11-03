@@ -27,7 +27,15 @@ const FinanceMonthlySection: React.FC<FinanceMonthlyProps> = ({
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'
   ];
   
-  const [currentMonthIndex, setCurrentMonthIndex] = useState(new Date().getMonth());
+  // Get current date
+  const now = new Date();
+  const currentMonth = now.getMonth(); // 0-11
+  // Academic year: July (6) to June (5)
+  // If current month is 0-5 (Jan-Jun), we're in second semester
+  // If current month is 6-11 (Jul-Dec), we're in first semester
+  const initialMonthIndex = currentMonth >= 6 ? currentMonth - 6 : currentMonth + 6;
+  
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(initialMonthIndex);
   const [currentYear] = useState(new Date().getFullYear());
 
   const goToPreviousMonth = () => {
@@ -46,30 +54,71 @@ const FinanceMonthlySection: React.FC<FinanceMonthlyProps> = ({
     }).format(amount);
   };
 
-  const getMonthlyStats = () => {
-    if (!selectedStudent) return 0;
+  const formatCurrencyShort = (amount: number) => {
+    if (amount >= 1000) {
+      return `Rp ${(amount / 1000).toFixed(0)}k`;
+    }
+    return formatCurrency(amount);
+  };
+
+  // Convert academic month index to calendar month (0-11)
+  const getCalendarMonth = (academicIndex: number) => {
+    // Academic: 0=Jul, 1=Aug, ..., 5=Dec, 6=Jan, ..., 11=Jun
+    // Calendar: 0=Jan, 1=Feb, ..., 6=Jul, ..., 11=Dec
+    if (academicIndex < 6) {
+      return academicIndex + 6; // Jul-Dec
+    } else {
+      return academicIndex - 6; // Jan-Jun
+    }
+  };
+
+  const getDaysInMonth = (monthIndex: number) => {
+    const calendarMonth = getCalendarMonth(monthIndex);
+    const year = calendarMonth < 6 ? currentYear + 1 : currentYear;
+    return new Date(year, calendarMonth + 1, 0).getDate();
+  };
+
+  const getStudentFinanceData = () => {
+    if (!selectedStudent) return [];
     
     const student = students.find(s => s.id.toString() === selectedStudent);
-    if (!student) return 0;
+    if (!student) return [];
+    
+    const calendarMonth = getCalendarMonth(currentMonthIndex);
+    const year = calendarMonth < 6 ? currentYear + 1 : currentYear;
     
     const monthRecords = expenseRecords.filter(record => {
       const recordDate = new Date(record.tanggal);
       const recordMonth = recordDate.getMonth();
-      return record.nama === student.name && recordMonth === currentMonthIndex;
+      const recordYear = recordDate.getFullYear();
+      return record.nama === student.name && recordMonth === calendarMonth && recordYear === year;
     });
 
-    return monthRecords.reduce((sum, record) => sum + record.jumlah, 0);
+    const totalExpense = monthRecords.reduce((sum, record) => sum + record.jumlah, 0);
+    const daysInMonth = getDaysInMonth(currentMonthIndex);
+    const budgetHarian = 15000;
+    const budgetBulanan = budgetHarian * daysInMonth;
+    const persentase = Math.round((totalExpense / budgetBulanan) * 100);
+    const status = persentase <= 100 ? 'Hemat' : 'Over Budget';
+
+    return [{
+      nama: student.name,
+      budgetHarian,
+      budgetBulanan,
+      pengeluaranBulan: totalExpense,
+      status,
+      persentase
+    }];
   };
 
-  const totalExpense = getMonthlyStats();
-  const studentName = selectedStudent ? students.find(s => s.id.toString() === selectedStudent)?.name : '';
-
-  if (!selectedStudent || expenseRecords.length === 0) {
+  const studentData = getStudentFinanceData();
+  
+  if (!selectedStudent) {
     return null;
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8 mt-8">
       <div className="px-6 py-4 border-b border-gray-100">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-800">
@@ -93,24 +142,43 @@ const FinanceMonthlySection: React.FC<FinanceMonthlyProps> = ({
             </button>
           </div>
         </div>
-        {studentName && (
-          <p className="text-sm text-gray-600 mt-1">Santri: {studentName}</p>
-        )}
       </div>
       
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Pengeluaran</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama Santri</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Budget Harian</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Budget Bulanan</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Pengeluaran Bulan Ini</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Status</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Persentase</th>
             </tr>
           </thead>
-          <tbody className="bg-white">
-            <tr>
-              <td className="px-6 py-4 text-sm font-medium text-green-600">
-                {formatCurrency(totalExpense)}
-              </td>
-            </tr>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {studentData.map((student, index) => (
+              <tr key={index}>
+                <td className="px-4 py-3 text-sm font-medium text-gray-900">{student.nama}</td>
+                <td className="px-4 py-3 text-center text-sm">{formatCurrencyShort(student.budgetHarian)}</td>
+                <td className="px-4 py-3 text-center text-sm">{formatCurrencyShort(student.budgetBulanan)}</td>
+                <td className="px-4 py-3 text-center text-sm font-medium text-green-600">{formatCurrencyShort(student.pengeluaranBulan)}</td>
+                <td className="px-4 py-3 text-center">
+                  <span className={`font-medium ${
+                    student.status === 'Hemat' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {student.status}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-center">
+                  <span className={`font-medium ${
+                    student.persentase <= 100 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {student.persentase}%
+                  </span>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

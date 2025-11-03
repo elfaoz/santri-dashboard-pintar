@@ -5,6 +5,7 @@ import { useMemorization } from '@/contexts/MemorizationContext';
 import { useAttendance } from '@/contexts/AttendanceContext';
 import { useActivity } from '@/contexts/ActivityContext';
 import { useFinance } from '@/contexts/FinanceContext';
+import { useHalaqahs } from '@/contexts/HalaqahContext';
 import SantriRanking from './SantriRanking';
 
 interface AttendanceRecord {
@@ -44,6 +45,7 @@ const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
   const { attendanceRecords } = useAttendance();
   const { activityRecords } = useActivity();
   const { expenseRecords } = useFinance();
+  const { halaqahs } = useHalaqahs();
   const [showResults, setShowResults] = useState(false);
 
   const categories = [
@@ -63,17 +65,31 @@ const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
 
   // Get top 3 for each category
   const getTop3Memorization = () => {
+    const levelTargets: Record<string, number> = {
+      'Tahsin (2 Juz : Juz 30 dan Juz 29 atau Juz 1)': 23,
+      'Tahfizh 1 (5 Juz)': 103,
+      'Tahfizh 2 (10 Juz)': 203,
+      'Tahfizh Kamil (30 Juz)': 604
+    };
+
     const rankingData = memorizationRecords.reduce((acc: any[], record) => {
       const existingStudent = acc.find(student => student.name === record.studentName);
       
       if (existingStudent) {
         existingStudent.totalPages += record.actual;
       } else {
+        // Find halaqah to get level and pembina
+        const halaqah = halaqahs.find(h => h.name === record.halaqah);
+        const level = halaqah?.level || record.level || 'Tahfizh 1 (5 Juz)';
+        const targetPages = levelTargets[level] || 103;
+        
         acc.push({
           id: record.id,
           name: record.studentName,
           halaqah: record.halaqah || '-',
-          level: record.level || 'Tahfidz 1',
+          level: level,
+          targetPages: targetPages,
+          pembina: halaqah?.pembina || '-',
           totalPages: record.actual
         });
       }
@@ -86,16 +102,22 @@ const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
 
   const getTop3Attendance = () => {
     const studentAttendance = attendanceRecords.reduce((acc: any[], record) => {
-      if (record.status === 'hadir') {
-        const existing = acc.find(item => item.nama === record.studentName);
-        if (existing) {
-          existing.totalHadir += 1;
-        } else {
-          acc.push({
-            nama: record.studentName,
-            totalHadir: 1
-          });
-        }
+      const existing = acc.find(item => item.nama === record.studentName);
+      if (existing) {
+        if (record.status === 'hadir') existing.totalHadir += 1;
+        if (record.status === 'izin') existing.totalIzin += 1;
+        if (record.status === 'sakit') existing.totalSakit += 1;
+        if (record.status === 'tanpa keterangan') existing.totalTanpaKeterangan += 1;
+        if (record.status === 'pulang') existing.totalPulang += 1;
+      } else {
+        acc.push({
+          nama: record.studentName,
+          totalHadir: record.status === 'hadir' ? 1 : 0,
+          totalIzin: record.status === 'izin' ? 1 : 0,
+          totalSakit: record.status === 'sakit' ? 1 : 0,
+          totalTanpaKeterangan: record.status === 'tanpa keterangan' ? 1 : 0,
+          totalPulang: record.status === 'pulang' ? 1 : 0
+        });
       }
       return acc;
     }, []);
@@ -200,6 +222,9 @@ const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
                       <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Rank</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
                       <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Halaqah</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Level</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Target Per Level (Halaman)</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Pembina Halaqah</th>
                       <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total Pages</th>
                     </tr>
                   </thead>
@@ -211,7 +236,10 @@ const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
                         <td className="px-4 py-3 text-center">
                           <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">{student.halaqah}</span>
                         </td>
-                        <td className="px-4 py-3 text-center font-bold text-green-600">{student.totalPages} pages</td>
+                        <td className="px-4 py-3 text-center text-xs">{student.level}</td>
+                        <td className="px-4 py-3 text-center font-medium text-gray-900">{student.targetPages}</td>
+                        <td className="px-4 py-3 text-center text-sm">{student.pembina}</td>
+                        <td className="px-4 py-3 text-center font-bold text-green-600">{student.totalPages} halaman</td>
                       </tr>
                     ))}
                   </tbody>
@@ -230,7 +258,11 @@ const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
                     <tr>
                       <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Rank</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
-                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total Hadir</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Hadir</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Izin</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Sakit</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Tanpa Keterangan</th>
+                      <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">Pulang</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -238,7 +270,11 @@ const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
                       <tr key={student.nama}>
                         <td className="px-4 py-3 text-center font-bold text-blue-600">#{index + 1}</td>
                         <td className="px-4 py-3 text-sm font-medium">{student.nama}</td>
-                        <td className="px-4 py-3 text-center font-bold text-green-600">{student.totalHadir} hari</td>
+                        <td className="px-4 py-3 text-center font-bold text-green-600">{student.totalHadir}</td>
+                        <td className="px-4 py-3 text-center text-yellow-600">{student.totalIzin}</td>
+                        <td className="px-4 py-3 text-center text-orange-600">{student.totalSakit}</td>
+                        <td className="px-4 py-3 text-center text-red-600">{student.totalTanpaKeterangan}</td>
+                        <td className="px-4 py-3 text-center text-purple-600">{student.totalPulang}</td>
                       </tr>
                     ))}
                   </tbody>
