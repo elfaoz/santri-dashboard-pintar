@@ -13,6 +13,7 @@ const AddNewStudent: React.FC = () => {
   const [formData, setFormData] = useState({
     studentId: '',
     fullName: '',
+    gender: '',
     placeOfBirth: '',
     dateOfBirth: '',
     fatherName: '',
@@ -40,6 +41,7 @@ const AddNewStudent: React.FC = () => {
       id: students.length + 1,
       studentId: formData.studentId,
       name: formData.fullName,
+      gender: formData.gender,
       placeOfBirth: formData.placeOfBirth,
       dateOfBirth: formData.dateOfBirth,
       fatherName: formData.fatherName,
@@ -59,6 +61,7 @@ const AddNewStudent: React.FC = () => {
     setFormData({
       studentId: '',
       fullName: '',
+      gender: '',
       placeOfBirth: '',
       dateOfBirth: '',
       fatherName: '',
@@ -106,6 +109,20 @@ const AddNewStudent: React.FC = () => {
                 className="w-full"
                 required
               />
+            </div>
+
+            {/* Jenis Kelamin */}
+            <div className="space-y-2">
+              <Label htmlFor="gender">Jenis Kelamin</Label>
+              <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Pilih jenis kelamin" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Laki-laki">Laki-laki</SelectItem>
+                  <SelectItem value="Perempuan">Perempuan</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Place of Birth */}

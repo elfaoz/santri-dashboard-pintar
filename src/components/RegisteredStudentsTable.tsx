@@ -39,6 +39,7 @@ const RegisteredStudentsTable: React.FC = () => {
                 <TableRow className="bg-gray-50">
                   <TableHead className="w-16">No.</TableHead>
                   <TableHead>Name</TableHead>
+                  <TableHead>Gender</TableHead>
                   <TableHead>Class</TableHead>
                   <TableHead>Level</TableHead>
                   <TableHead>Period</TableHead>
@@ -50,6 +51,7 @@ const RegisteredStudentsTable: React.FC = () => {
                   <TableRow key={student.id} className="hover:bg-gray-50">
                     <TableCell className="font-medium">{index + 1}</TableCell>
                     <TableCell className="font-medium">{student.name}</TableCell>
+                    <TableCell>{student.gender}</TableCell>
                     <TableCell>{student.class}</TableCell>
                     <TableCell>{student.level}</TableCell>
                     <TableCell>{student.period}</TableCell>

@@ -69,13 +69,23 @@ const Login: React.FC = () => {
                 required
               />
             </div>
-            <Button 
-              type="submit" 
-              className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Memproses...' : 'Masuk'}
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                type="submit" 
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Memproses...' : 'Masuk'}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline"
+                className="flex-1"
+                onClick={() => navigate('/signup')}
+              >
+                Sign Up
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>

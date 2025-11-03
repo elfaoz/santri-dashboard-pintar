@@ -21,6 +21,7 @@ import Activities from "./pages/Activities";
 import Finance from "./pages/Finance";
 import AddStudent from "./pages/AddStudent";
 import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -42,6 +43,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<SignUp />} />
                 <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <Layout>

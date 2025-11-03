@@ -9,6 +9,7 @@ interface Student {
   id: number;
   studentId?: string;
   name: string;
+  gender?: string;
   placeOfBirth?: string;
   dateOfBirth?: string;
   fatherName?: string;
@@ -39,6 +40,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
     id: 0,
     studentId: '',
     name: '',
+    gender: '',
     placeOfBirth: '',
     dateOfBirth: '',
     fatherName: '',
@@ -57,6 +59,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
       setFormData({
         ...student,
         studentId: student.studentId || '',
+        gender: student.gender || '',
         placeOfBirth: student.placeOfBirth || '',
         dateOfBirth: student.dateOfBirth || '',
         fatherName: student.fatherName || '',
@@ -118,6 +121,20 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
                 className="w-full"
                 required
               />
+            </div>
+
+            {/* Jenis Kelamin */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-gender">Jenis Kelamin</Label>
+              <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Pilih jenis kelamin" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Laki-laki">Laki-laki</SelectItem>
+                  <SelectItem value="Perempuan">Perempuan</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Place of Birth */}
