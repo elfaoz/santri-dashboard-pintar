@@ -440,12 +440,14 @@ const Halaqah: React.FC = () => {
                     // Determine target based on level
                     const level = studentHalaqah?.level || '';
                     let targetPerLevel = 0;
-                    if (level.includes('Pra Marhalah')) {
+                    if (level.includes('Tahsin')) {
                       targetPerLevel = 23;
-                    } else if (level.includes('Marhalah 1')) {
-                      targetPerLevel = 60;
-                    } else if (level.includes('Marhalah 2')) {
-                      targetPerLevel = 100;
+                    } else if (level.includes('Tahfizh 1')) {
+                      targetPerLevel = 103;
+                    } else if (level.includes('Tahfizh 2')) {
+                      targetPerLevel = 203;
+                    } else if (level.includes('Tahfizh Kamil')) {
+                      targetPerLevel = 604;
                     }
                     
                     const progressPercentage = targetPerLevel > 0 ? Math.round((totalPages / targetPerLevel) * 100) : 0;

@@ -176,9 +176,10 @@ const EditHalaqahModal: React.FC<EditHalaqahModalProps> = ({
                   <SelectValue placeholder="Pilih level" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Pra Marhalah (Tashin)">Pra Marhalah (Tashin)</SelectItem>
-                  <SelectItem value="Marhalah 1 (Tahfizh)">Marhalah 1 (Tahfizh)</SelectItem>
-                  <SelectItem value="Marhalah 2 (Tahfizh)">Marhalah 2 (Tahfizh)</SelectItem>
+                  <SelectItem value="Tahsin (2 Juz : Juz 30 dan Juz 29 atau Juz 1)">Tahsin (2 Juz : Juz 30 dan Juz 29 atau Juz 1)</SelectItem>
+                  <SelectItem value="Tahfizh 1 (5 Juz)">Tahfizh 1 (5 Juz)</SelectItem>
+                  <SelectItem value="Tahfizh 2 (10 Juz)">Tahfizh 2 (10 Juz)</SelectItem>
+                  <SelectItem value="Tahfizh Kamil (30 Juz)">Tahfizh Kamil (30 Juz)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
