@@ -457,91 +457,107 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
               <FormField
                 control={form.control}
                 name="surahName1"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Surah Name</FormLabel>
-                    <Select 
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        setSelectedSurah1(value);
-                      }}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="bg-white">
-                          <SelectValue placeholder="Select Surah" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                        {surahs.map((surah) => (
-                          <SelectItem key={surah.number} value={surah.name} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                            {surah.number}. {surah.name} ({surah.arabicName})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                render={({ field }) => {
+                  const juzData = getJuzData(selectedJuz);
+                  const availableSurahs = juzData?.ranges.map(r => r.surahName) || [];
+                  return (
+                    <FormItem>
+                      <FormLabel>Surah Name</FormLabel>
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          setSelectedSurah1(value);
+                        }}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="bg-white">
+                            <SelectValue placeholder="Select Surah" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
+                          {surahs.filter(s => availableSurahs.includes(s.name)).map((surah) => (
+                            <SelectItem key={surah.number} value={surah.name} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
+                              {surah.number}. {surah.name} ({surah.arabicName})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <div className="grid grid-cols-2 gap-4 mt-3">
                 <FormField
                   control={form.control}
                   name="ayahFrom1"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ayat Dari</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        value={field.value?.toString()}
-                        disabled={!selectedSurah1}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="bg-white">
-                            <SelectValue placeholder="Dari" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                          {Array.from({ length: maxAyah1 }, (_, i) => i + 1).map((ayah) => (
-                            <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                              {ayah}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const juzData = getJuzData(selectedJuz);
+                    const surahRange = juzData?.ranges.find(r => r.surahName === selectedSurah1);
+                    const minAyah = surahRange?.ayahFrom || 1;
+                    const maxAyahForJuz = surahRange?.ayahTo || maxAyah1;
+                    return (
+                      <FormItem>
+                        <FormLabel>Ayat Dari</FormLabel>
+                        <Select 
+                          onValueChange={(value) => field.onChange(parseInt(value))} 
+                          value={field.value?.toString()}
+                          disabled={!selectedSurah1}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="bg-white">
+                              <SelectValue placeholder="Dari" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
+                            {Array.from({ length: maxAyahForJuz - minAyah + 1 }, (_, i) => minAyah + i).map((ayah) => (
+                              <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
+                                {ayah}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField
                   control={form.control}
                   name="ayahTo1"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ayat Sampai</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        value={field.value?.toString()}
-                        disabled={!selectedSurah1}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="bg-white">
-                            <SelectValue placeholder="Sampai" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                          {Array.from({ length: maxAyah1 }, (_, i) => i + 1).map((ayah) => (
-                            <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                              {ayah}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const juzData = getJuzData(selectedJuz);
+                    const surahRange = juzData?.ranges.find(r => r.surahName === selectedSurah1);
+                    const minAyah = surahRange?.ayahFrom || 1;
+                    const maxAyahForJuz = surahRange?.ayahTo || maxAyah1;
+                    return (
+                      <FormItem>
+                        <FormLabel>Ayat Sampai</FormLabel>
+                        <Select 
+                          onValueChange={(value) => field.onChange(parseInt(value))} 
+                          value={field.value?.toString()}
+                          disabled={!selectedSurah1}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="bg-white">
+                              <SelectValue placeholder="Sampai" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
+                            {Array.from({ length: maxAyahForJuz - minAyah + 1 }, (_, i) => minAyah + i).map((ayah) => (
+                              <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
+                                {ayah}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
               </div>
             </div>
@@ -552,91 +568,110 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
               <FormField
                 control={form.control}
                 name="surahName2"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Surah Name (Optional)</FormLabel>
-                    <Select 
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        setSelectedSurah2(value);
-                      }}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="bg-white">
-                          <SelectValue placeholder="Select Surah" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                        {surahs.map((surah) => (
-                          <SelectItem key={surah.number} value={surah.name} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                            {surah.number}. {surah.name} ({surah.arabicName})
+                render={({ field }) => {
+                  const juzData = getJuzData(selectedJuz);
+                  const availableSurahs = juzData?.ranges.map(r => r.surahName) || [];
+                  return (
+                    <FormItem>
+                      <FormLabel>Surah Name (Optional)</FormLabel>
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          setSelectedSurah2(value);
+                        }}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="bg-white">
+                            <SelectValue placeholder="Select Surah" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
+                          <SelectItem value="" className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
+                            No Additional Surah
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                          {surahs.filter(s => availableSurahs.includes(s.name)).map((surah) => (
+                            <SelectItem key={surah.number} value={surah.name} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
+                              {surah.number}. {surah.name} ({surah.arabicName})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <div className="grid grid-cols-2 gap-4 mt-3">
                 <FormField
                   control={form.control}
                   name="ayahFrom2"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ayat Dari</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        value={field.value?.toString()}
-                        disabled={!selectedSurah2}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="bg-white">
-                            <SelectValue placeholder="Dari" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                          {Array.from({ length: maxAyah2 }, (_, i) => i + 1).map((ayah) => (
-                            <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                              {ayah}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const juzData = getJuzData(selectedJuz);
+                    const surahRange = juzData?.ranges.find(r => r.surahName === selectedSurah2);
+                    const minAyah = surahRange?.ayahFrom || 1;
+                    const maxAyahForJuz = surahRange?.ayahTo || maxAyah2;
+                    return (
+                      <FormItem>
+                        <FormLabel>Ayat Dari</FormLabel>
+                        <Select 
+                          onValueChange={(value) => field.onChange(parseInt(value))} 
+                          value={field.value?.toString()}
+                          disabled={!selectedSurah2}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="bg-white">
+                              <SelectValue placeholder="Dari" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
+                            {selectedSurah2 && Array.from({ length: maxAyahForJuz - minAyah + 1 }, (_, i) => minAyah + i).map((ayah) => (
+                              <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
+                                {ayah}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField
                   control={form.control}
                   name="ayahTo2"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ayat Sampai</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        value={field.value?.toString()}
-                        disabled={!selectedSurah2}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="bg-white">
-                            <SelectValue placeholder="Sampai" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                          {Array.from({ length: maxAyah2 }, (_, i) => i + 1).map((ayah) => (
-                            <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                              {ayah}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const juzData = getJuzData(selectedJuz);
+                    const surahRange = juzData?.ranges.find(r => r.surahName === selectedSurah2);
+                    const minAyah = surahRange?.ayahFrom || 1;
+                    const maxAyahForJuz = surahRange?.ayahTo || maxAyah2;
+                    return (
+                      <FormItem>
+                        <FormLabel>Ayat Sampai</FormLabel>
+                        <Select 
+                          onValueChange={(value) => field.onChange(parseInt(value))} 
+                          value={field.value?.toString()}
+                          disabled={!selectedSurah2}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="bg-white">
+                              <SelectValue placeholder="Sampai" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
+                            {selectedSurah2 && Array.from({ length: maxAyahForJuz - minAyah + 1 }, (_, i) => minAyah + i).map((ayah) => (
+                              <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
+                                {ayah}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
               </div>
             </div>
@@ -647,91 +682,110 @@ const InputMemorizationModal: React.FC<InputMemorizationModalProps> = ({
               <FormField
                 control={form.control}
                 name="surahName3"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Surah Name (Optional)</FormLabel>
-                    <Select 
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        setSelectedSurah3(value);
-                      }}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger className="bg-white">
-                          <SelectValue placeholder="Select Surah" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                        {surahs.map((surah) => (
-                          <SelectItem key={surah.number} value={surah.name} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                            {surah.number}. {surah.name} ({surah.arabicName})
+                render={({ field }) => {
+                  const juzData = getJuzData(selectedJuz);
+                  const availableSurahs = juzData?.ranges.map(r => r.surahName) || [];
+                  return (
+                    <FormItem>
+                      <FormLabel>Surah Name (Optional)</FormLabel>
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          setSelectedSurah3(value);
+                        }}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="bg-white">
+                            <SelectValue placeholder="Select Surah" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
+                          <SelectItem value="" className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
+                            No Additional Surah
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                          {surahs.filter(s => availableSurahs.includes(s.name)).map((surah) => (
+                            <SelectItem key={surah.number} value={surah.name} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
+                              {surah.number}. {surah.name} ({surah.arabicName})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <div className="grid grid-cols-2 gap-4 mt-3">
                 <FormField
                   control={form.control}
                   name="ayahFrom3"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ayat Dari</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        value={field.value?.toString()}
-                        disabled={!selectedSurah3}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="bg-white">
-                            <SelectValue placeholder="Dari" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                          {Array.from({ length: maxAyah3 }, (_, i) => i + 1).map((ayah) => (
-                            <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                              {ayah}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const juzData = getJuzData(selectedJuz);
+                    const surahRange = juzData?.ranges.find(r => r.surahName === selectedSurah3);
+                    const minAyah = surahRange?.ayahFrom || 1;
+                    const maxAyahForJuz = surahRange?.ayahTo || maxAyah3;
+                    return (
+                      <FormItem>
+                        <FormLabel>Ayat Dari</FormLabel>
+                        <Select 
+                          onValueChange={(value) => field.onChange(parseInt(value))} 
+                          value={field.value?.toString()}
+                          disabled={!selectedSurah3}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="bg-white">
+                              <SelectValue placeholder="Dari" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
+                            {selectedSurah3 && Array.from({ length: maxAyahForJuz - minAyah + 1 }, (_, i) => minAyah + i).map((ayah) => (
+                              <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
+                                {ayah}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
 
                 <FormField
                   control={form.control}
                   name="ayahTo3"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Ayat Sampai</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        value={field.value?.toString()}
-                        disabled={!selectedSurah3}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="bg-white">
-                            <SelectValue placeholder="Sampai" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                          {Array.from({ length: maxAyah3 }, (_, i) => i + 1).map((ayah) => (
-                            <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                              {ayah}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const juzData = getJuzData(selectedJuz);
+                    const surahRange = juzData?.ranges.find(r => r.surahName === selectedSurah3);
+                    const minAyah = surahRange?.ayahFrom || 1;
+                    const maxAyahForJuz = surahRange?.ayahTo || maxAyah3;
+                    return (
+                      <FormItem>
+                        <FormLabel>Ayat Sampai</FormLabel>
+                        <Select 
+                          onValueChange={(value) => field.onChange(parseInt(value))} 
+                          value={field.value?.toString()}
+                          disabled={!selectedSurah3}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="bg-white">
+                              <SelectValue placeholder="Sampai" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
+                            {selectedSurah3 && Array.from({ length: maxAyahForJuz - minAyah + 1 }, (_, i) => minAyah + i).map((ayah) => (
+                              <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
+                                {ayah}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
               </div>
             </div>
