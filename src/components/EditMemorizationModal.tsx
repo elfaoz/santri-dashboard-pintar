@@ -6,6 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { surahs, getSurahByName } from '@/utils/surahData';
+import { getJuzData } from '@/utils/juzData';
 import { MemorizationRecord, MemorizationDetail, SurahDetail } from '@/contexts/MemorizationContext';
 
 interface EditMemorizationModalProps {
@@ -40,7 +41,10 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
   const [selectedSurah2, setSelectedSurah2] = useState<string>('');
   const [selectedSurah3, setSelectedSurah3] = useState<string>('');
   const [maxAyah, setMaxAyah] = useState<number>(1);
+  const [maxAyah2, setMaxAyah2] = useState<number>(1);
+  const [maxAyah3, setMaxAyah3] = useState<number>(1);
   const [validationError, setValidationError] = useState<string>('');
+  const [selectedJuz, setSelectedJuz] = useState<number>(1);
 
   const form = useForm<FormData>({
     defaultValues: {
@@ -79,8 +83,43 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
       setSelectedSurah(surahDetails[0]?.surahName || '');
       setSelectedSurah2(surahDetails[1]?.surahName || '');
       setSelectedSurah3(surahDetails[2]?.surahName || '');
+      setSelectedJuz(record.memorizationDetail?.juz || 1);
     }
   }, [record, form]);
+
+  // Auto-populate Surah and Ayah based on selected Juz
+  useEffect(() => {
+    const juzData = getJuzData(selectedJuz);
+    if (juzData && juzData.ranges.length > 0) {
+      // First Surah
+      if (juzData.ranges[0]) {
+        form.setValue('surahName', juzData.ranges[0].surahName);
+        form.setValue('ayahFrom', juzData.ranges[0].ayahFrom);
+        form.setValue('ayahTo', juzData.ranges[0].ayahTo);
+        setSelectedSurah(juzData.ranges[0].surahName);
+      }
+      // Second Surah
+      if (juzData.ranges[1]) {
+        form.setValue('surahName2', juzData.ranges[1].surahName);
+        form.setValue('ayahFrom2', juzData.ranges[1].ayahFrom);
+        form.setValue('ayahTo2', juzData.ranges[1].ayahTo);
+        setSelectedSurah2(juzData.ranges[1].surahName);
+      } else {
+        form.setValue('surahName2', '');
+        setSelectedSurah2('');
+      }
+      // Third Surah
+      if (juzData.ranges[2]) {
+        form.setValue('surahName3', juzData.ranges[2].surahName);
+        form.setValue('ayahFrom3', juzData.ranges[2].ayahFrom);
+        form.setValue('ayahTo3', juzData.ranges[2].ayahTo);
+        setSelectedSurah3(juzData.ranges[2].surahName);
+      } else {
+        form.setValue('surahName3', '');
+        setSelectedSurah3('');
+      }
+    }
+  }, [selectedJuz, form]);
 
   useEffect(() => {
     if (selectedSurah) {
@@ -90,6 +129,24 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
       }
     }
   }, [selectedSurah]);
+
+  useEffect(() => {
+    if (selectedSurah2) {
+      const surah = getSurahByName(selectedSurah2);
+      if (surah) {
+        setMaxAyah2(surah.verses);
+      }
+    }
+  }, [selectedSurah2]);
+
+  useEffect(() => {
+    if (selectedSurah3) {
+      const surah = getSurahByName(selectedSurah3);
+      if (surah) {
+        setMaxAyah3(surah.verses);
+      }
+    }
+  }, [selectedSurah3]);
 
   const onFormSubmit = (data: FormData) => {
     if (!record) return;
@@ -233,7 +290,14 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Juz Ke</FormLabel>
-                  <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                  <Select 
+                    onValueChange={(value) => {
+                      const juzNum = parseInt(value);
+                      field.onChange(juzNum);
+                      setSelectedJuz(juzNum);
+                    }} 
+                    value={field.value?.toString()}
+                  >
                     <FormControl>
                       <SelectTrigger className="bg-white">
                         <SelectValue placeholder="Pilih Juz" />
@@ -390,7 +454,7 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                        {selectedSurah2 && Array.from({ length: getSurahByName(selectedSurah2)?.verses || 0 }, (_, i) => i + 1).map((ayah) => (
+                        {selectedSurah2 && Array.from({ length: maxAyah2 }, (_, i) => i + 1).map((ayah) => (
                           <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
                             {ayah}
                           </SelectItem>
@@ -419,7 +483,7 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                        {selectedSurah2 && Array.from({ length: getSurahByName(selectedSurah2)?.verses || 0 }, (_, i) => i + 1).map((ayah) => (
+                        {selectedSurah2 && Array.from({ length: maxAyah2 }, (_, i) => i + 1).map((ayah) => (
                           <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
                             {ayah}
                           </SelectItem>
@@ -482,7 +546,7 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                        {selectedSurah3 && Array.from({ length: getSurahByName(selectedSurah3)?.verses || 0 }, (_, i) => i + 1).map((ayah) => (
+                        {selectedSurah3 && Array.from({ length: maxAyah3 }, (_, i) => i + 1).map((ayah) => (
                           <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
                             {ayah}
                           </SelectItem>
@@ -511,7 +575,7 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                        {selectedSurah3 && Array.from({ length: getSurahByName(selectedSurah3)?.verses || 0 }, (_, i) => i + 1).map((ayah) => (
+                        {selectedSurah3 && Array.from({ length: maxAyah3 }, (_, i) => i + 1).map((ayah) => (
                           <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
                             {ayah}
                           </SelectItem>

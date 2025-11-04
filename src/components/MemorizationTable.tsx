@@ -6,9 +6,10 @@ import { Edit, Save, Eye } from 'lucide-react';
 import { calculateMemorizationStatus } from '@/utils/surahData';
 import InputMemorizationModal from './InputMemorizationModal';
 import DetailMemorizationModal from './DetailMemorizationModal';
+import EditMemorizationModal from './EditMemorizationModal';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
-import { MemorizationRecord, MemorizationDetail } from '@/contexts/MemorizationContext';
+import { MemorizationRecord, MemorizationDetail, useMemorization } from '@/contexts/MemorizationContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 
@@ -29,6 +30,7 @@ interface MemorizationTableProps {
 const MemorizationTable: React.FC<MemorizationTableProps> = ({ memorizationRecords = [], selectedHalaqah: propSelectedHalaqah = 'all' }) => {
   const { students } = useStudents();
   const { halaqahs: registeredHalaqahs } = useHalaqahs();
+  const { updateMemorizationRecord } = useMemorization();
   
   const [records, setRecords] = useState<MemorizationRecord[]>(memorizationRecords);
 
@@ -55,11 +57,18 @@ const MemorizationTable: React.FC<MemorizationTableProps> = ({ memorizationRecor
   const [editValue, setEditValue] = useState<number>(0);
   const [isInputModalOpen, setIsInputModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<MemorizationRecord | null>(null);
 
   const handleEdit = (record: MemorizationRecord) => {
-    setEditingId(record.id);
-    setEditValue(record.actual);
+    setSelectedRecord(record);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSubmit = (updatedRecord: MemorizationRecord) => {
+    updateMemorizationRecord(updatedRecord.id, updatedRecord);
+    setRecords(prev => prev.map(r => r.id === updatedRecord.id ? updatedRecord : r));
+    setIsEditModalOpen(false);
   };
 
   const handleSave = (id: string) => {
@@ -198,6 +207,13 @@ const MemorizationTable: React.FC<MemorizationTableProps> = ({ memorizationRecor
       <DetailMemorizationModal
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
+        record={selectedRecord}
+      />
+
+      <EditMemorizationModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSubmit={handleEditSubmit}
         record={selectedRecord}
       />
     </div>
