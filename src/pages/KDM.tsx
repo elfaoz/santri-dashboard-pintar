@@ -14,7 +14,7 @@ const KDM: React.FC = () => {
     'Malas membuat laporan, merasa terpaksa harus bikin laporan?',
     'Pernah ngerasain capeknya melakukan itu semua?',
     'Membimbing anak-anak, mencatat kehadiran, menggiring shalat, menggiring sekolah, nerima setoran hafalan, piket, mandi, makan, dan sampai urusan uang jajan.',
-    'Tonton Video ini sebelum kamu nyerah sama keadaan....!!!'
+    'Tonton video ini sebelum kamu nyerah sama keadaan....!!!'
   ];
 
   useEffect(() => {
@@ -28,14 +28,16 @@ const KDM: React.FC = () => {
 
     const typingInterval = setInterval(() => {
       if (index < currentText.length) {
-        setDisplayedText((prev) => prev + currentText[index]);
+        // Menambahkan huruf baru ke teks sebelumnya
+        setDisplayedText((prev) => (prev || '') + currentText[index]);
         index++;
       } else {
         clearInterval(typingInterval);
         setTimeout(() => {
-          setDisplayedText((prev) => prev + '\n\n');
+          // Tambahkan 2 baris kosong sebelum lanjut paragraf berikutnya
+          setDisplayedText((prev) => (prev || '') + '\n\n');
           setCurrentParagraph((prev) => prev + 1);
-        }, 500);
+        }, 800);
       }
     }, 50);
 
@@ -55,7 +57,7 @@ const KDM: React.FC = () => {
               <div className="h-1 w-32 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full"></div>
             </div>
 
-            {/* Typing Animation Text */}
+            {/* Typing Animation */}
             <div className="mb-8 min-h-[300px] md:min-h-[250px]">
               <p className="text-lg md:text-xl text-gray-700 leading-relaxed whitespace-pre-wrap font-medium">
                 {displayedText}
@@ -76,13 +78,13 @@ const KDM: React.FC = () => {
                   ></iframe>
                 </div>
 
-                {/* Call to Action */}
+                {/* CTA */}
                 <div className="text-center space-y-4 pt-8">
                   <p className="text-xl md:text-2xl font-semibold text-gray-800">
-                    Siap untuk mengubah cara kamu mengelola laporan?
+                    Siap beralih ke sistem digital ?
                   </p>
                   <Link to="/signup">
-                    <Button 
+                    <Button
                       size="lg"
                       className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                     >
