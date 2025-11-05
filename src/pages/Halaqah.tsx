@@ -855,17 +855,24 @@ const Halaqah: React.FC = () => {
                     </div>
                     
                     {/* Memorization Monthly/Semester Section */}
-                    <MemorizationMonthlySection />
-                    <MemorizationSemesterSection />
+                    <MemorizationMonthlySection 
+                        memorizationRecords={memorizationRecords}
+                        selectedStudent={recordsSelectedStudent}
+                        students={students}
+                    />
+                    <MemorizationSemesterSection 
+                        memorizationRecords={memorizationRecords}
+                        selectedStudent={recordsSelectedStudent}
+                        students={students}
+                    />
                     
                     {/* Daily Records Table Section */}
                     <MemorizationTable 
-                        records={memorizationRecords.filter(r => 
+                        memorizationRecords={memorizationRecords.filter(r => 
                             (!recordsSelectedHalaqah || r.halaqah === halaqahs.find(h => h.id.toString() === recordsSelectedHalaqah)?.name) &&
                             (!recordsSelectedStudent || r.studentName === students.find(s => s.id.toString() === recordsSelectedStudent)?.name)
                         )}
-                        handleEdit={handleEditRecord}
-                        handleDelete={handleDeleteClick}
+                        selectedHalaqah={recordsSelectedHalaqah}
                     />
                 </TabsContent>
                 
@@ -882,7 +889,7 @@ const Halaqah: React.FC = () => {
                         setEditingRecord(null);
                     }}
                     record={editingRecord}
-                    onSave={handleUpdateRecord}
+                    onSubmit={handleUpdateRecord}
                 />
                 
                 {/* Delete Alert Dialog */}
