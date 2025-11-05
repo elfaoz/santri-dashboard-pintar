@@ -59,7 +59,7 @@ const KDM: React.FC = () => {
             <div className="mb-8 min-h-[300px] md:min-h-[250px]">
               <p className="text-lg md:text-xl text-gray-700 leading-relaxed whitespace-pre-wrap font-medium">
                 {displayedText}
-                <span className="animate-pulse">|</span>
+                {!isTypingComplete && <span className="animate-pulse">|</span>}
               </p>
             </div>
 
@@ -77,7 +77,7 @@ const KDM: React.FC = () => {
                 </div>
 
                 {/* Call to Action */}
-                <div className="text-center space-y-4 pt-4">
+                <div className="text-center space-y-4 pt-8">
                   <p className="text-xl md:text-2xl font-semibold text-gray-800">
                     Siap untuk mengubah cara kamu mengelola laporan?
                   </p>
@@ -90,9 +90,6 @@ const KDM: React.FC = () => {
                       <ArrowRight className="ml-2 h-5 w-5" />
                     </Button>
                   </Link>
-                  <p className="text-sm text-gray-500 mt-4">
-                    Dapatkan informasi pendaftaran semester berikutnya
-                  </p>
                 </div>
               </div>
             )}
