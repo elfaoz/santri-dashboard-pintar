@@ -10,11 +10,11 @@ const KDM: React.FC = () => {
   const [isTypingComplete, setIsTypingComplete] = useState(false);
 
   const paragraphs = [
-    'Pernah nggak ngerasa stres dikerjar-kejar deadline untuk laporan?',
-    'Malas membuat laporan, merasa terpaksa harus bikin laporan?',
-    'Pernah ngerasain capeknya melakukan itu semua?',
-    'Membimbing anak-anak, mencatat kehadiran, menggiring shalat, menggiring sekolah, nerima setoran hafalan, piket, mandi, makan, dan sampai urusan uang jajan.',
-    'Tonton video ini sebelum kamu nyerah sama keadaan....!!!'
+    'Pernah merasa dikejar-kejar deadline untuk laporan?',
+    'Pernah merasa malas membuat laporan, tapi tetap harus dikerjakan?',
+    'Pernah merasa capek luar biasa setelah seharian mengurus semuanya?',
+    'Membimbing anak-anak, mencatat kehadiran, menggiring shalat, menggiring sekolah, nerima setoran hafalan, piket, mandi, makan, sampai urusan uang jajan.',
+    'Jika itu yang kamu rasakan, tonton video ini sebelum kamu nyerah sama keadaan...!!!'
   ];
 
   useEffect(() => {
@@ -28,18 +28,16 @@ const KDM: React.FC = () => {
 
     const typingInterval = setInterval(() => {
       if (index < currentText.length) {
-        // Menambahkan huruf baru ke teks sebelumnya
-        setDisplayedText((prev) => (prev || '') + currentText[index]);
+        setDisplayedText((prev) => prev + currentText[index]);
         index++;
       } else {
         clearInterval(typingInterval);
         setTimeout(() => {
-          // Tambahkan 2 baris kosong sebelum lanjut paragraf berikutnya
-          setDisplayedText((prev) => (prev || '') + '\n\n');
+          setDisplayedText((prev) => prev + '\n\n');
           setCurrentParagraph((prev) => prev + 1);
-        }, 800);
+        }, 700);
       }
-    }, 50);
+    }, 45);
 
     return () => clearInterval(typingInterval);
   }, [currentParagraph]);
@@ -57,15 +55,15 @@ const KDM: React.FC = () => {
               <div className="h-1 w-32 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full"></div>
             </div>
 
-            {/* Typing Animation */}
-            <div className="mb-8 min-h-[300px] md:min-h-[250px]">
+            {/* Typing Text */}
+            <div className="mb-8 min-h-[280px] md:min-h-[250px] text-center">
               <p className="text-lg md:text-xl text-gray-700 leading-relaxed whitespace-pre-wrap font-medium">
                 {displayedText}
                 {!isTypingComplete && <span className="animate-pulse">|</span>}
               </p>
             </div>
 
-            {/* Video Section */}
+            {/* Video & CTA */}
             {isTypingComplete && (
               <div className="space-y-6 animate-fade-in">
                 <div className="relative w-full pb-[56.25%] rounded-lg overflow-hidden shadow-lg">
@@ -78,10 +76,9 @@ const KDM: React.FC = () => {
                   ></iframe>
                 </div>
 
-                {/* CTA */}
                 <div className="text-center space-y-4 pt-8">
                   <p className="text-xl md:text-2xl font-semibold text-gray-800">
-                    Siap beralih ke sistem digital ?
+                    Siap beralih ke sistem digital?
                   </p>
                   <Link to="/signup">
                     <Button
