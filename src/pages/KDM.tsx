@@ -10,11 +10,11 @@ const KDM: React.FC = () => {
   const [isTypingComplete, setIsTypingComplete] = useState(false);
 
   const paragraphs = [
-    'Pernah merasa dikejar-kejar deadline untuk laporan?',
-    'Pernah merasa malas membuat laporan, tapi tetap harus dikerjakan?',
-    'Pernah merasa capek luar biasa setelah seharian mengurus semuanya?',
-    'Membimbing anak-anak, mencatat kehadiran, menggiring shalat, menggiring sekolah, nerima setoran hafalan, piket, mandi, makan, sampai urusan uang jajan.',
-    'Jika itu yang kamu rasakan, tonton video ini sebelum kamu nyerah sama keadaan...!!!'
+    'PPernah stres dikejar-kejar deadline untuk laporan?',
+    'PPernah merasa malas membuat laporan, tapi tetap harus dikerjakan?',
+    'PPernah merasa capek luar biasa setelah seharian mengurus semuanya?',
+    'MMembimbing anak-anak, mencatat kehadiran, menggiring shalat, menggiring sekolah, nerima setoran hafalan, piket, mandi, makan, sampai urusan uang jajan.',
+    'TTonton video ini sebelum kamu nyerah sama keadaan...!!!'
   ];
 
   useEffect(() => {
