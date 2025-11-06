@@ -10,10 +10,10 @@ const KDM: React.FC = () => {
   const [isTypingComplete, setIsTypingComplete] = useState(false);
 
   const paragraphs = [
-    'PPernah stres dikejar-kejar deadline untuk laporan?',
-    'PPernah merasa malas membuat laporan, tapi tetap harus dikerjakan?',
-    'PPernah merasa capek luar biasa setelah seharian mengurus semuanya?',
-    'MMembimbing anak-anak, mencatat kehadiran, menggiring shalat, menggiring sekolah, nerima setoran hafalan, piket, mandi, makan, sampai urusan uang jajan.',
+    'PPernah stres dikejar-kejar deadline untuk laporan?', 
+    'PPernah merasa malas membuat laporan, tapi tetap harus dikerjakan?', 
+    'PPernah merasa capek luar biasa setelah seharian mengurus semuanya?', 
+    'MMembimbing anak-anak, mencatat kehadiran, menggiring shalat, menggiring sekolah, nerima setoran hafalan, piket, mandi, makan, sampai urusan uang jajan.', 
     'TTonton video ini sebelum kamu nyerah sama keadaan...!!!'
   ];
 
@@ -28,12 +28,12 @@ const KDM: React.FC = () => {
 
     const typingInterval = setInterval(() => {
       if (index < currentText.length) {
-        setDisplayedText((prev) => prev + currentText[index]);
+        setDisplayedText((prev) => `${prev ?? ''}${currentText[index]}`);
         index++;
       } else {
         clearInterval(typingInterval);
         setTimeout(() => {
-          setDisplayedText((prev) => prev + '\n\n');
+          setDisplayedText((prev) => `${prev ?? ''}\n\n`);
           setCurrentParagraph((prev) => prev + 1);
         }, 700);
       }
@@ -55,7 +55,7 @@ const KDM: React.FC = () => {
               <div className="h-1 w-32 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full"></div>
             </div>
 
-            {/* Typing Text */}
+            {/* Typing Animation */}
             <div className="mb-8 min-h-[280px] md:min-h-[250px] text-center">
               <p className="text-lg md:text-xl text-gray-700 leading-relaxed whitespace-pre-wrap font-medium">
                 {displayedText}
