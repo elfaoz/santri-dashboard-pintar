@@ -1,49 +1,98 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, FC } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight } from 'lucide-react';
 
-const KDM: React.FC = () => {
-  const [displayedText, setDisplayedText] = useState('');
-  const [currentParagraph, setCurrentParagraph] = useState(0);
-  const [isTypingComplete, setIsTypingComplete] = useState(false);
+// Placeholder untuk Komponen UI (dengan penambahan tipe data yang minimal)
+interface ComponentProps {
+  children: React.ReactNode;
+  className?: string;
+  size?: 'md' | 'lg';
+  onClick?: () => void;
+}
 
-  const paragraphs = [
-    'PPernah stres dikejar-kejar deadline untuk laporan?',
-    'PPernah merasa malas membuat laporan, tapi tetap harus dikerjakan?',
-    'PPernah merasa capek luar biasa setelah seharian mengurus semuanya?',
-    'MMembimbing anak-anak, mencatat kehadiran, menggiring shalat, menggiring sekolah, nerima setoran hafalan, piket, mandi, makan, sampai urusan uang jajan.',
+const Button: FC<ComponentProps> = ({ children, className = '', ...props }) => (
+  <button 
+    className={`p-4 rounded-lg font-semibold ${className}`} 
+    onClick={props.onClick}
+  >
+    {children}
+  </button>
+);
+
+const Card: FC<ComponentProps> = ({ children, className = '', ...props }) => (
+  <div className={`rounded-xl bg-white ${className}`} {...props}>
+    {children}
+  </div>
+);
+
+const CardContent: FC<ComponentProps> = ({ children, className = '', ...props }) => (
+  <div className={`p-6 ${className}`} {...props}>
+    {children}
+  </div>
+);
+
+
+const KDM: FC = () => {
+  // Penambahan tipe data eksplisit untuk state
+  const [accumulatedText, setAccumulatedText] = useState<string>(''); 
+  const [typingText, setTypingText] = useState<string>('');           
+  const [currentParagraph, setCurrentParagraph] = useState<number>(0);
+  const [isTypingComplete, setIsTypingComplete] = useState<boolean>(false);
+
+  // Daftar paragraf untuk animasi pengetikan
+  const paragraphs: string[] = [
+    'PPernah stres dikejar-kejar deadline untuk laporan?', 
+    'PPernah merasa malas membuat laporan, tapi tetap harus dikerjakan?', 
+    'PPernah merasa capek luar biasa setelah seharian mengurus semuanya?', 
+    'MMembimbing anak-anak, mencatat kehadiran, menggiring shalat, menggiring sekolah, nerima setoran hafalan, piket, mandi, makan, sampai urusan uang jajan.', 
     'TTonton video ini sebelum kamu nyerah sama keadaan...!!!'
   ];
 
+  // Gabungkan teks untuk ditampilkan
+  const fullDisplayedText: string = accumulatedText + typingText;
+
   useEffect(() => {
-    // Jika sudah selesai semua paragraf
+    // 1. Check if all paragraphs are done
     if (currentParagraph >= paragraphs.length) {
       setIsTypingComplete(true);
       return;
     }
 
-    // Reset teks tiap kali masuk ke paragraf baru
-    setDisplayedText('');
-
-    const currentText = paragraphs[currentParagraph];
-    let index = 0;
-
-    const typingInterval = setInterval(() => {
+    const currentText: string = paragraphs[currentParagraph];
+    let index: number = 0;
+    
+    const typingInterval: number = window.setInterval(() => {
       if (index < currentText.length) {
-        setDisplayedText((prev) => (prev || '') + currentText[index]);
+        // Add one character
+        setTypingText((prev: string) => prev + currentText[index]);
         index++;
       } else {
-        clearInterval(typingInterval);
-        setTimeout(() => {
-          setDisplayedText((prev) => (prev || '') + '\n\n');
-          setCurrentParagraph((prev) => prev + 1);
+        window.clearInterval(typingInterval);
+        
+        // --- Transition between Paragraphs ---
+        
+        // 1. Move the finished paragraph text to accumulatedText (SYNCHRONOUSLY)
+        setAccumulatedText((prevAccumulatedText: string) => {
+          const finishedText: string = prevAccumulatedText + currentText;
+          
+          const isLastParagraph: boolean = currentParagraph === paragraphs.length - 1;
+
+          // Add new lines only if there is a next paragraph
+          return isLastParagraph ? finishedText : finishedText + '\n\n';
+        });
+        
+        // 2. Immediately clear typingText (SYNCHRONOUSLY)
+        setTypingText(''); 
+
+        // 3. Delay the start of the next paragraph (change currentParagraph)
+        window.setTimeout(() => {
+          setCurrentParagraph((prev: number) => prev + 1);
         }, 700);
       }
     }, 45);
 
-    return () => clearInterval(typingInterval);
+    // Cleanup function for interval
+    return () => window.clearInterval(typingInterval);
   }, [currentParagraph]);
 
   return (
@@ -59,10 +108,12 @@ const KDM: React.FC = () => {
               <div className="h-1 w-32 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full"></div>
             </div>
 
-            {/* Typing Text */}
+            {/* Typing Animation */}
             <div className="mb-8 min-h-[280px] md:min-h-[250px] text-center">
               <p className="text-lg md:text-xl text-gray-700 leading-relaxed whitespace-pre-wrap font-medium">
-                {displayedText}
+                {/* Combined text from finished and currently typing segments */}
+                {fullDisplayedText} 
+                {/* Show blinking cursor only if typing is not complete */}
                 {!isTypingComplete && <span className="animate-pulse">|</span>}
               </p>
             </div>
@@ -84,15 +135,14 @@ const KDM: React.FC = () => {
                   <p className="text-xl md:text-2xl font-semibold text-gray-800">
                     Siap beralih ke sistem digital?
                   </p>
-                  <Link to="/signup">
                     <Button
                       size="lg"
                       className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                      onClick={() => console.log('Daftar Sekarang clicked')}
                     >
                       Daftar Sekarang
-                      <ArrowRight className="ml-2 h-5 w-5" />
+                      <ArrowRight className="ml-2 h-5 w-5 inline-block" />
                     </Button>
-                  </Link>
                 </div>
               </div>
             )}
