@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { ArrowLeft } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const SignUp: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -15,15 +16,28 @@ const SignUp: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate sending email
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-signup-notification', {
+        body: { email }
+      });
+
+      if (error) throw error;
+
       toast({
         title: 'Email terkirim',
         description: 'Terima kasih! Kami akan menghubungi Anda segera.',
       });
       setEmail('');
+    } catch (error: any) {
+      console.error('Error sending email:', error);
+      toast({
+        title: 'Terjadi kesalahan',
+        description: 'Gagal mengirim email. Silakan coba lagi.',
+        variant: 'destructive',
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -63,7 +77,7 @@ const SignUp: React.FC = () => {
                 required
               />
               <p className="text-xs text-gray-500">
-                Email akan dikirim ke nashers.manziel@gmail.com
+                Masukan E-mail untuk mendapatkan update informasi terbaru
               </p>
             </div>
             <Button 
