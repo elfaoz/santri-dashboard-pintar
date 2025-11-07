@@ -1,1 +1,4 @@
 project_id = "wvqkohfljkborimawqll"
+
+[functions.send-signup-notification]
+verify_jwt = false
