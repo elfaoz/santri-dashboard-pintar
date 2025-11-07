@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const SignUp: React.FC = () => {
   const [email, setEmail] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,31 +18,38 @@ const SignUp: React.FC = () => {
     setIsLoading(true);
 
     try {
-      console.log('Sending email to:', email);
-      const { data, error } = await supabase.functions.invoke('send-signup-notification', {
-        body: { email }
-      });
+      // Format pesan WhatsApp dengan format yang sama seperti email
+      const message = `Assalamu'alaikum Warahmatullahi Wabarakatuh,
 
-      console.log('Response:', { data, error });
+Pendaftaran KDM - Karim Dashboard Manager
 
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw error;
-      }
+Email: ${email}
+No. WhatsApp: ${whatsapp}
+
+Saya ingin mendapatkan notifikasi pembukaan pendaftaran KDM – Karim Dashboard Manager pada periode berikutnya.
+
+Barakallahu fiikum`;
+
+      // Encode message untuk URL
+      const encodedMessage = encodeURIComponent(message);
+      
+      // Buka WhatsApp dengan pesan yang sudah diformat
+      const whatsappUrl = `https://wa.me/6289512294494?text=${encodedMessage}`;
+      window.open(whatsappUrl, '_blank');
 
       toast({
-        title: 'Email terkirim',
-        description: 'Terima kasih! Kami akan menghubungi Anda segera.',
+        title: 'Membuka WhatsApp',
+        description: 'Silakan kirim pesan melalui WhatsApp.',
       });
+      
+      // Reset form
       setEmail('');
+      setWhatsapp('');
     } catch (error: any) {
-      console.error('Error details:', {
-        message: error.message,
-        details: error,
-      });
+      console.error('Error:', error);
       toast({
         title: 'Terjadi kesalahan',
-        description: error.message || 'Gagal mengirim email. Silakan coba lagi.',
+        description: 'Gagal membuka WhatsApp. Silakan coba lagi.',
         variant: 'destructive',
       });
     } finally {
@@ -76,6 +84,17 @@ const SignUp: React.FC = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="whatsapp">Nomor WhatsApp</Label>
+              <Input
+                id="whatsapp"
+                type="tel"
+                placeholder="Contoh: 081234567890"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -85,16 +104,16 @@ const SignUp: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              <p className="text-xs text-gray-500">
-                Masukan E-mail untuk mendapatkan update informasi terbaru
-              </p>
             </div>
+            <p className="text-xs text-gray-500">
+              Masukan No. WA dan E-mail untuk mendapatkan update informasi terbaru
+            </p>
             <Button 
               type="submit" 
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-green-600 hover:bg-green-700"
               disabled={isLoading}
             >
-              {isLoading ? 'Mengirim...' : 'Kirim Email'}
+              {isLoading ? 'Membuka WhatsApp...' : 'Kirim via WhatsApp'}
             </Button>
           </form>
         </CardContent>
