@@ -1,27 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-
-// Placeholder untuk komponen UI agar kode dapat berjalan di lingkungan single-file.
-const Button = ({ children, className = '', size = 'md', ...props }) => (
-  <button 
-    className={`p-4 rounded-lg font-semibold transition-all duration-300 ${className} ${size === 'lg' ? 'px-8 py-4 text-lg' : 'px-4 py-2'}`} 
-    {...props}
-  >
-    {children}
-  </button>
-);
-
-const Card = ({ children, className = '', ...props }) => (
-  <div className={`rounded-xl bg-white shadow-lg ${className}`} {...props}>
-    {children}
-  </div>
-);
-
-const CardContent = ({ children, className = '', ...props }) => (
-  <div className={`p-6 ${className}`} {...props}>
-    {children}
-  </div>
-);
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 // Konstanta untuk mengelola tahap animasi
 const STAGE = {
@@ -31,6 +12,7 @@ const STAGE = {
 };
 
 const KDM = () => {
+  const navigate = useNavigate();
   const [displayedText, setDisplayedText] = useState('');
   const [paragraphIndex, setParagraphIndex] = useState(0);
   const [stage, setStage] = useState(STAGE.TYPING);
@@ -140,16 +122,14 @@ const KDM = () => {
                   <p className="text-xl md:text-2xl font-bold text-gray-800">
                     Siap beralih ke sistem digital?
                   </p>
-                  {/* Link Placeholder */}
-                  <div onClick={() => console.log('Navigasi ke /signup')}>
-                    <Button
-                      size="lg"
-                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
-                    >
-                      Daftar Sekarang
-                      <ArrowRight className="ml-2 h-5 w-5 inline-block" />
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={() => navigate('/signup')}
+                    size="lg"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
+                  >
+                    Daftar Sekarang
+                    <ArrowRight className="ml-2 h-5 w-5 inline-block" />
+                  </Button>
                 </div>
               </div>
             )}
