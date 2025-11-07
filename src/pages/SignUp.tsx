@@ -17,11 +17,17 @@ const SignUp: React.FC = () => {
     setIsLoading(true);
 
     try {
+      console.log('Sending email to:', email);
       const { data, error } = await supabase.functions.invoke('send-signup-notification', {
         body: { email }
       });
 
-      if (error) throw error;
+      console.log('Response:', { data, error });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
 
       toast({
         title: 'Email terkirim',
@@ -29,10 +35,13 @@ const SignUp: React.FC = () => {
       });
       setEmail('');
     } catch (error: any) {
-      console.error('Error sending email:', error);
+      console.error('Error details:', {
+        message: error.message,
+        details: error,
+      });
       toast({
         title: 'Terjadi kesalahan',
-        description: 'Gagal mengirim email. Silakan coba lagi.',
+        description: error.message || 'Gagal mengirim email. Silakan coba lagi.',
         variant: 'destructive',
       });
     } finally {
