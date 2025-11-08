@@ -28,13 +28,13 @@ No. WhatsApp: ${whatsapp}
 
 Saya ingin mendapatkan notifikasi pembukaan pendaftaran KDM – Karim Dashboard Manager pada periode berikutnya.
 
-Barakallahu fiikum`;
+Jazakummullahu khairan`;
 
       // Encode message untuk URL
       const encodedMessage = encodeURIComponent(message);
       
       // Buka WhatsApp dengan pesan yang sudah diformat
-      const whatsappUrl = `https://wa.me/6289512294494?text=${encodedMessage}`;
+      const whatsappUrl = `https://wa.me/6285223857484?text=${encodedMessage}`;
       window.open(whatsappUrl, '_blank');
 
       toast({
