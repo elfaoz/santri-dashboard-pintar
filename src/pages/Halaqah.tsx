@@ -12,8 +12,9 @@ import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
 import { useMemorization } from '@/contexts/MemorizationContext';
 import { surahs, getSurahByName } from '@/utils/surahData';
-import { getJuzData } from '@/utils/juzData'; // DITAMBAHKAN
+import { getJuzData } from '@/utils/juzData';
 import { toast } from 'sonner';
+import GatekeeperModal from '@/components/GatekeeperModal';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -31,6 +32,7 @@ const Halaqah: React.FC = () => {
     const { memorizationRecords, addMemorizationRecord, updateMemorizationRecord, deleteMemorizationRecord } = useMemorization();
     const [selectedHalaqah, setSelectedHalaqah] = useState('');
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+    const [hasAccess, setHasAccess] = useState(false);
     
     // Daily Records filters
     const [recordsSelectedHalaqah, setRecordsSelectedHalaqah] = useState('');
@@ -228,13 +230,21 @@ const Halaqah: React.FC = () => {
     };
 
     return (
-        <div className="p-6">
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-800 mb-2">Memorization</h1>
-                <p className="text-gray-600">Kelola pencapaian hafalan santri per halaqah</p>
-            </div>
+        <>
+            <GatekeeperModal 
+                isOpen={!hasAccess}
+                onAccessGranted={() => setHasAccess(true)}
+                pageName="Memorization"
+            />
+            
+            {hasAccess && (
+                <div className="p-6">
+                    <div className="mb-8">
+                        <h1 className="text-2xl font-bold text-gray-800 mb-2">Memorization</h1>
+                        <p className="text-gray-600">Kelola pencapaian hafalan santri per halaqah</p>
+                    </div>
 
-            <Tabs defaultValue="overview" className="w-full">
+                    <Tabs defaultValue="overview" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
                     <TabsTrigger value="overview">Halaqah Overview</TabsTrigger>
                     <TabsTrigger value="records">Daily Records</TabsTrigger>
@@ -910,7 +920,9 @@ const Halaqah: React.FC = () => {
                     </AlertDialogContent>
                 </AlertDialog>
             </Tabs>
-        </div>
+                </div>
+            )}
+        </>
     );
 };
 

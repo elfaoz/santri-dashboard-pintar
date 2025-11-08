@@ -31,17 +31,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = (username: string, password: string): boolean => {
+    // Admin account
     if (username === 'admin' && password === 'admin123') {
       setIsAuthenticated(true);
       localStorage.setItem('kdm_auth', 'true');
+      localStorage.setItem('kdm_user', username);
       return true;
     }
+    
+    // Demo accounts
+    const demoAccounts = [
+      'demopesantren',
+      'demopesantren1',
+      'demopesantren2',
+      'demopesantren3',
+      'demopesantren4',
+    ];
+    
+    if (demoAccounts.includes(username) && password === 'freeplan') {
+      setIsAuthenticated(true);
+      localStorage.setItem('kdm_auth', 'true');
+      localStorage.setItem('kdm_user', username);
+      return true;
+    }
+    
     return false;
   };
 
   const logout = () => {
     setIsAuthenticated(false);
     localStorage.removeItem('kdm_auth');
+    localStorage.removeItem('kdm_user');
   };
 
   return (
