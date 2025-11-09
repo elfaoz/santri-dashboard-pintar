@@ -541,29 +541,6 @@ const Finance: React.FC = () => {
             </div>
           </div>
 
-          {/* Monthly Finance Section */}
-          <FinanceMonthlySection expenseRecords={expenseRecords} />
-
-          {/* Semester Finance Section */}
-          <FinanceSemesterSection expenseRecords={expenseRecords} />
-
-          {/* Leaderboard Section */}
-          <div className="mt-8">
-            <LeaderboardFinance expenseRecords={expenseRecords} />
-          </div>
-
-          {/* Edit Expense Modal */}
-          <EditExpenseModal
-            isOpen={isEditExpenseModalOpen}
-            onClose={() => setIsEditExpenseModalOpen(false)}
-            expense={editingExpense}
-            onSave={handleUpdateExpense}
-          />
-        </div>
-      )}
-    </>
-  );
-
       {/* Filters */}
       <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="flex items-center space-x-3">
@@ -894,8 +871,8 @@ const Finance: React.FC = () => {
         expense={editingExpense}
         onSave={handleUpdateExpense}
       />
-    </div>
-    )}
+        </div>
+      )}
     </>
   );
 };
