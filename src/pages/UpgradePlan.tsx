@@ -96,7 +96,7 @@ const UpgradePlan: React.FC = () => {
             <Card
               key={plan.id}
               className={`relative flex flex-col ${
-                plan.popular ? 'border-primary shadow-lg scale-105' : ''
+                plan.popular ? 'border-primary shadow-lg scale-105 bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-100' : ''
               }`}
             >
               {plan.popular && (

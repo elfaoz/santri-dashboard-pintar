@@ -1,17 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CreditCard, Building2, MessageCircle, Copy, Check } from 'lucide-react';
+import { CreditCard, Building2, MessageCircle, Copy, Check, ArrowLeft, Plus, X } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { toast } from '@/hooks/use-toast';
+import { useProfile } from '@/contexts/ProfileContext';
 
 const Payment: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const planId = location.state?.planId;
+  const { profileData } = useProfile();
+  const [selectedPlans, setSelectedPlans] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -19,17 +21,54 @@ const Payment: React.FC = () => {
     phone: '',
   });
 
-  const planDetails: { [key: string]: { name: string; price: string } } = {
-    'attendance': { name: 'Attendance', price: '80.000' },
-    'memorization': { name: 'Memorization', price: '100.000' },
-    'activities': { name: 'Activities', price: '75.000' },
-    'finance': { name: 'Finance', price: '90.000' },
-    'full-package': { name: 'Full Package', price: '235.000' },
+  useEffect(() => {
+    // Pre-fill from profile
+    setFormData({
+      name: profileData.name,
+      email: profileData.email,
+      phone: profileData.phone,
+    });
+
+    // Initialize selected plans from location state
+    const planId = location.state?.planId;
+    if (planId) {
+      setSelectedPlans([planId]);
+    }
+  }, [profileData, location.state]);
+
+  const planDetails: { [key: string]: { name: string; price: number } } = {
+    'attendance': { name: 'Attendance', price: 80000 },
+    'memorization': { name: 'Memorization', price: 100000 },
+    'activities': { name: 'Activities', price: 75000 },
+    'finance': { name: 'Finance', price: 90000 },
+    'full-package': { name: 'Full Package', price: 235000 },
   };
 
-  const selectedPlan = planId ? planDetails[planId] : null;
   const bankAccount = '404301015163532';
   const whatsappNumber = '+6285223857484';
+
+  const calculateTotal = () => {
+    if (selectedPlans.includes('full-package')) {
+      return 235000;
+    }
+    return selectedPlans.reduce((total, planId) => {
+      return total + (planDetails[planId]?.price || 0);
+    }, 0);
+  };
+
+  const totalPrice = calculateTotal();
+
+  const handleAddPlan = (planId: string) => {
+    if (planId === 'full-package') {
+      setSelectedPlans(['full-package']);
+    } else if (!selectedPlans.includes(planId) && !selectedPlans.includes('full-package')) {
+      setSelectedPlans([...selectedPlans, planId]);
+    }
+  };
+
+  const handleRemovePlan = (planId: string) => {
+    setSelectedPlans(selectedPlans.filter(id => id !== planId));
+  };
 
   const handleCopyAccount = () => {
     navigator.clipboard.writeText(bankAccount);
@@ -51,49 +90,91 @@ const Payment: React.FC = () => {
       return;
     }
 
-    const message = `Assalamualaikum, saya ingin konfirmasi pembayaran Aplikasi KDM:%0A%0ANama: ${formData.name}%0AEmail: ${formData.email}%0ANo. HP: ${formData.phone}%0APaket: ${selectedPlan?.name}%0ATotal: Rp ${selectedPlan?.price}%0A%0ASaya sudah melakukan transfer ke rekening BRI a.n MARKAZ QURAN.`;
+    if (selectedPlans.length === 0) {
+      toast({
+        title: 'Belum Ada Paket',
+        description: 'Silakan pilih minimal satu paket',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const selectedPackages = selectedPlans.map(id => planDetails[id]?.name).join(', ');
+    const message = `Assalamualaikum, saya ingin konfirmasi pembayaran Aplikasi KDM:%0A%0ANama: ${formData.name}%0AEmail: ${formData.email}%0ANo. HP: ${formData.phone}%0APaket: ${selectedPackages}%0ATotal: Rp ${totalPrice.toLocaleString('id-ID')}%0A%0ASaya sudah melakukan transfer ke rekening BRI a.n MARKAZ QURAN.`;
     
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
-  if (!selectedPlan) {
-    return (
-      <Layout>
-        <div className="container mx-auto py-8 px-4 text-center">
-          <h1 className="text-2xl font-bold mb-4">Paket Tidak Ditemukan</h1>
-          <Button onClick={() => navigate('/upgrade')}>Kembali ke Halaman Upgrade</Button>
-        </div>
-      </Layout>
-    );
-  }
-
   return (
     <Layout>
       <div className="container mx-auto py-8 px-4 max-w-2xl">
+        <Button
+          variant="ghost"
+          onClick={() => navigate('/upgrade')}
+          className="mb-6"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Kembali ke Halaman Upgrade
+        </Button>
+
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Pembayaran</h1>
           <p className="text-muted-foreground">
-            Selesaikan pembayaran untuk mengaktifkan paket {selectedPlan.name}
+            Selesaikan pembayaran untuk mengaktifkan paket pilihan Anda
           </p>
         </div>
 
         {/* Order Summary */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <CreditCard className="mr-2 h-5 w-5" />
-              Ringkasan Pesanan
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <CreditCard className="mr-2 h-5 w-5" />
+                Ringkasan Pesanan
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/upgrade')}
+              >
+                <Plus className="mr-1 h-4 w-4" />
+                Tambah Paket
+              </Button>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-muted-foreground">Paket</span>
-              <span className="font-semibold">{selectedPlan.name}</span>
-            </div>
-            <div className="flex justify-between items-center text-lg font-bold border-t pt-2 mt-2">
-              <span>Total</span>
-              <span>Rp {selectedPlan.price}</span>
-            </div>
+          <CardContent className="space-y-4">
+            {selectedPlans.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">
+                Belum ada paket dipilih. Silakan tambah paket.
+              </p>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  {selectedPlans.map((planId) => (
+                    <div key={planId} className="flex justify-between items-center py-2">
+                      <span className="font-medium">{planDetails[planId]?.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">
+                          Rp {planDetails[planId]?.price.toLocaleString('id-ID')}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemovePlan(planId)}
+                          className="h-6 w-6 p-0"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between items-center text-lg font-bold border-t pt-4 mt-4">
+                  <span>Total</span>
+                  <span>Rp {totalPrice.toLocaleString('id-ID')}</span>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
