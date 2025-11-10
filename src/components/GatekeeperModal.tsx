@@ -31,10 +31,22 @@ const GatekeeperModal: React.FC<GatekeeperModalProps> = ({ isOpen, onAccessGrant
     return btoa(JSON.stringify(payload));
   };
 
+  // Different access codes for each page
+  const getAccessCodeForPage = (page: string): string => {
+    const codes: { [key: string]: string } = {
+      'Attendance': 'attendance1',
+      'Memorization': 'memorization1',
+      'Finance': 'finance1',
+      'Activities': 'activities1',
+    };
+    return codes[page] || '1';
+  };
+
   const verifyToken = (token: string): boolean => {
     try {
       const payload = JSON.parse(atob(token));
-      return payload.code === '1' && payload.page === pageName;
+      const expectedCode = getAccessCodeForPage(pageName);
+      return payload.code === expectedCode && payload.page === pageName;
     } catch {
       return false;
     }
@@ -51,8 +63,9 @@ const GatekeeperModal: React.FC<GatekeeperModalProps> = ({ isOpen, onAccessGrant
   const handleVerifyAccess = () => {
     setIsVerifying(true);
 
-    // Verify access code (code is "1")
-    if (accessCode === '1') {
+    // Verify access code - unique for each page
+    const expectedCode = getAccessCodeForPage(pageName);
+    if (accessCode === expectedCode) {
       const token = generateToken(accessCode);
       localStorage.setItem(`kdm_access_${pageName.toLowerCase()}`, token);
       
@@ -117,7 +130,10 @@ const GatekeeperModal: React.FC<GatekeeperModalProps> = ({ isOpen, onAccessGrant
           </Button>
           
           <p className="text-xs text-center text-gray-500 mt-2">
-            Hubungi administrator untuk mendapatkan kode akses
+            Upgrade akun untuk mendapatkan akses ke halaman. Klik untuk upgrade{' '}
+            <a href="/upgrade" className="text-blue-600 hover:underline font-semibold">
+              disini
+            </a>
           </p>
         </div>
       </DialogContent>

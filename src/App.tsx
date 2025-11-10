@@ -23,6 +23,8 @@ import AddStudent from "./pages/AddStudent";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import KDM from "./pages/KDM";
+import UpgradePlan from "./pages/UpgradePlan";
+import Payment from "./pages/Payment";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -46,6 +48,8 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/kdm" element={<KDM />} />
+            <Route path="/upgrade" element={<UpgradePlan />} />
+            <Route path="/payment" element={<Payment />} />
                 <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <Layout>
