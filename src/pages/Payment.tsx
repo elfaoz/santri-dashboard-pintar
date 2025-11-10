@@ -29,7 +29,7 @@ const Payment: React.FC = () => {
 
   const selectedPlan = planId ? planDetails[planId] : null;
   const bankAccount = '404301015163532';
-  const whatsappNumber = '085223857484';
+  const whatsappNumber = '+6285223857484';
 
   const handleCopyAccount = () => {
     navigator.clipboard.writeText(bankAccount);
