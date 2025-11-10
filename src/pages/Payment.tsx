@@ -309,7 +309,7 @@ const Payment: React.FC = () => {
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
               <p className="text-sm text-muted-foreground">
-                Setelah transfer, konfirmasi pembayaran Anda melalui WhatsApp
+                Setelah transfer, konfirmasi pembayaran Anda dengan melampirkan bukti pembayaran melalui WhatsApp
               </p>
               <Button
                 size="lg"
