@@ -51,7 +51,7 @@ const Payment: React.FC = () => {
       return;
     }
 
-    const message = `Halo, saya ingin konfirmasi pembayaran:%0A%0ANama: ${formData.name}%0AEmail: ${formData.email}%0ANo. HP: ${formData.phone}%0APaket: ${selectedPlan?.name}%0ATotal: Rp ${selectedPlan?.price}%0A%0ASaya sudah melakukan transfer ke rekening BRI a.n MARKAZ QURAN.`;
+    const message = `Assalamualaikum, saya ingin konfirmasi pembayaran Aplikasi KDM:%0A%0ANama: ${formData.name}%0AEmail: ${formData.email}%0ANo. HP: ${formData.phone}%0APaket: ${selectedPlan?.name}%0ATotal: Rp ${selectedPlan?.price}%0A%0ASaya sudah melakukan transfer ke rekening BRI a.n MARKAZ QURAN.`;
     
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
