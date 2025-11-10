@@ -140,28 +140,65 @@ const Payment: React.FC = () => {
           </p>
         </div>
 
+        {/* Available Packages */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Plus className="mr-2 h-5 w-5" />
+              Pilih Paket
+            </CardTitle>
+            <CardDescription>Tambahkan paket ke keranjang Anda</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {Object.entries(planDetails).map(([planId, plan]) => (
+              <div
+                key={planId}
+                className={`flex justify-between items-center p-3 rounded-lg border ${
+                  selectedPlans.includes(planId) ? 'bg-blue-50 border-blue-200' : 'bg-background'
+                }`}
+              >
+                <div>
+                  <p className="font-medium">{plan.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Rp {plan.price.toLocaleString('id-ID')}
+                  </p>
+                </div>
+                {selectedPlans.includes(planId) ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleRemovePlan(planId)}
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Hapus
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    onClick={() => handleAddPlan(planId)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Tambah
+                  </Button>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
         {/* Order Summary */}
         <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center">
-                <CreditCard className="mr-2 h-5 w-5" />
-                Ringkasan Pesanan
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/upgrade')}
-              >
-                <Plus className="mr-1 h-4 w-4" />
-                Tambah Paket
-              </Button>
+            <CardTitle className="flex items-center">
+              <CreditCard className="mr-2 h-5 w-5" />
+              Ringkasan Pesanan
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {selectedPlans.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">
-                Belum ada paket dipilih. Silakan tambah paket.
+                Belum ada paket dipilih. Silakan tambah paket di atas.
               </p>
             ) : (
               <>
@@ -169,19 +206,9 @@ const Payment: React.FC = () => {
                   {selectedPlans.map((planId) => (
                     <div key={planId} className="flex justify-between items-center py-2">
                       <span className="font-medium">{planDetails[planId]?.name}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">
-                          Rp {planDetails[planId]?.price.toLocaleString('id-ID')}
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemovePlan(planId)}
-                          className="h-6 w-6 p-0"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <span className="text-muted-foreground">
+                        Rp {planDetails[planId]?.price.toLocaleString('id-ID')}
+                      </span>
                     </div>
                   ))}
                 </div>
