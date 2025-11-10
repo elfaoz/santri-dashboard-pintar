@@ -284,41 +284,14 @@ const ShareResultsSection: React.FC = () => {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="flex justify-center mb-6">
         <Button
           onClick={handleWhatsAppShare}
           disabled={!selectedStudent || selectedCategories.length === 0}
-          className="flex-1 bg-green-600 hover:bg-green-700"
+          className="bg-green-600 hover:bg-green-700"
         >
           <Share2 className="mr-2 h-4 w-4" />
           Share via WhatsApp
-        </Button>
-        <Button
-          onClick={handleDirectLink}
-          disabled={!selectedStudent || selectedCategories.length === 0}
-          variant="outline"
-          className="flex-1"
-        >
-          {linkCopied ? (
-            <>
-              <Check className="mr-2 h-4 w-4" />
-              Link Copied!
-            </>
-          ) : (
-            <>
-              <Link2 className="mr-2 h-4 w-4" />
-              Copy Direct Link
-            </>
-          )}
-        </Button>
-        <Button
-          onClick={handlePDFDownload}
-          disabled={!selectedStudent || selectedCategories.length === 0}
-          variant="outline"
-          className="flex-1"
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Download PDF
         </Button>
       </div>
 

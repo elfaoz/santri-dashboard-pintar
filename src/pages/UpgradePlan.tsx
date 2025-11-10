@@ -96,7 +96,7 @@ const UpgradePlan: React.FC = () => {
             <Card
               key={plan.id}
               className={`relative flex flex-col ${
-                plan.popular ? 'border-primary shadow-lg scale-105 bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-100' : ''
+                plan.popular ? 'border-primary shadow-lg scale-105 bg-blue-50' : ''
               }`}
             >
               {plan.popular && (
@@ -129,8 +129,7 @@ const UpgradePlan: React.FC = () => {
               <CardFooter>
                 <Button
                   onClick={() => handleSelectPlan(plan.id)}
-                  className="w-full"
-                  variant={plan.popular ? 'default' : 'outline'}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Pilih Paket
                 </Button>

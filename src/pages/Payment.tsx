@@ -59,9 +59,24 @@ const Payment: React.FC = () => {
   const totalPrice = calculateTotal();
 
   const handleAddPlan = (planId: string) => {
+    // If trying to add full package, replace everything with full package
     if (planId === 'full-package') {
       setSelectedPlans(['full-package']);
-    } else if (!selectedPlans.includes(planId) && !selectedPlans.includes('full-package')) {
+      return;
+    }
+    
+    // If full package is already selected, show toast and don't add
+    if (selectedPlans.includes('full-package')) {
+      toast({
+        title: 'Full Package Sudah Dipilih',
+        description: 'Full Package tidak bisa dikombinasikan dengan paket lain',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // Otherwise add the package if not already selected
+    if (!selectedPlans.includes(planId)) {
       setSelectedPlans([...selectedPlans, planId]);
     }
   };
@@ -107,7 +122,8 @@ const Payment: React.FC = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto py-8 px-4 max-w-2xl">
+      <div className="bg-blue-50 min-h-screen py-8">
+        <div className="container mx-auto px-4 max-w-2xl">
         <Button
           variant="ghost"
           onClick={() => navigate('/upgrade')}
@@ -279,6 +295,7 @@ const Payment: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </Layout>
   );
