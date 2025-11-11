@@ -25,6 +25,7 @@ import SignUp from "./pages/SignUp";
 import KDM from "./pages/KDM";
 import UpgradePlan from "./pages/UpgradePlan";
 import Payment from "./pages/Payment";
+import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/kdm" element={<KDM />} />
             <Route path="/upgrade" element={<UpgradePlan />} />
             <Route path="/payment" element={<Payment />} />
+            <Route path="/install" element={<Install />} />
                 <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <Layout>
