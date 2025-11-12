@@ -12,13 +12,13 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "https://ik.imagekit.io/e6vjjeaon/favicon-16x16.png?updatedAt=1762912620513",
+      "src": "https://ik.imagekit.io/e6vjjeaon/favicon-96x96.png?tr=w-192,h-192,fo-auto",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://ik.imagekit.io/e6vjjeaon/favicon-16x16.png?updatedAt=1762912620513",
+      "src": "https://ik.imagekit.io/e6vjjeaon/favicon-96x96.png?tr=w-512,h-512,fo-auto",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
