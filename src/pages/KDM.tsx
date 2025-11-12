@@ -34,34 +34,28 @@ const KDM = () => {
 
     switch (stage) {
       case STAGE.TYPING:
-        // Cek apakah pengetikan sudah selesai
         if ((displayedText?.length ?? 0) < currentText.length) {
-          // Ketik karakter baru
           interval = window.setInterval(() => {
             setDisplayedText((prev) => (prev ?? '') + currentText[prev?.length ?? 0]);
           }, 45);
         } else {
-          // Pengetikan selesai, pindah ke tahap jeda
           setStage(STAGE.PAUSING);
         }
         break;
 
       case STAGE.PAUSING:
-        // Jeda 1.5 detik
         interval = window.setTimeout(() => {
           if (isLastParagraph) {
             setStage(STAGE.COMPLETE);
           } else {
-            // Hapus Langsung dan pindah ke paragraf berikutnya
-            setDisplayedText(''); // Instant erase
+            setDisplayedText('');
             setParagraphIndex((prev) => prev + 1);
             setStage(STAGE.TYPING);
           }
         }, 1500);
         break;
-        
+
       case STAGE.COMPLETE:
-        // Animasi keseluruhan selesai
         break;
 
       default:
@@ -69,7 +63,6 @@ const KDM = () => {
     }
 
     return () => {
-      // Bersihkan interval atau timeout saat stage/component berubah
       if (interval) {
         clearInterval(interval);
       }
@@ -78,7 +71,7 @@ const KDM = () => {
 
   return (
     // Menggunakan font Roboto
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4 font-['Roboto']">
+    <div className="min-h-screen bg-gradient-to-br from-[#5e17eb] to-[#e88b00] flex items-center justify-center p-4 font-['Roboto']">
       <div className="w-full max-w-4xl">
         <Card className="shadow-2xl border-2 border-blue-100 rounded-2xl">
           <CardContent className="p-8 md:p-12">
@@ -90,24 +83,20 @@ const KDM = () => {
               <div className="h-1 w-32 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto rounded-full"></div>
             </div>
 
-            {/* Typing Animation (Sequential) */}
-            {/* Mengurangi min-height dan mb untuk kerapatan */}
+            {/* Typing Animation */}
             <div className="mb-4 min-h-[50px] md:min-h-[70px] text-center">
               <p className="text-lg md:text-xl text-gray-700 leading-relaxed font-medium">
                 {displayedText} 
-                {/* Tampilkan kursor berkedip hanya jika pengetikan belum selesai dan tidak sedang jeda */}
                 {stage !== STAGE.COMPLETE && stage !== STAGE.PAUSING && (
-                    <span className="animate-pulse">|</span>
+                  <span className="animate-pulse">|</span>
                 )}
               </p>
             </div>
 
             {/* Video & CTA */}
             {stage === STAGE.COMPLETE && (
-              // Mengurangi spacing secara keseluruhan (space-y dan pt)
               <div className="space-y-4 pt-4 animate-fade-in">
                 <div className="relative w-full pb-[56.25%] rounded-xl overflow-hidden shadow-xl">
-                  {/* Iframe Video Responsif */}
                   <iframe
                     className="absolute top-0 left-0 w-full h-full"
                     src="https://www.youtube.com/embed/UQSt0ncr_Ug"
