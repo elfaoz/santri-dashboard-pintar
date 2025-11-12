@@ -27,13 +27,13 @@ export default defineConfig(({ mode }) => ({
         start_url: '/',
         icons: [
           {
-            src: 'https://ik.imagekit.io/e6vjjeaon/favicon-16x16.png?updatedAt=1761951421769',
+            src: 'https://ik.imagekit.io/e6vjjeaon/favicon-96x96.png?updatedAt=1762912118986',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any maskable'
           },
           {
-            src: 'https://ik.imagekit.io/e6vjjeaon/favicon-16x16.png?updatedAt=1761951421769',
+            src: 'https://ik.imagekit.io/e6vjjeaon/favicon-96x96.png?updatedAt=1762912118986',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
