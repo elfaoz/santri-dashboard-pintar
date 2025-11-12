@@ -2,12 +2,14 @@
   "name": "Karim Dashboard Manager",
   "short_name": "KDM",
   "description": "Manajemen Santri Terpadu",
-  "theme_color": "#2563eb",
+  "theme_color": "#2596be",
   "background_color": "#ffffff",
   "display": "standalone",
   "orientation": "portrait",
   "scope": "/",
   "start_url": "/",
+  "categories": ["education", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "https://ik.imagekit.io/e6vjjeaon/favicon-16x16.png?updatedAt=1762912620513",

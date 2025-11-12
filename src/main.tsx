@@ -12,6 +12,8 @@ import { ProfileProvider } from './contexts/ProfileContext'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { TooltipProvider } from './components/ui/tooltip'
 import { Toaster } from './components/ui/toaster'
+import { PWAInstallPrompt } from './components/PWAInstallPrompt'
+import { PWAUpdatePrompt } from './components/PWAUpdatePrompt'
 
 const queryClient = new QueryClient()
 
@@ -28,6 +30,8 @@ createRoot(document.getElementById("root")!).render(
                     <TooltipProvider>
                       <App />
                       <Toaster />
+                      <PWAInstallPrompt />
+                      <PWAUpdatePrompt />
                     </TooltipProvider>
                   </FinanceProvider>
                 </ActivityProvider>
