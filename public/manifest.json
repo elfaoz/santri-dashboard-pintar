@@ -10,18 +10,13 @@
   "start_url": "/",
   "icons": [
     {
-      "src": "https://ik.imagekit.io/e6vjjeaon/favicon-16x16.png?updatedAt=1761951421769",
-      "sizes": "16x16",
-      "type": "image/png"
-    },
-    {
-      "src": "https://ik.imagekit.io/e6vjjeaon/favicon-16x16.png?updatedAt=1761951421769",
+      "src": "https://ik.imagekit.io/e6vjjeaon/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://ik.imagekit.io/e6vjjeaon/favicon-16x16.png?updatedAt=1761951421769",
+      "src": "https://ik.imagekit.io/e6vjjeaon/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
