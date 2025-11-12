@@ -66,7 +66,7 @@ const KDM = () => {
   }, [displayedText, stage, currentText, isLastParagraph]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#5e17eb] to-white flex items-center justify-center p-4 font-['Roboto']">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[hsl(var(--brand-kdm-light))] to-[hsl(var(--brand-kdm))] p-4 font-['Roboto']">
       <div className="w-full max-w-4xl">
         <Card className="shadow-2xl border-2 border-blue-100 rounded-2xl">
           <CardContent className="p-8 md:p-12">
