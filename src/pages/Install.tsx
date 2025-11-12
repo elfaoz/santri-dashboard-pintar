@@ -10,17 +10,32 @@ const Install = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if app is already installed
+    // Cek apakah aplikasi sudah terinstall
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true);
     }
 
-    const handler = (e: Event) => {
+    const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
+
+      // ✅ Tampilkan prompt install otomatis setelah jeda singkat
+      setTimeout(() => {
+        try {
+          e.prompt();
+        } catch (err) {
+          console.warn('Gagal menampilkan prompt otomatis:', err);
+        }
+      }, 800); // bisa disesuaikan (dalam milidetik)
     };
 
     window.addEventListener('beforeinstallprompt', handler);
+
+    // Jika pengguna sudah menginstall (misal via event)
+    window.addEventListener('appinstalled', () => {
+      setIsInstalled(true);
+      setDeferredPrompt(null);
+    });
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
@@ -28,9 +43,7 @@ const Install = () => {
   }, []);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) {
-      return;
-    }
+    if (!deferredPrompt) return;
 
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
@@ -50,9 +63,10 @@ const Install = () => {
           </div>
           <CardTitle className="text-2xl">Install KDM App</CardTitle>
           <CardDescription>
-            Install aplikasi Karim Dashboard Manager di perangkat Anda untuk akses yang lebih cepat
+            Install aplikasi Karim Dashboard Manager di perangkat Anda untuk akses lebih cepat dan lancar.
           </CardDescription>
         </CardHeader>
+
         <CardContent className="space-y-4">
           {isInstalled ? (
             <div className="text-center space-y-4">
@@ -60,7 +74,7 @@ const Install = () => {
                 <Check className="w-8 h-8 text-green-600" />
               </div>
               <p className="text-sm text-muted-foreground">
-                Aplikasi sudah terinstall di perangkat Anda
+                Aplikasi sudah terinstall di perangkat Anda ✅
               </p>
               <Button onClick={() => navigate('/')} className="w-full">
                 Buka Dashboard
@@ -85,7 +99,7 @@ const Install = () => {
                   <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <span className="text-xs font-semibold text-blue-600">3</span>
                   </div>
-                  <p>Loading lebih cepat dan pengalaman seperti aplikasi native</p>
+                  <p>Pengalaman cepat seperti aplikasi native</p>
                 </div>
               </div>
 
@@ -101,7 +115,7 @@ const Install = () => {
               ) : (
                 <div className="space-y-3">
                   <p className="text-sm text-muted-foreground text-center">
-                    Untuk menginstall aplikasi:
+                    Untuk menginstall aplikasi secara manual:
                   </p>
                   <div className="text-xs text-muted-foreground space-y-2 bg-muted p-4 rounded-lg">
                     <p><strong>Di iOS:</strong> Tap tombol Share → "Add to Home Screen"</p>
