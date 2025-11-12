@@ -109,7 +109,7 @@ const KDM = () => {
                   <Button
                     onClick={() => navigate('/signup')}
                     size="lg"
-                    className="bg-gradient-to-r from-[#5e17eb] to-[#e88b00] hover:from-[#5e17eb] hover:to-[#e88b00] text-white font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
+                    className="bg-gradient-to-r from-[#5e17eb] to-[#ffffff] hover:from-[#5e17eb] hover:to-[#5e17eb] text-white font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
                   >
                     Daftar Sekarang
                     <ArrowRight className="ml-2 h-5 w-5 inline-block" />
