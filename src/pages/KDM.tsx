@@ -72,10 +72,10 @@ const KDM = () => {
           <CardContent className="p-8 md:p-12">
             {/* Header */}
             <div className="text-center mb-6">
-              <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-[#5e17eb] to-[#e88b00] bg-clip-text text-transparent mb-4">
+              <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-[#5e17eb] via-[#9b5de5] to-white bg-clip-text text-transparent mb-4">
                 KDM - Karim Dashboard Manager
               </h1>
-              <div className="h-1 w-32 bg-gradient-to-r from-[#5e17eb] to-[#e88b00] mx-auto rounded-full"></div>
+              <div className="h-1 w-32 bg-gradient-to-r from-[#5e17eb] via-[#9b5de5] to-white mx-auto rounded-full"></div>
             </div>
 
             {/* Typing Animation */}
@@ -109,7 +109,7 @@ const KDM = () => {
                   <Button
                     onClick={() => navigate('/signup')}
                     size="lg"
-                    className="bg-gradient-to-r from-[#5e17eb] to-[#ffffff] hover:from-[#5e17eb] hover:to-[#5e17eb] text-white font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
+                    className="bg-gradient-to-r from-[#5e17eb] via-[#9b5de5] to-white hover:from-[#5e17eb] hover:via-[#9b5de5] hover:to-white text-white font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
                   >
                     Daftar Sekarang
                     <ArrowRight className="ml-2 h-5 w-5 inline-block" />
