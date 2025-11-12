@@ -12,7 +12,6 @@ import { ActivityProvider } from "@/contexts/ActivityContext";
 import { FinanceProvider } from "@/contexts/FinanceContext";
 
 import Layout from "./components/Layout";
-import { PWAInstallPrompt } from "./components/PWAInstallPrompt";
 
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
@@ -46,9 +45,6 @@ const App = () => (
                     <Toaster />
                     <Sonner />
                     <BrowserRouter>
-                      {/* ✅ Komponen PWAInstallPrompt hanya muncul di home & /install */}
-                      <PWAInstallPrompt />
-                      
                       <Routes>
                         {/* Halaman publik */}
                         <Route path="/" element={<Home />} />
