@@ -15,8 +15,13 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* KDM Brand Colors */
+    --brand-kdm: 196 67% 45%;
+    --brand-kdm-light: 196 67% 85%;
+    --brand-kdm-foreground: 0 0% 100%;
+
+    --primary: 196 67% 45%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;

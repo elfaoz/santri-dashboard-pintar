@@ -58,21 +58,21 @@ Jazakummullahu khairan`;
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-2xl">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-[hsl(var(--brand-kdm-light)/0.3)] to-background p-4">
+      <Card className="w-full max-w-2xl shadow-xl border-[hsl(var(--brand-kdm-light))]">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-start">
             <Link to="/login">
-              <Button variant="ghost" size="sm" className="gap-2">
+              <Button variant="ghost" size="sm" className="gap-2 text-[hsl(var(--brand-kdm))] hover:bg-[hsl(var(--brand-kdm-light))]">
                 <ArrowLeft className="h-4 w-4" />
                 Kembali ke Login
               </Button>
             </Link>
           </div>
-          <CardTitle className="text-3xl font-bold text-blue-900">
+          <CardTitle className="text-3xl font-bold text-[hsl(var(--brand-kdm))]">
             Pendaftaran KDM 1.0
           </CardTitle>
-          <CardDescription className="text-base text-gray-700 leading-relaxed px-4">
+          <CardDescription className="text-base leading-relaxed px-4">
             Mohon Maaf, Pendaftaran Semester ini Telah <span className="font-bold">Ditutup</span>. 
             Namun, jangan khawatir anda masih bisa mendapatkan kesempatan menggunakan 
             KDM – Karim Dashboard Manager di semester berikutnya. Silakan tinggalkan 
@@ -110,7 +110,7 @@ Jazakummullahu khairan`;
             </p>
             <Button 
               type="submit" 
-              className="w-full bg-green-600 hover:bg-green-700"
+              className="w-full bg-[hsl(var(--brand-kdm))] hover:bg-[hsl(var(--brand-kdm))/0.9] text-[hsl(var(--brand-kdm-foreground))]"
               disabled={isLoading}
             >
               {isLoading ? 'Membuka WhatsApp...' : 'Kirim via WhatsApp'}

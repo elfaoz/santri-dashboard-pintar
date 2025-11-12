@@ -37,11 +37,11 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[hsl(var(--brand-kdm-light))] to-[hsl(var(--brand-kdm))] p-4">
+      <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold text-blue-900 mb-2">KDM 1.0</CardTitle>
-          <CardDescription className="text-lg text-gray-600">
+          <CardTitle className="text-3xl font-bold text-[hsl(var(--brand-kdm))] mb-2">KDM 1.0</CardTitle>
+          <CardDescription className="text-lg">
             Karim Dashboard Manager
           </CardDescription>
         </CardHeader>
@@ -72,7 +72,7 @@ const Login: React.FC = () => {
             <div className="flex gap-2">
               <Button 
                 type="submit" 
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                className="flex-1"
                 disabled={isLoading}
               >
                 {isLoading ? 'Memproses...' : 'Masuk'}
@@ -80,7 +80,7 @@ const Login: React.FC = () => {
               <Button 
                 type="button" 
                 variant="outline"
-                className="flex-1"
+                className="flex-1 border-[hsl(var(--brand-kdm))] text-[hsl(var(--brand-kdm))] hover:bg-[hsl(var(--brand-kdm-light))]"
                 onClick={() => navigate('/signup')}
               >
                 Sign Up
