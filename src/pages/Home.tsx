@@ -7,17 +7,26 @@ const Home: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white font-roboto">
-      {/* Header with Login */}
+      {/* Header with Login and Install */}
       <header className="w-full py-4 px-6 border-b border-gray-200">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">KDM 1.0</h1>
-          <Button 
-            onClick={() => navigate('/login')}
-            variant="outline"
-            className="text-gray-900 border-gray-300 hover:bg-gray-50"
-          >
-            Login
-          </Button>
+          <div className="flex space-x-4">
+            <Button 
+              onClick={() => navigate('/login')}
+              variant="outline"
+              className="text-gray-900 border-gray-300 hover:bg-gray-50"
+            >
+              Login
+            </Button>
+            <Button 
+              onClick={() => window.location.href = 'https://insankarim.com/install'}
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Install
+            </Button>
+          </div>
         </div>
       </header>
 
