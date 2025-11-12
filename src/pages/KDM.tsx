@@ -4,7 +4,6 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
-// Konstanta untuk mengelola tahap animasi
 const STAGE = {
   TYPING: 'typing',
   PAUSING: 'pausing',
@@ -56,6 +55,9 @@ const KDM = () => {
 
       case STAGE.COMPLETE:
         break;
+
+      default:
+        break;
     }
 
     return () => {
@@ -64,38 +66,31 @@ const KDM = () => {
   }, [displayedText, stage, currentText, isLastParagraph]);
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4 font-['Roboto']"
-      style={{ background: 'linear-gradient(135deg, #5e17eb 0%, #e88b00 20%)' }}
-    >
+    <div className="min-h-screen bg-gradient-to-br from-[#5e17eb] to-[#e88b00] flex items-center justify-center p-4 font-['Roboto']">
       <div className="w-full max-w-4xl">
         <Card className="shadow-2xl border-2 border-blue-100 rounded-2xl">
           <CardContent className="p-8 md:p-12">
             {/* Header */}
             <div className="text-center mb-6">
-              <h1
-                className="text-4xl md:text-5xl font-extrabold bg-clip-text text-transparent mb-4"
-                style={{ background: 'linear-gradient(90deg, #5e17eb 0%, #e88b00 20%)' }}
-              >
+              <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-[#5e17eb] to-[#e88b00] bg-clip-text text-transparent mb-4">
                 KDM - Karim Dashboard Manager
               </h1>
-              <div
-                className="h-1 w-32 mx-auto rounded-full"
-                style={{ background: 'linear-gradient(90deg, #5e17eb 0%, #e88b00 20%)' }}
-              ></div>
+              <div className="h-1 w-32 bg-gradient-to-r from-[#5e17eb] to-[#e88b00] mx-auto rounded-full"></div>
             </div>
 
             {/* Typing Animation */}
             <div className="mb-4 min-h-[50px] md:min-h-[70px] text-center">
               <p className="text-lg md:text-xl text-gray-700 leading-relaxed font-medium">
-                {displayedText}
-                {stage !== STAGE.COMPLETE && stage !== STAGE.PAUSING && <span className="animate-pulse">|</span>}
+                {displayedText} 
+                {stage !== STAGE.COMPLETE && stage !== STAGE.PAUSING && (
+                  <span className="animate-pulse">|</span>
+                )}
               </p>
             </div>
 
             {/* Video & CTA */}
             {stage === STAGE.COMPLETE && (
-              <div className="space-y-4 pt-4 animate-fade-in text-center">
+              <div className="space-y-4 pt-4 animate-fade-in">
                 <div className="relative w-full pb-[56.25%] rounded-xl overflow-hidden shadow-xl">
                   <iframe
                     className="absolute top-0 left-0 w-full h-full"
@@ -107,18 +102,19 @@ const KDM = () => {
                   ></iframe>
                 </div>
 
-                <p className="text-xl md:text-2xl font-bold text-gray-800">
-                  Siap beralih ke sistem digital?
-                </p>
-                <Button
-                  onClick={() => navigate('/signup')}
-                  size="lg"
-                  className="text-white font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
-                  style={{ background: 'linear-gradient(90deg, #5e17eb 0%, #e88b00 20%)' }}
-                >
-                  Daftar Sekarang
-                  <ArrowRight className="ml-2 h-5 w-5 inline-block" />
-                </Button>
+                <div className="text-center space-y-4 pt-4">
+                  <p className="text-xl md:text-2xl font-bold text-gray-800">
+                    Siap beralih ke sistem digital?
+                  </p>
+                  <Button
+                    onClick={() => navigate('/signup')}
+                    size="lg"
+                    className="bg-gradient-to-r from-[#5e17eb] to-[#e88b00] hover:from-[#5e17eb] hover:to-[#e88b00] text-white font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.02]"
+                  >
+                    Daftar Sekarang
+                    <ArrowRight className="ml-2 h-5 w-5 inline-block" />
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
