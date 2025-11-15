@@ -23,30 +23,52 @@ const ActivitiesMonthlySection: React.FC<ActivitiesMonthlyProps> = ({
   activities
 }) => {
 
-  // ✅ Perbaikan: urutan bulan harus sesuai index JavaScript
+  // Urutan bulan sesuai JS
   const months = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
   ];
-  
-  // Bulan default = bulan real saat ini
+
+  // Bulan default = real time bulan sekarang
   const [currentMonthIndex, setCurrentMonthIndex] = useState(new Date().getMonth());
   const [currentYear] = useState(new Date().getFullYear());
 
+  // 🔥 PARSER TANGGAL FIX 100%
+  const parseRecordMonth = (rawDate: string) => {
+    const clean = rawDate.replace(/\s+/g, '');
+    const parts = clean.split(/[-/.]/);
+
+    let day, month, year;
+
+    if (parts.length === 3) {
+      // Format normal: DD/MM/YYYY
+      [day, month, year] = parts.map(Number);
+    } else if (parts.length === 2) {
+      // Format aneh: "12/112025"
+      day = Number(parts[0]);
+      const str = parts[1];
+      month = Number(str.slice(0, 2));
+      year = Number(str.slice(2));
+    } else {
+      return null;
+    }
+
+    return month - 1; // convert to 0-based index
+  };
+
   const goToPreviousMonth = () => {
-    setCurrentMonthIndex((prev) => (prev === 0 ? 11 : prev - 1));
+    setCurrentMonthIndex(prev => (prev === 0 ? 11 : prev - 1));
   };
 
   const goToNextMonth = () => {
-    setCurrentMonthIndex((prev) => (prev === 11 ? 0 : prev + 1));
+    setCurrentMonthIndex(prev => (prev === 11 ? 0 : prev + 1));
   };
 
   const getMonthlyStats = () => {
     if (!selectedStudent) return {};
-    
+
     const monthRecords = activityRecords.filter(record => {
-      const recordDate = new Date(record.date);
-      const recordMonth = recordDate.getMonth();
+      const recordMonth = parseRecordMonth(record.date);
       return record.studentId === selectedStudent && recordMonth === currentMonthIndex;
     });
 
@@ -59,7 +81,9 @@ const ActivitiesMonthlySection: React.FC<ActivitiesMonthlyProps> = ({
   };
 
   const stats = getMonthlyStats();
-  const studentName = selectedStudent ? students.find(s => s.id.toString() === selectedStudent)?.name : '';
+  const studentName = selectedStudent
+    ? students.find(s => s.id.toString() === selectedStudent)?.name
+    : '';
 
   if (!selectedStudent || activityRecords.length === 0) {
     return null;
@@ -90,17 +114,21 @@ const ActivitiesMonthlySection: React.FC<ActivitiesMonthlyProps> = ({
             </button>
           </div>
         </div>
+
         {studentName && (
           <p className="text-sm text-gray-600 mt-1">Santri: {studentName}</p>
         )}
       </div>
-      
+
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
               {activities.map(activity => (
-                <th key={activity.id} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                <th
+                  key={activity.id}
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                >
                   {activity.emoji} {activity.label}
                 </th>
               ))}
@@ -109,7 +137,10 @@ const ActivitiesMonthlySection: React.FC<ActivitiesMonthlyProps> = ({
           <tbody className="bg-white">
             <tr>
               {activities.map(activity => (
-                <td key={activity.id} className="px-6 py-4 text-sm font-medium text-gray-900">
+                <td
+                  key={activity.id}
+                  className="px-6 py-4 text-sm font-medium text-gray-900"
+                >
                   {stats[activity.id] || 0} hari
                 </td>
               ))}
