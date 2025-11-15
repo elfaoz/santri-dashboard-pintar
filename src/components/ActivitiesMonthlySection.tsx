@@ -22,11 +22,14 @@ const ActivitiesMonthlySection: React.FC<ActivitiesMonthlyProps> = ({
   students,
   activities
 }) => {
+
+  // ✅ Perbaikan: urutan bulan harus sesuai index JavaScript
   const months = [
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
   ];
   
+  // Bulan default = bulan real saat ini
   const [currentMonthIndex, setCurrentMonthIndex] = useState(new Date().getMonth());
   const [currentYear] = useState(new Date().getFullYear());
 
