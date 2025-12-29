@@ -22,28 +22,52 @@ const AttendanceMonthlySection: React.FC<AttendanceMonthlyProps> = ({
   selectedStudent,
   students
 }) => {
+  // Urutan bulan sesuai JS
   const months = [
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
-    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
   ];
-  
+
+  // Bulan default = real time bulan sekarang
   const [currentMonthIndex, setCurrentMonthIndex] = useState(new Date().getMonth());
   const [currentYear] = useState(new Date().getFullYear());
 
+  // Parser tanggal yang robust
+  const parseRecordMonth = (rawDate: string) => {
+    const clean = rawDate.replace(/\s+/g, '');
+    const parts = clean.split(/[-/.]/);
+
+    let month;
+
+    if (parts.length === 3) {
+      if (parts[0].length === 4) {
+        month = Number(parts[1]);
+      } else {
+        month = Number(parts[1]);
+      }
+    } else if (parts.length === 2) {
+      const str = parts[1];
+      month = Number(str.slice(0, 2));
+    } else {
+      return null;
+    }
+
+    return month - 1;
+  };
+
   const goToPreviousMonth = () => {
-    setCurrentMonthIndex((prev) => (prev === 0 ? 11 : prev - 1));
+    setCurrentMonthIndex(prev => (prev === 0 ? 11 : prev - 1));
   };
 
   const goToNextMonth = () => {
-    setCurrentMonthIndex((prev) => (prev === 11 ? 0 : prev + 1));
+    setCurrentMonthIndex(prev => (prev === 11 ? 0 : prev + 1));
   };
 
   const getMonthlyStats = () => {
     if (!selectedStudent) return { hadir: 0, izin: 0, sakit: 0, tanpaKeterangan: 0, pulang: 0 };
-    
+
     const monthRecords = attendanceRecords.filter(record => {
-      const recordDate = new Date(record.date);
-      const recordMonth = recordDate.getMonth();
+      const recordMonth = parseRecordMonth(record.date);
       return record.studentId === selectedStudent && recordMonth === currentMonthIndex;
     });
 
