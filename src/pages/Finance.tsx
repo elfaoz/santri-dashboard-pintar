@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Calendar, Pencil, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Calendar, Pencil, Trash2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -16,15 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
 import { useFinance } from '@/contexts/FinanceContext';
@@ -61,14 +44,9 @@ const Finance: React.FC = () => {
   const { students } = useStudents();
   const { halaqahs: registeredHalaqahs } = useHalaqahs();
   const { expenseRecords, addExpenseRecord, updateExpenseRecord, deleteExpenseRecord } = useFinance();
-  const [isOpen, setIsOpen] = useState(false);
   const [selectedHalaqah, setSelectedHalaqah] = useState('all');
   const [selectedStudent, setSelectedStudent] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [editData, setEditData] = useState<StudentFinance | null>(null);
   const [editingExpense, setEditingExpense] = useState<ExpenseRecord | null>(null);
   const [isEditExpenseModalOpen, setIsEditExpenseModalOpen] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
@@ -227,7 +205,7 @@ const Finance: React.FC = () => {
             <p className="text-gray-600">Kelola data keuangan santri mingguan secara teratur</p>
           </div>
 
-          {/* Filters */}
+          {/* Filters - Only appears once */}
           <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-center space-x-3">
               <Calendar className="text-gray-400" size={20} />
@@ -270,7 +248,7 @@ const Finance: React.FC = () => {
             </select>
           </div>
 
-          {/* Input Section */}
+          {/* Input Section - Only appears once */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
             <div className="px-6 py-4 border-b border-gray-100">
               <h3 className="text-lg font-semibold text-gray-800">
@@ -351,7 +329,7 @@ const Finance: React.FC = () => {
             </div>
           </div>
 
-          {/* Weekly Expense Table */}
+          {/* Weekly Expense Table - Only appears once */}
           {studentExpenses.length > 0 && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
               <div className="px-6 py-4 border-b border-gray-100">
@@ -408,7 +386,7 @@ const Finance: React.FC = () => {
             </div>
           )}
 
-          {/* Expense History Detail Section */}
+          {/* Expense History Detail Section - Only appears once */}
           {expenseRecords.length > 0 && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
               <div className="px-6 py-4 border-b border-gray-100">
@@ -472,8 +450,8 @@ const Finance: React.FC = () => {
             </div>
           )}
 
-          {/* Summary Table */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          {/* Summary Table - Only appears once */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
               <h3 className="text-lg font-semibold text-gray-800">Summary</h3>
             </div>
