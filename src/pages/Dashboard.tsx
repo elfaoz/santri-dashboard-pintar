@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import DashboardStats from '../components/DashboardStats';
+import StudentOverviewDashboard from '../components/StudentOverviewDashboard';
 import LeaderboardOverview from '../components/LeaderboardOverview';
 import ShareResultsSection from '../components/ShareResultsSection';
 
@@ -9,11 +10,13 @@ const Dashboard: React.FC = () => {
   return (
     <div className="p-6 space-y-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Dashboard Overview</h1>
-        <p className="text-gray-600">Ustadz Ahmad Wijaya</p>
+        <h1 className="text-2xl font-bold text-foreground mb-2">Dashboard Overview</h1>
+        <p className="text-muted-foreground">Ustadz Ahmad Wijaya</p>
       </div>
       
       <DashboardStats />
+      
+      <StudentOverviewDashboard />
       
       <LeaderboardOverview 
         selectedCategories={selectedCategories}
