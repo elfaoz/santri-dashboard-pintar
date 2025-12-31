@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { User, Calendar, Book, FileText, BarChart3, X, UserPlus, LogOut } from 'lucide-react';
+import { User, Calendar, Book, FileText, BarChart3, X, UserPlus, LogOut, ChevronUp, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SidebarProps {
@@ -11,6 +11,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const navRef = useRef<HTMLDivElement>(null);
 
   const navItems = [
     { path: '/dashboard', icon: BarChart3, label: 'Dashboard', emoji: '📊' },
@@ -26,6 +27,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     logout();
     navigate('/');
     onClose();
+  };
+
+  const scrollUp = () => {
+    if (navRef.current) {
+      navRef.current.scrollBy({ top: -100, behavior: 'smooth' });
+    }
+  };
+
+  const scrollDown = () => {
+    if (navRef.current) {
+      navRef.current.scrollBy({ top: 100, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -56,30 +69,49 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </button>
         </div>
         
-        <nav className="p-4 flex flex-col h-full">
-          <ul className="space-y-2 flex-1">
-            {navItems.map((item) => (
-              <li key={item.path}>
-                <NavLink
-                  to={item.path}
-                  className={({ isActive }) =>
-                    `flex items-center px-4 py-3 rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                        : 'text-gray-700 hover:bg-gray-50'
-                    }`
-                  }
-                  onClick={onClose}
-                >
-                  <span className="text-lg mr-3">{item.emoji}</span>
-                  <span className="font-medium">{item.label}</span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
+        <div className="flex flex-col h-[calc(100%-88px)]">
+          {/* Scroll Up Button */}
+          <button
+            onClick={scrollUp}
+            className="flex items-center justify-center py-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors border-b border-gray-100"
+          >
+            <ChevronUp size={20} />
+          </button>
+
+          {/* Navigation - Scrollable */}
+          <div ref={navRef} className="flex-1 overflow-y-auto p-4">
+            <ul className="space-y-2">
+              {navItems.map((item) => (
+                <li key={item.path}>
+                  <NavLink
+                    to={item.path}
+                    className={({ isActive }) =>
+                      `flex items-center px-4 py-3 rounded-lg transition-colors ${
+                        isActive
+                          ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`
+                    }
+                    onClick={onClose}
+                  >
+                    <span className="text-lg mr-3">{item.emoji}</span>
+                    <span className="font-medium">{item.label}</span>
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Scroll Down Button */}
+          <button
+            onClick={scrollDown}
+            className="flex items-center justify-center py-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors border-t border-gray-100"
+          >
+            <ChevronDown size={20} />
+          </button>
           
           {/* Logout Button */}
-          <div className="mt-auto pt-4 border-t border-gray-100">
+          <div className="p-4 border-t border-gray-100">
             <button
               onClick={handleLogout}
               className="flex items-center w-full px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
@@ -88,7 +120,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <span className="font-medium">Logout</span>
             </button>
           </div>
-        </nav>
+        </div>
       </div>
     </>
   );

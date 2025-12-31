@@ -56,7 +56,48 @@ const Finance: React.FC = () => {
   const [expenseCategory, setExpenseCategory] = useState('');
   const [expenseNotes, setExpenseNotes] = useState('');
 
-  const [studentsFinance, setStudentsFinance] = useState<StudentFinance[]>([]);
+  // Derived state - calculate summary directly from expenseRecords
+  const studentsFinance: StudentFinance[] = React.useMemo(() => {
+    const defaultBudgetHarian = 15000;
+    const defaultBudgetMingguan = defaultBudgetHarian * 7;
+    
+    // Get current week dates
+    const endDate = new Date(selectedDate);
+    const startDate = new Date(endDate);
+    startDate.setDate(endDate.getDate() - 6);
+    
+    const weekDatesForCalc: string[] = [];
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      weekDatesForCalc.push(new Date(d).toISOString().split('T')[0]);
+    }
+    
+    // Group expenses by student name for the current week
+    const expensesByStudent: Record<string, number> = {};
+    expenseRecords.forEach(record => {
+      if (weekDatesForCalc.includes(record.tanggal)) {
+        if (!expensesByStudent[record.nama]) {
+          expensesByStudent[record.nama] = 0;
+        }
+        expensesByStudent[record.nama] += record.jumlah;
+      }
+    });
+    
+    // Create finance summary for each student with expenses
+    return Object.entries(expensesByStudent).map(([nama, pengeluaranMingguIni], index) => {
+      const persentase = Math.round((pengeluaranMingguIni / defaultBudgetMingguan) * 100);
+      return {
+        id: index + 1,
+        nama,
+        halaqah: selectedHalaqah,
+        budgetHarian: defaultBudgetHarian,
+        budgetMingguan: defaultBudgetMingguan,
+        pengeluaranMingguIni,
+        persentase,
+        status: persentase <= 100 ? 'hemat' : 'over' as 'hemat' | 'over',
+        statusText: persentase <= 100 ? 'Hemat' : 'Over Budget'
+      };
+    });
+  }, [expenseRecords, selectedDate, selectedHalaqah]);
 
   const getStudentsByHalaqah = (halaqahId: string) => {
     if (halaqahId === 'all') return students;
@@ -87,46 +128,6 @@ const Finance: React.FC = () => {
     };
     
     addExpenseRecord(newExpense);
-    
-    // Update or create student finance record
-    const existingStudentFinance = studentsFinance.find(sf => sf.nama === student.name);
-    
-    if (existingStudentFinance) {
-      const updatedFinance = studentsFinance.map(sf => {
-        if (sf.nama === student.name) {
-          const newWeeklyExpense = sf.pengeluaranMingguIni + parseInt(expenseAmount);
-          const newPercentage = Math.round((newWeeklyExpense / sf.budgetMingguan) * 100);
-          return {
-            ...sf,
-            pengeluaranMingguIni: newWeeklyExpense,
-            persentase: newPercentage,
-            status: newPercentage <= 100 ? 'hemat' : 'over' as 'hemat' | 'over',
-            statusText: newPercentage <= 100 ? 'Hemat' : 'Over Budget'
-          };
-        }
-        return sf;
-      });
-      setStudentsFinance(updatedFinance);
-    } else {
-      const defaultBudgetHarian = 15000;
-      const defaultBudgetMingguan = defaultBudgetHarian * 7;
-      const weeklyExpense = parseInt(expenseAmount);
-      const percentage = Math.round((weeklyExpense / defaultBudgetMingguan) * 100);
-      
-      const newStudentFinance: StudentFinance = {
-        id: Date.now(),
-        nama: student.name,
-        halaqah: selectedHalaqah,
-        budgetHarian: defaultBudgetHarian,
-        budgetMingguan: defaultBudgetMingguan,
-        pengeluaranMingguIni: weeklyExpense,
-        persentase: percentage,
-        status: percentage <= 100 ? 'hemat' : 'over',
-        statusText: percentage <= 100 ? 'Hemat' : 'Over Budget'
-      };
-      
-      setStudentsFinance(prev => [...prev, newStudentFinance]);
-    }
 
     // Reset form
     setExpenseAmount('');
