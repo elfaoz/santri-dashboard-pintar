@@ -49,6 +49,7 @@ const ShareResultsSection: React.FC = () => {
   const { expenseRecords } = useFinance();
   const [selectedStudent, setSelectedStudent] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
   const [linkCopied, setLinkCopied] = useState(false);
 
   const categories = [
@@ -59,11 +60,25 @@ const ShareResultsSection: React.FC = () => {
     { id: 'finance', label: 'Finance' }
   ];
 
+  const recipients = [
+    { id: 'mudir_am', label: "Mudir 'Am" },
+    { id: 'mudir_asrama', label: 'Mudir Asrama' },
+    { id: 'orang_tua', label: 'Orang Tua Santri' }
+  ];
+
   const handleCategoryToggle = (categoryId: string) => {
     if (selectedCategories.includes(categoryId)) {
       setSelectedCategories(selectedCategories.filter(c => c !== categoryId));
     } else {
       setSelectedCategories([...selectedCategories, categoryId]);
+    }
+  };
+
+  const handleRecipientToggle = (recipientId: string) => {
+    if (selectedRecipients.includes(recipientId)) {
+      setSelectedRecipients(selectedRecipients.filter(r => r !== recipientId));
+    } else {
+      setSelectedRecipients([...selectedRecipients, recipientId]);
     }
   };
 
@@ -169,19 +184,34 @@ const ShareResultsSection: React.FC = () => {
 
   const handleWhatsAppShare = () => {
     const studentData = getStudentData();
-    if (!studentData || selectedCategories.length === 0) return;
+    if (!studentData || selectedCategories.length === 0 || selectedRecipients.length === 0) return;
 
     const student = students.find(s => s.id.toString() === selectedStudent);
     if (!student) return;
 
-    let message = `*Laporan Santri - ${student.name}*\n\n`;
+    // Format current date
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    // Get recipient names
+    const recipientNames = selectedRecipients.map(id => {
+      const recipient = recipients.find(r => r.id === id);
+      return recipient?.label || '';
+    }).join(', ');
+
+    let message = `Kepada Ykh. ${recipientNames}\n\n`;
+    message += `Berikut ini kami sampaikan laporan perkembangan ananda *${student.name}* per tanggal ${formattedDate}\n\n`;
 
     if (selectedCategories.includes('profile')) {
       message += `📋 *Data Santri*\n`;
       message += `• Nama: ${studentData.profile.name}\n`;
       message += `• Kelas: ${studentData.profile.class}\n`;
-      message += `• Level: ${studentData.profile.level}\n`;
-      message += `• Periode: ${studentData.profile.period}\n\n`;
+      message += `• Level: ${studentData.profile.level}\n\n`;
     }
 
     if (selectedCategories.includes('attendance')) {
@@ -283,11 +313,35 @@ const ShareResultsSection: React.FC = () => {
         </div>
       </div>
 
+      {/* Recipient Selection */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Tujuan Laporan:
+        </label>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {recipients.map((recipient) => (
+            <div key={recipient.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={`recipient-${recipient.id}`}
+                checked={selectedRecipients.includes(recipient.id)}
+                onCheckedChange={() => handleRecipientToggle(recipient.id)}
+              />
+              <label
+                htmlFor={`recipient-${recipient.id}`}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+              >
+                {recipient.label}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Action Buttons */}
       <div className="flex justify-center mb-6">
         <Button
           onClick={handleWhatsAppShare}
-          disabled={!selectedStudent || selectedCategories.length === 0}
+          disabled={!selectedStudent || selectedCategories.length === 0 || selectedRecipients.length === 0}
           className="bg-green-600 hover:bg-green-700"
         >
           <Share2 className="mr-2 h-4 w-4" />
@@ -310,7 +364,7 @@ const ShareResultsSection: React.FC = () => {
                     <div>
                       <p className="font-semibold text-sm">Data Santri</p>
                       <p className="text-xs text-gray-600">
-                        {studentData.profile.name} - {studentData.profile.class} - {studentData.profile.level} - {studentData.profile.period}
+                        {studentData.profile.name} - {studentData.profile.class} - {studentData.profile.level}
                       </p>
                     </div>
                   )}
