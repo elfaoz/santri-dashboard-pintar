@@ -33,34 +33,44 @@ const StudentOverviewDashboard: React.FC = () => {
     return { levels: Object.keys(countByLevelGender), data: countByLevelGender };
   }, [students]);
 
-  // Table 2: Count halaqah members by Halaqah Level and Gender
-  const membersByHalaqahLevel = useMemo(() => {
-    const halaqahLevels = ['Tahsin', 'Tahfizh 1', 'Tahfizh 2', 'Tahfizh Kamil'];
+  // Table 2: Count halaqah members by Halaqah Level (columns) and Class (rows)
+  const membersByLevelAndClass = useMemo(() => {
+    // Get unique levels from registered halaqahs
+    const halaqahLevels = [...new Set(halaqahs.map(h => h.level))].filter(Boolean).sort();
     
-    const countByLevel: Record<string, { male: number; female: number; total: number }> = {};
+    // Get unique classes from registered students
+    const studentClasses = [...new Set(students.map(s => s.class))].filter(Boolean).sort();
     
-    halaqahLevels.forEach(level => {
-      countByLevel[level] = { male: 0, female: 0, total: 0 };
+    // Initialize count matrix
+    const countByLevelClass: Record<string, Record<string, number>> = {};
+    
+    studentClasses.forEach(cls => {
+      countByLevelClass[cls] = {};
+      halaqahLevels.forEach(level => {
+        countByLevelClass[cls][level] = 0;
+      });
     });
 
+    // Count members by level and class
     halaqahs.forEach(halaqah => {
       const level = halaqah.level;
-      if (countByLevel[level] && halaqah.selectedStudents) {
-        halaqah.selectedStudents.forEach(studentName => {
-          const student = students.find(s => s.name === studentName);
-          if (student) {
-            if (student.gender === 'Laki-laki') {
-              countByLevel[level].male++;
-            } else if (student.gender === 'Perempuan') {
-              countByLevel[level].female++;
+      if (halaqah.selectedStudents) {
+        halaqah.selectedStudents.forEach(studentId => {
+          const student = students.find(s => s.id.toString() === studentId);
+          if (student && student.class) {
+            if (!countByLevelClass[student.class]) {
+              countByLevelClass[student.class] = {};
+              halaqahLevels.forEach(l => {
+                countByLevelClass[student.class][l] = 0;
+              });
             }
-            countByLevel[level].total++;
+            countByLevelClass[student.class][level] = (countByLevelClass[student.class][level] || 0) + 1;
           }
         });
       }
     });
 
-    return { levels: halaqahLevels, data: countByLevel };
+    return { levels: halaqahLevels, classes: studentClasses, data: countByLevelClass };
   }, [halaqahs, students]);
 
   // Calculate totals for Table 1
@@ -74,16 +84,28 @@ const StudentOverviewDashboard: React.FC = () => {
     return { male, female, total: male + female };
   }, [studentsByLevelAndGender]);
 
-  // Calculate totals for Table 2
+  // Calculate totals for Table 2 (by level and by class)
   const table2Totals = useMemo(() => {
-    let male = 0;
-    let female = 0;
-    Object.values(membersByHalaqahLevel.data).forEach(count => {
-      male += count.male;
-      female += count.female;
+    const levelTotals: Record<string, number> = {};
+    const classTotals: Record<string, number> = {};
+    let grandTotal = 0;
+
+    membersByLevelAndClass.levels.forEach(level => {
+      levelTotals[level] = 0;
     });
-    return { male, female, total: male + female };
-  }, [membersByHalaqahLevel]);
+
+    membersByLevelAndClass.classes.forEach(cls => {
+      classTotals[cls] = 0;
+      membersByLevelAndClass.levels.forEach(level => {
+        const count = membersByLevelAndClass.data[cls]?.[level] || 0;
+        levelTotals[level] += count;
+        classTotals[cls] += count;
+        grandTotal += count;
+      });
+    });
+
+    return { levelTotals, classTotals, grandTotal };
+  }, [membersByLevelAndClass]);
 
   return (
     <div className="space-y-6">
@@ -143,52 +165,50 @@ const StudentOverviewDashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Table 2: Halaqah Members by Level and Gender */}
+        {/* Table 2: Halaqah Members by Level (columns) and Class (rows) */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Jumlah Anggota Halaqah Berdasarkan Level</CardTitle>
+            <CardTitle className="text-base">Jumlah Anggota Halaqah Berdasarkan Level dan Kelas</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="font-semibold">Jenis Kelamin</TableHead>
-                  {membersByHalaqahLevel.levels.map(level => (
+                  <TableHead className="font-semibold">Kelas</TableHead>
+                  {membersByLevelAndClass.levels.map(level => (
                     <TableHead key={level} className="text-center">{level}</TableHead>
                   ))}
                   <TableHead className="text-center font-semibold">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell className="font-medium">Laki-laki</TableCell>
-                  {membersByHalaqahLevel.levels.map(level => (
-                    <TableCell key={level} className="text-center">
-                      {membersByHalaqahLevel.data[level]?.male || 0}
+                {membersByLevelAndClass.classes.map(cls => (
+                  <TableRow key={cls}>
+                    <TableCell className="font-medium">{cls}</TableCell>
+                    {membersByLevelAndClass.levels.map(level => (
+                      <TableCell key={level} className="text-center">
+                        {membersByLevelAndClass.data[cls]?.[level] || 0}
+                      </TableCell>
+                    ))}
+                    <TableCell className="text-center font-semibold">
+                      {table2Totals.classTotals[cls] || 0}
                     </TableCell>
-                  ))}
-                  <TableCell className="text-center font-semibold">{table2Totals.male}</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium">Perempuan</TableCell>
-                  {membersByHalaqahLevel.levels.map(level => (
-                    <TableCell key={level} className="text-center">
-                      {membersByHalaqahLevel.data[level]?.female || 0}
-                    </TableCell>
-                  ))}
-                  <TableCell className="text-center font-semibold">{table2Totals.female}</TableCell>
-                </TableRow>
+                  </TableRow>
+                ))}
                 <TableRow className="bg-muted/50">
                   <TableCell className="font-semibold">Total</TableCell>
-                  {membersByHalaqahLevel.levels.map(level => (
+                  {membersByLevelAndClass.levels.map(level => (
                     <TableCell key={level} className="text-center font-semibold">
-                      {membersByHalaqahLevel.data[level]?.total || 0}
+                      {table2Totals.levelTotals[level] || 0}
                     </TableCell>
                   ))}
-                  <TableCell className="text-center font-bold">{table2Totals.total}</TableCell>
+                  <TableCell className="text-center font-bold">{table2Totals.grandTotal}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
+            {membersByLevelAndClass.levels.length === 0 && (
+              <p className="text-center text-muted-foreground py-4">Belum ada data halaqah terdaftar</p>
+            )}
           </CardContent>
         </Card>
       </div>
