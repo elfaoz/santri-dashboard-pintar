@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Share2, Link2, Check } from 'lucide-react';
+import { Download, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -14,6 +14,8 @@ import { useMemorization } from '@/contexts/MemorizationContext';
 import { useAttendance } from '@/contexts/AttendanceContext';
 import { useActivity } from '@/contexts/ActivityContext';
 import { useFinance } from '@/contexts/FinanceContext';
+import { useProfile } from '@/contexts/ProfileContext';
+import jsPDF from 'jspdf';
 
 interface AttendanceRecord {
   id: string;
@@ -47,10 +49,10 @@ const ShareResultsSection: React.FC = () => {
   const { attendanceRecords } = useAttendance();
   const { activityRecords } = useActivity();
   const { expenseRecords } = useFinance();
+  const { profileData } = useProfile();
   const [selectedStudent, setSelectedStudent] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
-  const [linkCopied, setLinkCopied] = useState(false);
 
   const categories = [
     { id: 'profile', label: 'Nama Santri' },
@@ -248,19 +250,162 @@ const ShareResultsSection: React.FC = () => {
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
   };
 
-  const handleDirectLink = () => {
-    const params = new URLSearchParams({
-      student: selectedStudent,
-      categories: selectedCategories.join(',')
-    });
-    const link = `${window.location.origin}/report?${params.toString()}`;
-    navigator.clipboard.writeText(link);
-    setLinkCopied(true);
-    setTimeout(() => setLinkCopied(false), 2000);
-  };
-
   const handlePDFDownload = () => {
-    alert('PDF download feature will be implemented soon!');
+    const studentData = getStudentData();
+    if (!studentData || selectedCategories.length === 0 || selectedRecipients.length === 0) return;
+
+    const student = students.find(s => s.id.toString() === selectedStudent);
+    if (!student) return;
+
+    // Format current date
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    // Get recipient names
+    const recipientNames = selectedRecipients.map(id => {
+      const recipient = recipients.find(r => r.id === id);
+      return recipient?.label || '';
+    }).join('\n');
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let yPos = 20;
+
+    // Title
+    doc.setFontSize(18);
+    doc.setTextColor(3, 152, 158);
+    doc.text('Laporan Perkembangan Santri', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 15;
+
+    // Recipient
+    doc.setFontSize(11);
+    doc.setTextColor(51, 51, 51);
+    doc.text('Kepada Yth.', 20, yPos);
+    yPos += 6;
+    const recipientLines = recipientNames.split('\n');
+    recipientLines.forEach(line => {
+      doc.text(line, 20, yPos);
+      yPos += 5;
+    });
+    yPos += 5;
+
+    // Greeting
+    doc.text("Assalamu'alaikum warahmatullahi wabarakatuh.", 20, yPos);
+    yPos += 8;
+    doc.text(`Dengan hormat, berikut kami sampaikan laporan perkembangan ananda`, 20, yPos);
+    yPos += 6;
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${student.name}`, 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.text(` per ${formattedDate}.`, 20 + doc.getTextWidth(`${student.name} `), yPos);
+    yPos += 12;
+
+    // Helper function for section headers
+    const addSectionHeader = (title: string) => {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(68, 68, 68);
+      doc.text(title, 20, yPos);
+      yPos += 2;
+      doc.setDrawColor(238, 238, 238);
+      doc.line(20, yPos, pageWidth - 20, yPos);
+      yPos += 6;
+    };
+
+    // Helper function for table rows
+    const addTableRow = (label: string, value: string) => {
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(51, 51, 51);
+      doc.setFillColor(241, 247, 247);
+      doc.rect(20, yPos - 4, 60, 8, 'F');
+      doc.text(label, 22, yPos);
+      doc.setFont('helvetica', 'normal');
+      doc.rect(80, yPos - 4, pageWidth - 100, 8, 'S');
+      doc.text(value, 82, yPos);
+      yPos += 8;
+    };
+
+    // Profile Section
+    if (selectedCategories.includes('profile')) {
+      addSectionHeader('📋 Data Santri');
+      addTableRow('Nama', studentData.profile.name);
+      addTableRow('Kelas', studentData.profile.class);
+      addTableRow('Level', studentData.profile.level);
+      yPos += 6;
+    }
+
+    // Attendance Section
+    if (selectedCategories.includes('attendance')) {
+      addSectionHeader('✅ Kehadiran (Per Semester)');
+      addTableRow('Hadir', `${studentData.attendance.hadir} hari`);
+      addTableRow('Izin', `${studentData.attendance.izin} hari`);
+      addTableRow('Sakit', `${studentData.attendance.sakit} hari`);
+      addTableRow('Tanpa Keterangan', `${studentData.attendance.tanpaKeterangan} hari`);
+      addTableRow('Pulang', `${studentData.attendance.pulang} hari`);
+      yPos += 6;
+    }
+
+    // Memorization Section
+    if (selectedCategories.includes('memorization')) {
+      addSectionHeader('📖 Hafalan (Per Semester)');
+      addTableRow('Target Hafalan', `${studentData.memorization.target} halaman`);
+      addTableRow('Pencapaian', `${studentData.memorization.actual} halaman`);
+      yPos += 6;
+    }
+
+    // Activities Section
+    if (selectedCategories.includes('activities')) {
+      addSectionHeader('🌟 Aktivitas (Per Semester)');
+      addTableRow('Bangun Tidur', `${studentData.activities.bangunTidur} hari`);
+      addTableRow('Tahajud', `${studentData.activities.tahajud} hari`);
+      addTableRow('Rawatib', `${studentData.activities.rawatib} hari`);
+      addTableRow('Shaum', `${studentData.activities.shaum} hari`);
+      addTableRow('Tilawah', `${studentData.activities.tilawah} hari`);
+      addTableRow('Piket', `${studentData.activities.piket} hari`);
+      yPos += 6;
+    }
+
+    // Finance Section
+    if (selectedCategories.includes('finance')) {
+      addSectionHeader('💰 Keuangan (Per Semester)');
+      addTableRow('Total Pengeluaran', formatCurrency(studentData.finance.totalExpense));
+      yPos += 6;
+    }
+
+    // Closing message
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(51, 51, 51);
+    const closingText = 'Demikian laporan ini kami sampaikan. Semoga dapat menjadi bahan evaluasi dan motivasi bagi ananda untuk terus berkembang dalam ibadah, akhlak, dan kedisiplinan.';
+    const splitClosing = doc.splitTextToSize(closingText, pageWidth - 40);
+    doc.text(splitClosing, 20, yPos);
+    yPos += splitClosing.length * 5 + 8;
+
+    // Signature
+    doc.text("Wassalamu'alaikum warahmatullahi wabarakatuh.", 20, yPos);
+    yPos += 10;
+    doc.text('Hormat kami,', 20, yPos);
+    yPos += 15;
+    doc.setFont('helvetica', 'bold');
+    doc.text(profileData.name, 20, yPos);
+    yPos += 5;
+    doc.setFont('helvetica', 'normal');
+    doc.text(profileData.role, 20, yPos);
+    yPos += 15;
+
+    // Footer
+    doc.setFontSize(9);
+    doc.setTextColor(119, 119, 119);
+    doc.text('© 2026 Yayasan Al-Amin | SOP-Gen Generated by Karimdigital.id', pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+
+    // Save PDF
+    doc.save(`Laporan_${student.name.replace(/\s+/g, '_')}_${today.toISOString().split('T')[0]}.pdf`);
   };
 
   return (
@@ -403,6 +548,18 @@ const ShareResultsSection: React.FC = () => {
                 </>
               );
             })()}
+          </div>
+          
+          {/* Download PDF Button */}
+          <div className="flex justify-center mt-4">
+            <Button
+              onClick={handlePDFDownload}
+              disabled={selectedRecipients.length === 0}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download PDF
+            </Button>
           </div>
         </div>
       )}
