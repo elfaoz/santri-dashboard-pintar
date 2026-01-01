@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Users, GraduationCap } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Edit, Trash2, Users, GraduationCap, X } from 'lucide-react';
 import EditHalaqahModal from './EditHalaqahModal';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
@@ -20,16 +21,41 @@ const HalaqahManagement: React.FC = () => {
   // Form state
   const [formData, setFormData] = useState({
     name: '',
-    membersCount: '',
     level: '',
     pembina: ''
   });
+  const [selectedStudentsForm, setSelectedStudentsForm] = useState<string[]>([]);
+
+  // Get students already assigned to other halaqahs
+  const assignedStudentIds = useMemo(() => {
+    const ids = new Set<string>();
+    halaqahs.forEach(h => {
+      h.selectedStudents?.forEach(id => ids.add(id));
+    });
+    return ids;
+  }, [halaqahs]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleStudentToggleForm = (studentId: string) => {
+    setSelectedStudentsForm(prev => {
+      if (prev.includes(studentId)) {
+        return prev.filter(id => id !== studentId);
+      } else {
+        // Check if student is already in another halaqah
+        if (assignedStudentIds.has(studentId)) {
+          const halaqahName = halaqahs.find(h => h.selectedStudents?.includes(studentId))?.name;
+          alert(`Santri sudah terdaftar di ${halaqahName}. Satu santri hanya bisa di satu halaqah.`);
+          return prev;
+        }
+        return [...prev, studentId];
+      }
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -41,13 +67,19 @@ const HalaqahManagement: React.FC = () => {
       alert('Nama halaqah sudah ada. Silakan gunakan nama yang berbeda.');
       return;
     }
+
+    if (selectedStudentsForm.length === 0) {
+      alert('Pilih minimal satu santri sebagai anggota halaqah.');
+      return;
+    }
     
     // Create new halaqah object
     const newHalaqah = {
       name: formData.name,
-      membersCount: parseInt(formData.membersCount),
+      membersCount: selectedStudentsForm.length,
       level: formData.level,
-      pembina: formData.pembina
+      pembina: formData.pembina,
+      selectedStudents: selectedStudentsForm
     };
 
     // Add to halaqahs array
@@ -56,10 +88,10 @@ const HalaqahManagement: React.FC = () => {
     // Reset form
     setFormData({
       name: '',
-      membersCount: '',
       level: '',
       pembina: ''
     });
+    setSelectedStudentsForm([]);
   };
 
   const handleDeleteHalaqah = (halaqahId: number) => {
@@ -108,19 +140,60 @@ const HalaqahManagement: React.FC = () => {
                 />
               </div>
 
-              {/* Jumlah Members */}
-              <div className="space-y-2">
-                <Label htmlFor="membersCount">Jumlah Members</Label>
-                <Input
-                  id="membersCount"
-                  type="number"
-                  value={formData.membersCount}
-                  onChange={(e) => handleInputChange('membersCount', e.target.value)}
-                  placeholder="Masukkan jumlah anggota"
-                  className="w-full"
-                  min="1"
-                  required
-                />
+              {/* Pilih Members */}
+              <div className="space-y-2 md:col-span-2">
+                <Label>Pilih Members ({selectedStudentsForm.length} dipilih)</Label>
+                <div className="border rounded-lg p-4 max-h-48 overflow-y-auto bg-background">
+                  {students.length === 0 ? (
+                    <p className="text-muted-foreground text-sm">Belum ada santri terdaftar</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {students.map((student) => {
+                        const isAssigned = assignedStudentIds.has(student.id.toString());
+                        const assignedHalaqah = halaqahs.find(h => h.selectedStudents?.includes(student.id.toString()));
+                        return (
+                          <div key={student.id} className="flex items-center space-x-3">
+                            <Checkbox
+                              id={`add-student-${student.id}`}
+                              checked={selectedStudentsForm.includes(student.id.toString())}
+                              onCheckedChange={() => handleStudentToggleForm(student.id.toString())}
+                              disabled={isAssigned}
+                            />
+                            <label
+                              htmlFor={`add-student-${student.id}`}
+                              className={`text-sm font-medium leading-none cursor-pointer flex-1 ${isAssigned ? 'text-muted-foreground' : ''}`}
+                            >
+                              {student.name} - {student.class}
+                              {isAssigned && <span className="text-xs ml-2">(di {assignedHalaqah?.name})</span>}
+                            </label>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+                {selectedStudentsForm.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedStudentsForm.map((studentId) => {
+                      const student = students.find(s => s.id.toString() === studentId);
+                      return student ? (
+                        <div
+                          key={studentId}
+                          className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                        >
+                          {student.name}
+                          <button
+                            type="button"
+                            onClick={() => handleStudentToggleForm(studentId)}
+                            className="hover:bg-green-200 rounded-full p-0.5"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Level */}
@@ -176,7 +249,7 @@ const HalaqahManagement: React.FC = () => {
                 <TableRow className="bg-gray-50">
                   <TableHead className="w-16">No.</TableHead>
                   <TableHead>Halaqah Name</TableHead>
-                  <TableHead>Jumlah Members</TableHead>
+                  <TableHead>Nama Members</TableHead>
                   <TableHead>Level</TableHead>
                   <TableHead>Pembina Halaqah</TableHead>
                   <TableHead className="text-center">Action</TableHead>
@@ -187,7 +260,22 @@ const HalaqahManagement: React.FC = () => {
                   <TableRow key={halaqah.id} className="hover:bg-gray-50">
                     <TableCell className="font-medium">{index + 1}</TableCell>
                     <TableCell className="font-medium">{halaqah.name}</TableCell>
-                    <TableCell>{halaqah.membersCount}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1 max-w-xs">
+                        {halaqah.selectedStudents && halaqah.selectedStudents.length > 0 ? (
+                          halaqah.selectedStudents.map((studentId, idx) => {
+                            const student = students.find(s => s.id.toString() === studentId);
+                            return student ? (
+                              <Badge key={idx} variant="secondary" className="text-xs">
+                                {student.name}
+                              </Badge>
+                            ) : null;
+                          })
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>{halaqah.level}</TableCell>
                     <TableCell>{halaqah.pembina}</TableCell>
                     <TableCell>
@@ -258,7 +346,7 @@ const HalaqahManagement: React.FC = () => {
                       {/* Members */}
                       <div>
                         <p className="text-sm font-medium text-gray-600 mb-2">
-                          Members ({halaqah.selectedStudents?.length || 0}/{halaqah.membersCount}):
+                          Members ({halaqah.selectedStudents?.length || 0}):
                         </p>
                         <div className="space-y-1 max-h-32 overflow-y-auto">
                           {halaqah.selectedStudents && halaqah.selectedStudents.length > 0 ? (

@@ -35,7 +35,6 @@ const EditHalaqahModal: React.FC<EditHalaqahModalProps> = ({
   const { halaqahs } = useHalaqahs();
   const [formData, setFormData] = useState({
     name: '',
-    membersCount: '',
     level: '',
     pembina: ''
   });
@@ -46,7 +45,6 @@ const EditHalaqahModal: React.FC<EditHalaqahModalProps> = ({
     if (halaqah) {
       setFormData({
         name: halaqah.name,
-        membersCount: halaqah.membersCount.toString(),
         level: halaqah.level,
         pembina: halaqah.pembina
       });
@@ -63,8 +61,6 @@ const EditHalaqahModal: React.FC<EditHalaqahModalProps> = ({
   };
 
   const handleStudentToggle = (studentId: string) => {
-    const maxMembers = parseInt(formData.membersCount) || 0;
-    
     setSelectedStudents(prev => {
       const isRemoving = prev.includes(studentId);
       
@@ -84,15 +80,8 @@ const EditHalaqahModal: React.FC<EditHalaqahModalProps> = ({
           return prev;
         }
         
-        // Check member count limit
-        const newSelection = [...prev, studentId];
-        if (newSelection.length > maxMembers && maxMembers > 0) {
-          setValidationError(`Maksimal ${maxMembers} santri sesuai dengan jumlah members`);
-          return prev;
-        }
-        
         setValidationError('');
-        return newSelection;
+        return [...prev, studentId];
       }
     });
   };
@@ -100,10 +89,8 @@ const EditHalaqahModal: React.FC<EditHalaqahModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const maxMembers = parseInt(formData.membersCount) || 0;
-    
-    if (selectedStudents.length > maxMembers && maxMembers > 0) {
-      setValidationError(`Jumlah santri yang dipilih (${selectedStudents.length}) melebihi kapasitas (${maxMembers})`);
+    if (selectedStudents.length === 0) {
+      setValidationError('Pilih minimal satu santri sebagai anggota halaqah.');
       return;
     }
 
@@ -112,7 +99,7 @@ const EditHalaqahModal: React.FC<EditHalaqahModalProps> = ({
     const updatedHalaqah: Halaqah = {
       ...halaqah,
       name: formData.name,
-      membersCount: parseInt(formData.membersCount) || 0,
+      membersCount: selectedStudents.length,
       level: formData.level,
       pembina: formData.pembina,
       selectedStudents: selectedStudents
@@ -137,7 +124,7 @@ const EditHalaqahModal: React.FC<EditHalaqahModalProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Halaqah Name */}
             <div className="space-y-2">
               <Label htmlFor="editHalaqahName">Halaqah Name</Label>
@@ -151,19 +138,6 @@ const EditHalaqahModal: React.FC<EditHalaqahModalProps> = ({
               />
             </div>
 
-            {/* Jumlah Members */}
-            <div className="space-y-2">
-              <Label htmlFor="editMembersCount">Jumlah Members</Label>
-              <Input
-                id="editMembersCount"
-                type="number"
-                value={formData.membersCount}
-                onChange={(e) => handleInputChange('membersCount', e.target.value)}
-                placeholder="Masukkan jumlah anggota"
-                min="1"
-                required
-              />
-            </div>
 
             {/* Level */}
             <div className="space-y-2">
@@ -202,7 +176,7 @@ const EditHalaqahModal: React.FC<EditHalaqahModalProps> = ({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label className="text-sm font-medium">
-                Pilih Santri ({selectedStudents.length}/{formData.membersCount || 0})
+                Pilih Santri ({selectedStudents.length} dipilih)
               </Label>
               {validationError && (
                 <span className="text-sm text-red-600">{validationError}</span>
