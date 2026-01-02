@@ -1,0 +1,205 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ChevronUp, ChevronDown, Calendar as CalendarIcon } from 'lucide-react';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay, isSameMonth } from 'date-fns';
+import { id } from 'date-fns/locale';
+
+interface WorkProgram {
+  id: string;
+  title: string;
+  description: string;
+  date: Date;
+  status: 'completed' | 'upcoming' | 'canceled';
+}
+
+// Sample data - in real app, this would come from context/API
+const samplePrograms: WorkProgram[] = [
+  { id: '1', title: 'Rapat Bulanan Ustadz', description: 'Evaluasi program bulan lalu dan rencana bulan depan', date: new Date(2026, 0, 5), status: 'completed' },
+  { id: '2', title: 'Ujian Hafalan Juz 30', description: 'Ujian hafalan untuk santri tingkat dasar', date: new Date(2026, 0, 10), status: 'completed' },
+  { id: '3', title: 'Kunjungan Wali Santri', description: 'Pertemuan dengan wali santri membahas perkembangan', date: new Date(2026, 0, 15), status: 'upcoming' },
+  { id: '4', title: 'Perlombaan Tahfidz', description: 'Kompetisi hafalan antar halaqah', date: new Date(2026, 0, 20), status: 'upcoming' },
+  { id: '5', title: 'Camping Santri', description: 'Kegiatan outdoor untuk santri', date: new Date(2026, 0, 25), status: 'canceled' },
+  { id: '6', title: 'Wisuda Tahfidz', description: 'Wisuda untuk santri yang lulus program', date: new Date(2026, 1, 5), status: 'upcoming' },
+  { id: '7', title: 'Pelatihan Ustadz', description: 'Training metode pengajaran baru', date: new Date(2026, 0, 2), status: 'completed' },
+];
+
+const ProgramCalendar: React.FC = () => {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+
+  const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
+  const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
+
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(currentMonth);
+  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+
+  // Get starting day of week (0 = Sunday)
+  const startingDayOfWeek = getDay(monthStart);
+
+  // Get programs for selected date
+  const selectedDatePrograms = selectedDate
+    ? samplePrograms.filter(p => isSameDay(p.date, selectedDate))
+    : [];
+
+  // Check if a date has programs
+  const hasPrograms = (date: Date) => samplePrograms.some(p => isSameDay(p.date, date));
+
+  // Get status color for calendar dot
+  const getDateStatus = (date: Date) => {
+    const programs = samplePrograms.filter(p => isSameDay(p.date, date));
+    if (programs.some(p => p.status === 'upcoming')) return 'bg-orange-500';
+    if (programs.some(p => p.status === 'completed')) return 'bg-purple-500';
+    if (programs.some(p => p.status === 'canceled')) return 'bg-gray-400';
+    return '';
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-purple-100 border-purple-300 text-purple-800';
+      case 'upcoming': return 'bg-orange-100 border-orange-300 text-orange-800';
+      case 'canceled': return 'bg-gray-100 border-gray-300 text-gray-600';
+      default: return 'bg-muted border-border text-foreground';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'completed': return 'Selesai';
+      case 'upcoming': return 'Akan Datang';
+      case 'canceled': return 'Dibatalkan';
+      default: return status;
+    }
+  };
+
+  const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <CalendarIcon className="h-5 w-5" />
+          Program Calendar
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left: Calendar */}
+          <div className="space-y-4">
+            {/* Month Navigation */}
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">
+                {format(currentMonth, 'MMMM yyyy', { locale: id })}
+              </h3>
+              <div className="flex flex-col gap-1">
+                <Button variant="outline" size="icon" className="h-7 w-7" onClick={handlePrevMonth}>
+                  <ChevronUp className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="icon" className="h-7 w-7" onClick={handleNextMonth}>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Calendar Grid */}
+            <div className="border rounded-lg p-3">
+              {/* Day Headers */}
+              <div className="grid grid-cols-7 gap-1 mb-2">
+                {dayNames.map(day => (
+                  <div key={day} className="text-center text-xs font-medium text-muted-foreground py-1">
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              {/* Calendar Days */}
+              <div className="grid grid-cols-7 gap-1">
+                {/* Empty cells for days before month starts */}
+                {Array.from({ length: startingDayOfWeek }).map((_, idx) => (
+                  <div key={`empty-${idx}`} className="h-9" />
+                ))}
+
+                {/* Actual days */}
+                {daysInMonth.map(day => {
+                  const isSelected = selectedDate && isSameDay(day, selectedDate);
+                  const isToday = isSameDay(day, new Date());
+                  const hasProg = hasPrograms(day);
+
+                  return (
+                    <button
+                      key={day.toISOString()}
+                      onClick={() => setSelectedDate(day)}
+                      className={`
+                        h-9 w-full rounded-md text-sm relative transition-colors
+                        ${isSelected ? 'bg-primary text-primary-foreground' : ''}
+                        ${isToday && !isSelected ? 'bg-accent text-accent-foreground font-bold' : ''}
+                        ${!isSelected && !isToday ? 'hover:bg-muted' : ''}
+                      `}
+                    >
+                      {format(day, 'd')}
+                      {hasProg && (
+                        <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-1.5 w-1.5 rounded-full ${getDateStatus(day)}`} />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div className="flex flex-wrap gap-4 text-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-full bg-purple-500" />
+                <span>Selesai</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-full bg-orange-500" />
+                <span>Akan Datang</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-full bg-gray-400" />
+                <span>Dibatalkan</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Program Details */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">
+              {selectedDate ? format(selectedDate, 'EEEE, d MMMM yyyy', { locale: id }) : 'Pilih Tanggal'}
+            </h3>
+
+            {selectedDatePrograms.length > 0 ? (
+              <div className="space-y-3">
+                {selectedDatePrograms.map(program => (
+                  <div
+                    key={program.id}
+                    className={`p-4 rounded-lg border-l-4 ${getStatusColor(program.status)}`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="font-medium">{program.title}</h4>
+                        <p className="text-sm mt-1 opacity-80">{program.description}</p>
+                      </div>
+                      <span className="text-xs px-2 py-1 rounded-full bg-background/50 whitespace-nowrap">
+                        {getStatusLabel(program.status)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <CalendarIcon className="h-12 w-12 mb-3 opacity-50" />
+                <p className="text-sm">Tidak ada program pada tanggal ini</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default ProgramCalendar;
