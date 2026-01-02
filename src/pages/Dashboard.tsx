@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import DashboardStats from '../components/DashboardStats';
+import ProgramCalendar from '../components/ProgramCalendar';
 import StudentOverviewDashboard from '../components/StudentOverviewDashboard';
 import LeaderboardOverview from '../components/LeaderboardOverview';
 import ShareResultsSection from '../components/ShareResultsSection';
@@ -15,6 +16,8 @@ const Dashboard: React.FC = () => {
       </div>
       
       <DashboardStats />
+      
+      <ProgramCalendar />
       
       <StudentOverviewDashboard />
       
