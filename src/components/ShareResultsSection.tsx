@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Share2 } from 'lucide-react';
+import { Download, Share2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -408,6 +408,212 @@ const ShareResultsSection: React.FC = () => {
     doc.save(`Laporan_${student.name.replace(/\s+/g, '_')}_${today.toISOString().split('T')[0]}.pdf`);
   };
 
+  const handleShowPreview = () => {
+    const studentData = getStudentData();
+    if (!studentData || selectedCategories.length === 0 || selectedRecipients.length === 0) return;
+
+    const student = students.find(s => s.id.toString() === selectedStudent);
+    if (!student) return;
+
+    // Format current date
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('id-ID', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    // Get recipient names
+    const recipientNames = selectedRecipients.map(id => {
+      const recipient = recipients.find(r => r.id === id);
+      return recipient?.label || '';
+    }).join(' | ');
+
+    // Get semester info
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth();
+    const currentSemester = currentMonth >= 6 ? 1 : 2;
+
+    // Build HTML content
+    let htmlContent = `
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Laporan Perkembangan Santri - ${student.name}</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap">
+  <style>
+    @page { margin: 1.5cm; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #ffffff;
+      color: #333;
+      padding: 1rem;
+      line-height: 1.6;
+    }
+    .container { max-width: 800px; margin: auto; }
+    h1 {
+      text-align: center;
+      color: #03989e;
+      margin-bottom: 1.5rem;
+      font-size: 1.6rem;
+      text-transform: uppercase;
+    }
+    h2 {
+      margin-top: 1.5rem;
+      color: #444;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 5px;
+      font-size: 1.2rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    table th, table td {
+      border: 1px solid #ddd;
+      padding: 10px 15px;
+      text-align: left;
+    }
+    table th {
+      background-color: #ffffff;
+      font-weight: 700;
+      width: 40%;
+    }
+    .signature { margin-top: 3rem; }
+    .footer {
+      margin-top: 2.5rem;
+      font-size: 0.85rem;
+      text-align: center;
+      color: #777;
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+    }
+    .download-btn {
+      display: block;
+      width: fit-content;
+      margin: 2rem auto;
+      padding: 12px 24px;
+      background-color: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .download-btn:hover {
+      background-color: #15803d;
+    }
+    @media print {
+      .download-btn { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Laporan Perkembangan Santri</h1>
+
+    <p>
+      Kepada Yth.<br>
+      ${recipientNames}
+    </p>
+
+    <p>
+      Assalamu'alaikum warahmatullahi wabarakatuh.<br>
+      Berikut kami sampaikan laporan perkembangan ananda <strong>${student.name}</strong> per <strong>${formattedDate}</strong>.
+    </p>`;
+
+    if (selectedCategories.includes('profile')) {
+      htmlContent += `
+    <h2>Data Santri</h2>
+    <table>
+      <tr><th>Nama</th><td>${studentData.profile.name}</td></tr>
+      <tr><th>Kelas</th><td>${studentData.profile.class}</td></tr>
+      <tr><th>Level</th><td>${studentData.profile.level}</td></tr>
+    </table>`;
+    }
+
+    if (selectedCategories.includes('attendance')) {
+      htmlContent += `
+    <h2>Kehadiran (Per Semester)</h2>
+    <table>
+      <tr><th>Hadir</th><td>${studentData.attendance.hadir} hari</td></tr>
+      <tr><th>Izin</th><td>${studentData.attendance.izin} hari</td></tr>
+      <tr><th>Sakit</th><td>${studentData.attendance.sakit} hari</td></tr>
+      <tr><th>Tanpa Keterangan</th><td>${studentData.attendance.tanpaKeterangan} hari</td></tr>
+      <tr><th>Pulang</th><td>${studentData.attendance.pulang} hari</td></tr>
+    </table>`;
+    }
+
+    if (selectedCategories.includes('memorization')) {
+      htmlContent += `
+    <h2>Hafalan (Per Semester)</h2>
+    <table>
+      <tr><th>Target Hafalan</th><td>${studentData.memorization.target} halaman</td></tr>
+      <tr><th>Pencapaian</th><td>${studentData.memorization.actual} halaman</td></tr>
+    </table>`;
+    }
+
+    if (selectedCategories.includes('activities')) {
+      htmlContent += `
+    <h2>Aktivitas (Per Semester)</h2>
+    <table>
+      <tr><th>Bangun Tidur</th><td>${studentData.activities.bangunTidur} hari</td></tr>
+      <tr><th>Tahajud</th><td>${studentData.activities.tahajud} hari</td></tr>
+      <tr><th>Rawatib</th><td>${studentData.activities.rawatib} hari</td></tr>
+      <tr><th>Shaum</th><td>${studentData.activities.shaum} hari</td></tr>
+      <tr><th>Tilawah</th><td>${studentData.activities.tilawah} hari</td></tr>
+      <tr><th>Piket</th><td>${studentData.activities.piket} hari</td></tr>
+    </table>`;
+    }
+
+    if (selectedCategories.includes('finance')) {
+      htmlContent += `
+    <h2>Keuangan (Per Semester)</h2>
+    <table>
+      <tr>
+        <th>Total Pengeluaran</th>
+        <td>${formatCurrency(studentData.finance.totalExpense)}</td>
+      </tr>
+    </table>`;
+    }
+
+    htmlContent += `
+    <p>
+      Demikian laporan ini kami sampaikan. Semoga dapat menjadi bahan evaluasi dan motivasi bagi ananda untuk terus berkembang dalam ibadah, akhlak, dan kedisiplinan.
+    </p>
+
+    <div class="signature">
+      <p>
+        Wassalamu'alaikum warahmatullahi wabarakatuh.<br><br>
+        Hormat kami,<br><br>
+        <strong>${profileData.name}</strong><br>
+        ${profileData.role}
+      </p>
+    </div>
+
+    <button class="download-btn" onclick="window.print()">Download PDF</button>
+
+    <div class="footer">
+      &copy; 2026 Yayasan Al-Amin | SOP-Gen Generated by Karimdigital.id
+    </div>
+  </div>
+</body>
+</html>`;
+
+    // Open in new tab
+    const newWindow = window.open('', '_blank');
+    if (newWindow) {
+      newWindow.document.write(htmlContent);
+      newWindow.document.close();
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <h3 className="text-lg font-semibold text-gray-800 mb-4">Download & Share Report</h3>
@@ -550,15 +756,15 @@ const ShareResultsSection: React.FC = () => {
             })()}
           </div>
           
-          {/* Download PDF Button */}
-          <div className="flex justify-center mt-4">
+          {/* Action Buttons */}
+          <div className="flex justify-center gap-3 mt-4">
             <Button
-              onClick={handlePDFDownload}
+              onClick={handleShowPreview}
               disabled={selectedRecipients.length === 0}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-blue-600 hover:bg-blue-700"
             >
-              <Download className="mr-2 h-4 w-4" />
-              Download PDF
+              <Eye className="mr-2 h-4 w-4" />
+              Tampilkan
             </Button>
           </div>
         </div>

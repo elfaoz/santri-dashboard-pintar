@@ -22,8 +22,14 @@ const FinanceSemesterSection: React.FC<FinanceSemesterProps> = ({
   selectedStudent,
   students
 }) => {
+  // Semester dinamis berdasarkan bulan sekarang
+  // Semester 1: Juli - Desember (months 6-11)
+  // Semester 2: Januari - Juni (months 0-5)
+  const currentMonth = new Date().getMonth();
+  const initialSemester = currentMonth >= 6 ? 1 : 2;
+  
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [currentSemester, setCurrentSemester] = useState(1);
+  const [currentSemester, setCurrentSemester] = useState(initialSemester);
 
   const goToPreviousSemester = () => {
     if (currentSemester === 1) {
