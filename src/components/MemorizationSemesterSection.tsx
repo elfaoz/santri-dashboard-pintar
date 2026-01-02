@@ -50,11 +50,27 @@ const MemorizationSemesterSection: React.FC<MemorizationSemesterProps> = ({
     }
   };
 
+  const getStatusLabel = (percentage: number) => {
+    if (percentage >= 80) return 'Baik Sekali';
+    if (percentage >= 60) return 'Baik';
+    if (percentage >= 40) return 'Cukup';
+    if (percentage >= 20) return 'Kurang';
+    return 'Sangat Kurang';
+  };
+
+  const getStatusColor = (percentage: number) => {
+    if (percentage >= 80) return 'bg-green-100 text-green-800';
+    if (percentage >= 60) return 'bg-blue-100 text-blue-800';
+    if (percentage >= 40) return 'bg-yellow-100 text-yellow-800';
+    if (percentage >= 20) return 'bg-orange-100 text-orange-800';
+    return 'bg-red-100 text-red-800';
+  };
+
   const getSemesterStats = () => {
-    if (!selectedStudent) return { target: 0, actual: 0 };
+    if (!selectedStudent) return { target: 0, actual: 0, percentage: 0, status: '' };
     
     const student = students.find(s => s.id.toString() === selectedStudent);
-    if (!student) return { target: 0, actual: 0 };
+    if (!student) return { target: 0, actual: 0, percentage: 0, status: '' };
     
     const semesterRecords = memorizationRecords.filter(record => {
       const recordDate = new Date(record.date);
@@ -68,9 +84,15 @@ const MemorizationSemesterSection: React.FC<MemorizationSemesterProps> = ({
       return record.studentName === student.name && recordYear === currentYear && inSemester;
     });
 
+    const target = semesterRecords.reduce((sum, r) => sum + r.target, 0);
+    const actual = semesterRecords.reduce((sum, r) => sum + r.actual, 0);
+    const percentage = target > 0 ? Math.round((actual / target) * 100) : 0;
+
     return {
-      target: semesterRecords.reduce((sum, r) => sum + r.target, 0),
-      actual: semesterRecords.reduce((sum, r) => sum + r.actual, 0),
+      target,
+      actual,
+      percentage,
+      status: getStatusLabel(percentage),
     };
   };
 
@@ -117,6 +139,8 @@ const MemorizationSemesterSection: React.FC<MemorizationSemesterProps> = ({
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Target (Halaman)</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pencapaian (Halaman)</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Persentase</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
             </tr>
           </thead>
           <tbody className="bg-white">
@@ -126,6 +150,12 @@ const MemorizationSemesterSection: React.FC<MemorizationSemesterProps> = ({
               </td>
               <td className="px-6 py-4 text-sm">
                 <Badge className="bg-green-100 text-green-800">{stats.actual}</Badge>
+              </td>
+              <td className="px-6 py-4 text-sm">
+                <Badge className="bg-purple-100 text-purple-800">{stats.percentage}%</Badge>
+              </td>
+              <td className="px-6 py-4 text-sm">
+                <Badge className={getStatusColor(stats.percentage)}>{stats.status}</Badge>
               </td>
             </tr>
           </tbody>
