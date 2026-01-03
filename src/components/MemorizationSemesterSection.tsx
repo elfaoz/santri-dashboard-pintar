@@ -66,11 +66,22 @@ const MemorizationSemesterSection: React.FC<MemorizationSemesterProps> = ({
     return 'bg-red-100 text-red-800';
   };
 
+  const getDaysInSemester = () => {
+    // Semester 1: July-December (184 days)
+    // Semester 2: January-June (181/182 days)
+    if (currentSemester === 1) {
+      return 184;
+    } else {
+      const isLeapYear = currentYear % 4 === 0 && (currentYear % 100 !== 0 || currentYear % 400 === 0);
+      return isLeapYear ? 182 : 181;
+    }
+  };
+
   const getSemesterStats = () => {
-    if (!selectedStudent) return { target: 0, actual: 0, percentage: 0, status: '' };
+    if (!selectedStudent) return { targetHarian: 0, targetSemesteran: 0, actual: 0, percentage: 0, status: '' };
     
     const student = students.find(s => s.id.toString() === selectedStudent);
-    if (!student) return { target: 0, actual: 0, percentage: 0, status: '' };
+    if (!student) return { targetHarian: 0, targetSemesteran: 0, actual: 0, percentage: 0, status: '' };
     
     const semesterRecords = memorizationRecords.filter(record => {
       const recordDate = new Date(record.date);
@@ -84,12 +95,15 @@ const MemorizationSemesterSection: React.FC<MemorizationSemesterProps> = ({
       return record.studentName === student.name && recordYear === currentYear && inSemester;
     });
 
-    const target = semesterRecords.reduce((sum, r) => sum + r.target, 0);
+    const targetHarian = semesterRecords.reduce((sum, r) => sum + r.target, 0);
     const actual = semesterRecords.reduce((sum, r) => sum + r.actual, 0);
-    const percentage = target > 0 ? Math.round((actual / target) * 100) : 0;
+    const daysInSemester = getDaysInSemester();
+    const targetSemesteran = targetHarian * daysInSemester;
+    const percentage = targetSemesteran > 0 ? Math.round((actual / targetSemesteran) * 100) : 0;
 
     return {
-      target,
+      targetHarian,
+      targetSemesteran,
       actual,
       percentage,
       status: getStatusLabel(percentage),
@@ -137,7 +151,8 @@ const MemorizationSemesterSection: React.FC<MemorizationSemesterProps> = ({
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Target (Halaman)</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Target Harian</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Target Semesteran</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pencapaian (Halaman)</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Persentase</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
@@ -146,7 +161,10 @@ const MemorizationSemesterSection: React.FC<MemorizationSemesterProps> = ({
           <tbody className="bg-white">
             <tr>
               <td className="px-6 py-4 text-sm">
-                <Badge className="bg-blue-100 text-blue-800">{stats.target}</Badge>
+                <Badge className="bg-blue-100 text-blue-800">{stats.targetHarian}</Badge>
+              </td>
+              <td className="px-6 py-4 text-sm">
+                <Badge className="bg-indigo-100 text-indigo-800">{stats.targetSemesteran}</Badge>
               </td>
               <td className="px-6 py-4 text-sm">
                 <Badge className="bg-green-100 text-green-800">{stats.actual}</Badge>
