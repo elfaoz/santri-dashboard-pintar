@@ -78,6 +78,22 @@ const FinanceMonthlySection: React.FC<FinanceMonthlyProps> = ({
     return new Date(year, calendarMonth + 1, 0).getDate();
   };
 
+  const getFinanceStatus = (pct: number) => {
+    if (pct <= 50) return 'Sangat Hemat';
+    if (pct <= 100) return 'Hemat';
+    if (pct <= 150) return 'Cukup Proporsional';
+    if (pct <= 200) return 'Boros';
+    return 'Sangat Boros';
+  };
+
+  const getStatusColor = (pct: number) => {
+    if (pct <= 50) return 'text-green-700';
+    if (pct <= 100) return 'text-green-600';
+    if (pct <= 150) return 'text-yellow-600';
+    if (pct <= 200) return 'text-orange-600';
+    return 'text-red-600';
+  };
+
   const getStudentFinanceData = () => {
     if (!selectedStudent) return [];
     
@@ -98,8 +114,8 @@ const FinanceMonthlySection: React.FC<FinanceMonthlyProps> = ({
     const daysInMonth = getDaysInMonth(currentMonthIndex);
     const budgetHarian = 15000;
     const budgetBulanan = budgetHarian * daysInMonth;
-    const persentase = Math.round((totalExpense / budgetBulanan) * 100);
-    const status = persentase <= 100 ? 'Hemat' : 'Over Budget';
+    const persentase = budgetBulanan > 0 ? Math.round((totalExpense / budgetBulanan) * 100) : 0;
+    const status = getFinanceStatus(persentase);
 
     return [{
       nama: student.name,
@@ -164,16 +180,12 @@ const FinanceMonthlySection: React.FC<FinanceMonthlyProps> = ({
                 <td className="px-4 py-3 text-center text-sm">{formatCurrencyShort(student.budgetBulanan)}</td>
                 <td className="px-4 py-3 text-center text-sm font-medium text-green-600">{formatCurrencyShort(student.pengeluaranBulan)}</td>
                 <td className="px-4 py-3 text-center">
-                  <span className={`font-medium ${
-                    student.status === 'Hemat' ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  <span className={`font-medium ${getStatusColor(student.persentase)}`}>
                     {student.status}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-center">
-                  <span className={`font-medium ${
-                    student.persentase <= 100 ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  <span className={`font-medium ${getStatusColor(student.persentase)}`}>
                     {student.persentase}%
                   </span>
                 </td>

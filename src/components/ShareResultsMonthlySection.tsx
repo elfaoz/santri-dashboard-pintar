@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Share2, Eye } from 'lucide-react';
+import { Download, Share2, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -17,42 +17,25 @@ import { useFinance } from '@/contexts/FinanceContext';
 import { useProfile } from '@/contexts/ProfileContext';
 import jsPDF from 'jspdf';
 
-interface AttendanceRecord {
-  id: string;
-  studentId: string;
-  studentName: string;
-  date: string;
-  status: 'hadir' | 'izin' | 'sakit' | 'tanpa keterangan' | 'pulang';
-}
-
-interface ActivityRecord {
-  id: string;
-  studentId: string;
-  studentName: string;
-  date: string;
-  activities: Record<string, boolean>;
-}
-
-interface ExpenseRecord {
-  id: number;
-  nama: string;
-  halaqah: string;
-  jumlah: number;
-  tanggal: string;
-  kategori: string;
-  catatan: string;
-}
-
-const ShareResultsSection: React.FC = () => {
+const ShareResultsMonthlySection: React.FC = () => {
   const { students } = useStudents();
   const { memorizationRecords } = useMemorization();
   const { attendanceRecords } = useAttendance();
   const { activityRecords } = useActivity();
   const { expenseRecords } = useFinance();
   const { profileData } = useProfile();
+  
   const [selectedStudent, setSelectedStudent] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
+  
+  const months = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+  
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   const categories = [
     { id: 'profile', label: 'Nama Santri' },
@@ -67,6 +50,24 @@ const ShareResultsSection: React.FC = () => {
     { id: 'mudir_asrama', label: 'Mudir Asrama' },
     { id: 'orang_tua', label: 'Orang Tua Santri' }
   ];
+
+  const goToPreviousMonth = () => {
+    if (currentMonthIndex === 0) {
+      setCurrentMonthIndex(11);
+      setCurrentYear(prev => prev - 1);
+    } else {
+      setCurrentMonthIndex(prev => prev - 1);
+    }
+  };
+
+  const goToNextMonth = () => {
+    if (currentMonthIndex === 11) {
+      setCurrentMonthIndex(0);
+      setCurrentYear(prev => prev + 1);
+    } else {
+      setCurrentMonthIndex(prev => prev + 1);
+    }
+  };
 
   const handleCategoryToggle = (categoryId: string) => {
     if (selectedCategories.includes(categoryId)) {
@@ -84,13 +85,8 @@ const ShareResultsSection: React.FC = () => {
     }
   };
 
-  const getDaysInSemester = (semester: number, year: number) => {
-    if (semester === 1) {
-      return 184; // Jul-Dec
-    } else {
-      const isLeapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
-      return isLeapYear ? 182 : 181; // Jan-Jun
-    }
+  const getDaysInMonth = () => {
+    return new Date(currentYear, currentMonthIndex + 1, 0).getDate();
   };
 
   const getMemStatus = (pct: number) => {
@@ -122,89 +118,74 @@ const ShareResultsSection: React.FC = () => {
       period: student.period
     };
 
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth();
-    const currentSemester = currentMonth >= 6 ? 1 : 2;
-    
-    const semesterAttendance = attendanceRecords.filter(record => {
+    // Filter by current selected month
+    const monthAttendance = attendanceRecords.filter(record => {
       const recordDate = new Date(record.date);
       const recordYear = recordDate.getFullYear();
       const recordMonth = recordDate.getMonth();
-      const inSemester = currentSemester === 1 
-        ? recordMonth >= 6 && recordMonth <= 11
-        : recordMonth >= 0 && recordMonth <= 5;
-      return record.studentId === selectedStudent && recordYear === currentYear && inSemester;
+      return record.studentId === selectedStudent && recordYear === currentYear && recordMonth === currentMonthIndex;
     });
 
     const attendanceData = {
-      hadir: semesterAttendance.filter(r => r.status === 'hadir').length,
-      izin: semesterAttendance.filter(r => r.status === 'izin').length,
-      sakit: semesterAttendance.filter(r => r.status === 'sakit').length,
-      tanpaKeterangan: semesterAttendance.filter(r => r.status === 'tanpa keterangan').length,
-      pulang: semesterAttendance.filter(r => r.status === 'pulang').length,
+      hadir: monthAttendance.filter(r => r.status === 'hadir').length,
+      izin: monthAttendance.filter(r => r.status === 'izin').length,
+      sakit: monthAttendance.filter(r => r.status === 'sakit').length,
+      tanpaKeterangan: monthAttendance.filter(r => r.status === 'tanpa keterangan').length,
+      pulang: monthAttendance.filter(r => r.status === 'pulang').length,
     };
 
-    const semesterMemorization = memorizationRecords.filter(record => {
+    const monthMemorization = memorizationRecords.filter(record => {
       const recordDate = new Date(record.date);
       const recordYear = recordDate.getFullYear();
       const recordMonth = recordDate.getMonth();
-      const inSemester = currentSemester === 1 
-        ? recordMonth >= 6 && recordMonth <= 11
-        : recordMonth >= 0 && recordMonth <= 5;
-      return record.studentName === student.name && recordYear === currentYear && inSemester;
+      return record.studentName === student.name && recordYear === currentYear && recordMonth === currentMonthIndex;
     });
 
-    const memTargetHarian = semesterMemorization.reduce((sum, r) => sum + r.target, 0);
-    const memActual = semesterMemorization.reduce((sum, r) => sum + r.actual, 0);
-    const daysInSemester = getDaysInSemester(currentSemester, currentYear);
-    const memTargetSemesteran = memTargetHarian * daysInSemester;
-    const memPercentage = memTargetSemesteran > 0 ? Math.round((memActual / memTargetSemesteran) * 100) : 0;
+    const memTargetHarian = monthMemorization.reduce((sum, r) => sum + r.target, 0);
+    const memActual = monthMemorization.reduce((sum, r) => sum + r.actual, 0);
+    const daysInMonth = getDaysInMonth();
+    const memTargetBulanan = memTargetHarian * daysInMonth;
+    const memPercentage = memTargetBulanan > 0 ? Math.round((memActual / memTargetBulanan) * 100) : 0;
 
     const memorizationData = {
       targetHarian: memTargetHarian,
-      targetSemesteran: memTargetSemesteran,
+      targetBulanan: memTargetBulanan,
       actual: memActual,
       percentage: memPercentage,
       status: getMemStatus(memPercentage),
     };
 
-    const semesterActivities = activityRecords.filter(record => {
+    const monthActivities = activityRecords.filter(record => {
       const recordDate = new Date(record.date);
       const recordYear = recordDate.getFullYear();
       const recordMonth = recordDate.getMonth();
-      const inSemester = currentSemester === 1 
-        ? recordMonth >= 6 && recordMonth <= 11
-        : recordMonth >= 0 && recordMonth <= 5;
-      return record.studentId === selectedStudent && recordYear === currentYear && inSemester;
+      return record.studentId === selectedStudent && recordYear === currentYear && recordMonth === currentMonthIndex;
     });
 
     const activitiesData = {
-      bangunTidur: semesterActivities.filter(r => r.activities['bangun_tidur']).length,
-      tahajud: semesterActivities.filter(r => r.activities['tahajud']).length,
-      rawatib: semesterActivities.filter(r => r.activities['rawatib']).length,
-      shaum: semesterActivities.filter(r => r.activities['shaum']).length,
-      tilawah: semesterActivities.filter(r => r.activities['tilawah']).length,
-      piket: semesterActivities.filter(r => r.activities['piket']).length,
+      bangunTidur: monthActivities.filter(r => r.activities['bangun_tidur']).length,
+      tahajud: monthActivities.filter(r => r.activities['tahajud']).length,
+      rawatib: monthActivities.filter(r => r.activities['rawatib']).length,
+      shaum: monthActivities.filter(r => r.activities['shaum']).length,
+      tilawah: monthActivities.filter(r => r.activities['tilawah']).length,
+      piket: monthActivities.filter(r => r.activities['piket']).length,
     };
 
-    const semesterExpenses = expenseRecords.filter(record => {
+    const monthExpenses = expenseRecords.filter(record => {
       const recordDate = new Date(record.tanggal);
       const recordYear = recordDate.getFullYear();
       const recordMonth = recordDate.getMonth();
-      const inSemester = currentSemester === 1 
-        ? recordMonth >= 6 && recordMonth <= 11
-        : recordMonth >= 0 && recordMonth <= 5;
-      return record.nama === student.name && recordYear === currentYear && inSemester;
+      return record.nama === student.name && recordYear === currentYear && recordMonth === currentMonthIndex;
     });
 
     const dailyBudget = 15000;
-    const semesterBudget = dailyBudget * daysInSemester;
-    const totalExpense = semesterExpenses.reduce((sum, record) => sum + record.jumlah, 0);
-    const financePercentage = semesterBudget > 0 ? Math.round((totalExpense / semesterBudget) * 100) : 0;
+    const monthBudget = dailyBudget * daysInMonth;
+    const totalExpense = monthExpenses.reduce((sum, record) => sum + record.jumlah, 0);
+    const financePercentage = monthBudget > 0 ? Math.round((totalExpense / monthBudget) * 100) : 0;
 
     const financeData = {
       totalExpense,
-      budget: semesterBudget,
+      budget: monthBudget,
       percentage: financePercentage,
       status: getFinanceStatus(financePercentage),
     };
@@ -249,21 +230,16 @@ const ShareResultsSection: React.FC = () => {
     let message = `Kepada Ykh. ${recipientNames}\n\n`;
     message += `Berikut ini kami sampaikan laporan perkembangan ananda *${student.name}* per tanggal ${formattedDate}\n\n`;
 
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth();
-    const currentSemester = currentMonth >= 6 ? 1 : 2;
-    const semesterLabel = currentSemester === 1 ? 'Ganjil' : 'Genap';
-
     if (selectedCategories.includes('profile')) {
       message += `*Data Santri*\n`;
       message += `Nama: ${studentData.profile.name}\n`;
       message += `Kelas: ${studentData.profile.class}\n`;
-      message += `Semester: ${semesterLabel}\n`;
+      message += `Bulan: ${months[currentMonthIndex]}\n`;
       message += `Tahun: ${currentYear}\n\n`;
     }
 
     if (selectedCategories.includes('attendance')) {
-      message += `*Kehadiran (Per Semester)*\n`;
+      message += `*Kehadiran (Per Bulan)*\n`;
       message += `Hadir: ${studentData.attendance.hadir} hari\n`;
       message += `Izin: ${studentData.attendance.izin} hari\n`;
       message += `Sakit: ${studentData.attendance.sakit} hari\n`;
@@ -272,15 +248,15 @@ const ShareResultsSection: React.FC = () => {
     }
 
     if (selectedCategories.includes('memorization')) {
-      message += `*Hafalan (Per Semester)*\n`;
-      message += `Target Semesteran: ${studentData.memorization.targetSemesteran} halaman\n`;
+      message += `*Hafalan (Per Bulan)*\n`;
+      message += `Target Bulanan: ${studentData.memorization.targetBulanan} halaman\n`;
       message += `Pencapaian: ${studentData.memorization.actual} halaman\n`;
       message += `Persentase: ${studentData.memorization.percentage}%\n`;
       message += `Status: ${studentData.memorization.status}\n\n`;
     }
 
     if (selectedCategories.includes('activities')) {
-      message += `*Aktivitas (Per Semester)*\n`;
+      message += `*Aktivitas (Per Bulan)*\n`;
       message += `Bangun Tidur: ${studentData.activities.bangunTidur} hari\n`;
       message += `Tahajud: ${studentData.activities.tahajud} hari\n`;
       message += `Rawatib: ${studentData.activities.rawatib} hari\n`;
@@ -290,8 +266,8 @@ const ShareResultsSection: React.FC = () => {
     }
 
     if (selectedCategories.includes('finance')) {
-      message += `*Keuangan (Per Semester)*\n`;
-      message += `Anggaran Semester: ${formatCurrency(studentData.finance.budget)}\n`;
+      message += `*Keuangan (Per Bulan)*\n`;
+      message += `Anggaran Bulan: ${formatCurrency(studentData.finance.budget)}\n`;
       message += `Total Pengeluaran: ${formatCurrency(studentData.finance.totalExpense)}\n`;
       message += `Persentase: ${studentData.finance.percentage}%\n`;
       message += `Status: ${studentData.finance.status}\n\n`;
@@ -388,25 +364,19 @@ const ShareResultsSection: React.FC = () => {
       yPos += 8;
     };
 
-    // Get semester info for PDF
-    const pdfCurrentYear = new Date().getFullYear();
-    const pdfCurrentMonth = new Date().getMonth();
-    const pdfCurrentSemester = pdfCurrentMonth >= 6 ? 1 : 2;
-    const pdfSemesterLabel = pdfCurrentSemester === 1 ? 'Ganjil' : 'Genap';
-
-    // Profile Section - No icon
+    // Profile Section
     if (selectedCategories.includes('profile')) {
       addSectionHeader('Data Santri');
       addTableRow('Nama', studentData.profile.name);
       addTableRow('Kelas', studentData.profile.class);
-      addTableRow('Semester', pdfSemesterLabel);
-      addTableRow('Tahun', pdfCurrentYear.toString());
+      addTableRow('Bulan', months[currentMonthIndex]);
+      addTableRow('Tahun', currentYear.toString());
       yPos += 6;
     }
 
-    // Attendance Section - No icon
+    // Attendance Section
     if (selectedCategories.includes('attendance')) {
-      addSectionHeader('Kehadiran (Per Semester)');
+      addSectionHeader('Kehadiran (Per Bulan)');
       addTableRow('Hadir', `${studentData.attendance.hadir} hari`);
       addTableRow('Izin', `${studentData.attendance.izin} hari`);
       addTableRow('Sakit', `${studentData.attendance.sakit} hari`);
@@ -415,19 +385,19 @@ const ShareResultsSection: React.FC = () => {
       yPos += 6;
     }
 
-    // Memorization Section - No icon
+    // Memorization Section
     if (selectedCategories.includes('memorization')) {
-      addSectionHeader('Hafalan (Per Semester)');
-      addTableRow('Target Semesteran', `${studentData.memorization.targetSemesteran} halaman`);
+      addSectionHeader('Hafalan (Per Bulan)');
+      addTableRow('Target Bulanan', `${studentData.memorization.targetBulanan} halaman`);
       addTableRow('Pencapaian', `${studentData.memorization.actual} halaman`);
       addTableRow('Persentase', `${studentData.memorization.percentage}%`);
       addTableRow('Status', studentData.memorization.status);
       yPos += 6;
     }
 
-    // Activities Section - No icon
+    // Activities Section
     if (selectedCategories.includes('activities')) {
-      addSectionHeader('Aktivitas (Per Semester)');
+      addSectionHeader('Aktivitas (Per Bulan)');
       addTableRow('Bangun Tidur', `${studentData.activities.bangunTidur} hari`);
       addTableRow('Tahajud', `${studentData.activities.tahajud} hari`);
       addTableRow('Rawatib', `${studentData.activities.rawatib} hari`);
@@ -437,10 +407,10 @@ const ShareResultsSection: React.FC = () => {
       yPos += 6;
     }
 
-    // Finance Section - No icon
+    // Finance Section
     if (selectedCategories.includes('finance')) {
-      addSectionHeader('Keuangan (Per Semester)');
-      addTableRow('Anggaran Semester', formatCurrency(studentData.finance.budget));
+      addSectionHeader('Keuangan (Per Bulan)');
+      addTableRow('Anggaran Bulan', formatCurrency(studentData.finance.budget));
       addTableRow('Total Pengeluaran', formatCurrency(studentData.finance.totalExpense));
       addTableRow('Persentase', `${studentData.finance.percentage}%`);
       addTableRow('Status', studentData.finance.status);
@@ -468,7 +438,7 @@ const ShareResultsSection: React.FC = () => {
     doc.text(profileData.role, 20, yPos);
 
     // Save PDF
-    doc.save(`Laporan_${student.name.replace(/\s+/g, '_')}_${today.toISOString().split('T')[0]}.pdf`);
+    doc.save(`Laporan_Bulanan_${student.name.replace(/\s+/g, '_')}_${months[currentMonthIndex]}_${currentYear}.pdf`);
   };
 
   const handleShowPreview = () => {
@@ -490,11 +460,6 @@ const ShareResultsSection: React.FC = () => {
       const recipient = recipients.find(r => r.id === id);
       return recipient?.label || '';
     }).join(' | ');
-
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth();
-    const currentSemester = currentMonth >= 6 ? 1 : 2;
-    const semesterLabel = currentSemester === 1 ? 'Ganjil' : 'Genap';
 
     let htmlContent = `
 <!DOCTYPE html>
@@ -596,14 +561,14 @@ const ShareResultsSection: React.FC = () => {
     <table>
       <tr><th>Nama</th><td>${studentData.profile.name}</td></tr>
       <tr><th>Kelas</th><td>${studentData.profile.class}</td></tr>
-      <tr><th>Semester</th><td>${semesterLabel}</td></tr>
+      <tr><th>Bulan</th><td>${months[currentMonthIndex]}</td></tr>
       <tr><th>Tahun</th><td>${currentYear}</td></tr>
     </table>`;
     }
 
     if (selectedCategories.includes('attendance')) {
       htmlContent += `
-    <h2>Kehadiran (Per Semester)</h2>
+    <h2>Kehadiran (Per Bulan)</h2>
     <table>
       <tr><th>Hadir</th><td>${studentData.attendance.hadir} hari</td></tr>
       <tr><th>Izin</th><td>${studentData.attendance.izin} hari</td></tr>
@@ -615,9 +580,9 @@ const ShareResultsSection: React.FC = () => {
 
     if (selectedCategories.includes('memorization')) {
       htmlContent += `
-    <h2>Hafalan (Per Semester)</h2>
+    <h2>Hafalan (Per Bulan)</h2>
     <table>
-      <tr><th>Target Semesteran</th><td>${studentData.memorization.targetSemesteran} halaman</td></tr>
+      <tr><th>Target Bulanan</th><td>${studentData.memorization.targetBulanan} halaman</td></tr>
       <tr><th>Pencapaian</th><td>${studentData.memorization.actual} halaman</td></tr>
       <tr><th>Persentase</th><td>${studentData.memorization.percentage}%</td></tr>
       <tr><th>Status</th><td>${studentData.memorization.status}</td></tr>
@@ -626,7 +591,7 @@ const ShareResultsSection: React.FC = () => {
 
     if (selectedCategories.includes('activities')) {
       htmlContent += `
-    <h2>Aktivitas (Per Semester)</h2>
+    <h2>Aktivitas (Per Bulan)</h2>
     <table>
       <tr><th>Bangun Tidur</th><td>${studentData.activities.bangunTidur} hari</td></tr>
       <tr><th>Tahajud</th><td>${studentData.activities.tahajud} hari</td></tr>
@@ -639,9 +604,9 @@ const ShareResultsSection: React.FC = () => {
 
     if (selectedCategories.includes('finance')) {
       htmlContent += `
-    <h2>Keuangan (Per Semester)</h2>
+    <h2>Keuangan (Per Bulan)</h2>
     <table>
-      <tr><th>Anggaran Semester</th><td>${formatCurrency(studentData.finance.budget)}</td></tr>
+      <tr><th>Anggaran Bulan</th><td>${formatCurrency(studentData.finance.budget)}</td></tr>
       <tr><th>Total Pengeluaran</th><td>${formatCurrency(studentData.finance.totalExpense)}</td></tr>
       <tr><th>Persentase</th><td>${studentData.finance.percentage}%</td></tr>
       <tr><th>Status</th><td>${studentData.finance.status}</td></tr>
@@ -676,9 +641,28 @@ const ShareResultsSection: React.FC = () => {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Download & Share Report Semester</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-800">Download & Share Report Bulanan</h3>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={goToPreviousMonth}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <span className="text-sm font-medium text-gray-700 min-w-[120px] text-center">
+            {months[currentMonthIndex]} {currentYear}
+          </span>
+          <button
+            onClick={goToNextMonth}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
+      </div>
       <p className="text-sm text-gray-600 mb-6">
-        Pilih santri dan kategori data yang ingin diunduh atau dibagikan
+        Pilih santri dan kategori data yang ingin diunduh atau dibagikan (laporan bulanan)
       </p>
 
       {/* Student Selection */}
@@ -709,12 +693,12 @@ const ShareResultsSection: React.FC = () => {
           {categories.map((category) => (
             <div key={category.id} className="flex items-center space-x-2">
               <Checkbox
-                id={`share-${category.id}`}
+                id={`share-monthly-${category.id}`}
                 checked={selectedCategories.includes(category.id)}
                 onCheckedChange={() => handleCategoryToggle(category.id)}
               />
               <label
-                htmlFor={`share-${category.id}`}
+                htmlFor={`share-monthly-${category.id}`}
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
               >
                 {category.label}
@@ -733,12 +717,12 @@ const ShareResultsSection: React.FC = () => {
           {recipients.map((recipient) => (
             <div key={recipient.id} className="flex items-center space-x-2">
               <Checkbox
-                id={`recipient-${recipient.id}`}
+                id={`recipient-monthly-${recipient.id}`}
                 checked={selectedRecipients.includes(recipient.id)}
                 onCheckedChange={() => handleRecipientToggle(recipient.id)}
               />
               <label
-                htmlFor={`recipient-${recipient.id}`}
+                htmlFor={`recipient-monthly-${recipient.id}`}
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
               >
                 {recipient.label}
@@ -775,13 +759,13 @@ const ShareResultsSection: React.FC = () => {
                     <div>
                       <p className="font-semibold text-sm">Data Santri</p>
                       <p className="text-xs text-gray-600">
-                        {studentData.profile.name} - {studentData.profile.class} - {studentData.profile.level}
+                        {studentData.profile.name} - {studentData.profile.class} - {months[currentMonthIndex]} {currentYear}
                       </p>
                     </div>
                   )}
                   {selectedCategories.includes('attendance') && (
                     <div>
-                      <p className="font-semibold text-sm">Kehadiran (Semester)</p>
+                      <p className="font-semibold text-sm">Kehadiran (Bulan)</p>
                       <p className="text-xs text-gray-600">
                         Hadir: {studentData.attendance.hadir}, Izin: {studentData.attendance.izin}, Sakit: {studentData.attendance.sakit}
                       </p>
@@ -789,15 +773,15 @@ const ShareResultsSection: React.FC = () => {
                   )}
                   {selectedCategories.includes('memorization') && (
                     <div>
-                      <p className="font-semibold text-sm">Hafalan (Semester)</p>
+                      <p className="font-semibold text-sm">Hafalan (Bulan)</p>
                       <p className="text-xs text-gray-600">
-                        Target: {studentData.memorization.targetSemesteran} hal, Pencapaian: {studentData.memorization.actual} hal
+                        Target: {studentData.memorization.targetBulanan} hal, Pencapaian: {studentData.memorization.actual} hal
                       </p>
                     </div>
                   )}
                   {selectedCategories.includes('activities') && (
                     <div>
-                      <p className="font-semibold text-sm">Aktivitas (Semester)</p>
+                      <p className="font-semibold text-sm">Aktivitas (Bulan)</p>
                       <p className="text-xs text-gray-600">
                         Bangun Tidur: {studentData.activities.bangunTidur}, Tahajud: {studentData.activities.tahajud}, Rawatib: {studentData.activities.rawatib}
                       </p>
@@ -805,7 +789,7 @@ const ShareResultsSection: React.FC = () => {
                   )}
                   {selectedCategories.includes('finance') && (
                     <div>
-                      <p className="font-semibold text-sm">Keuangan (Semester)</p>
+                      <p className="font-semibold text-sm">Keuangan (Bulan)</p>
                       <p className="text-xs text-gray-600">
                         Total Pengeluaran: {formatCurrency(studentData.finance.totalExpense)}
                       </p>
@@ -841,4 +825,4 @@ const ShareResultsSection: React.FC = () => {
   );
 };
 
-export default ShareResultsSection;
+export default ShareResultsMonthlySection;

@@ -81,23 +81,30 @@ const MemorizationMonthlySection: React.FC<MemorizationMonthlyProps> = ({
     return 'bg-red-100 text-red-800';
   };
 
+  const getDaysInMonth = () => {
+    return new Date(currentYear, currentMonthIndex + 1, 0).getDate();
+  };
+
   const getMonthlyStats = () => {
-    if (!selectedStudent) return { target: 0, actual: 0, percentage: 0, status: '' };
+    if (!selectedStudent) return { targetHarian: 0, targetBulanan: 0, actual: 0, percentage: 0, status: '' };
 
     const student = students.find(s => s.id.toString() === selectedStudent);
-    if (!student) return { target: 0, actual: 0, percentage: 0, status: '' };
+    if (!student) return { targetHarian: 0, targetBulanan: 0, actual: 0, percentage: 0, status: '' };
 
     const monthRecords = memorizationRecords.filter(record => {
       const recordMonth = parseRecordMonth(record.date);
       return record.studentName === student.name && recordMonth === currentMonthIndex;
     });
 
-    const target = monthRecords.reduce((sum, r) => sum + r.target, 0);
+    const targetHarian = monthRecords.reduce((sum, r) => sum + r.target, 0);
     const actual = monthRecords.reduce((sum, r) => sum + r.actual, 0);
-    const percentage = target > 0 ? Math.round((actual / target) * 100) : 0;
+    const daysInMonth = getDaysInMonth();
+    const targetBulanan = targetHarian * daysInMonth;
+    const percentage = targetBulanan > 0 ? Math.round((actual / targetBulanan) * 100) : 0;
 
     return {
-      target,
+      targetHarian,
+      targetBulanan,
       actual,
       percentage,
       status: getStatusLabel(percentage),
@@ -145,7 +152,8 @@ const MemorizationMonthlySection: React.FC<MemorizationMonthlyProps> = ({
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Target (Halaman)</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Target Harian</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Target Bulanan</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pencapaian (Halaman)</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Persentase</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
@@ -154,7 +162,10 @@ const MemorizationMonthlySection: React.FC<MemorizationMonthlyProps> = ({
           <tbody className="bg-white">
             <tr>
               <td className="px-6 py-4 text-sm">
-                <Badge className="bg-blue-100 text-blue-800">{stats.target}</Badge>
+                <Badge className="bg-blue-100 text-blue-800">{stats.targetHarian}</Badge>
+              </td>
+              <td className="px-6 py-4 text-sm">
+                <Badge className="bg-indigo-100 text-indigo-800">{stats.targetBulanan}</Badge>
               </td>
               <td className="px-6 py-4 text-sm">
                 <Badge className="bg-green-100 text-green-800">{stats.actual}</Badge>

@@ -4,6 +4,7 @@ import ProgramCalendar from '../components/ProgramCalendar';
 import StudentOverviewDashboard from '../components/StudentOverviewDashboard';
 import LeaderboardOverview from '../components/LeaderboardOverview';
 import ShareResultsSection from '../components/ShareResultsSection';
+import ShareResultsMonthlySection from '../components/ShareResultsMonthlySection';
 
 const Dashboard: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['Attendance', 'Memorization', 'Activities', 'Finance']);
@@ -26,8 +27,11 @@ const Dashboard: React.FC = () => {
         onCategoriesChange={setSelectedCategories}
       />
       
-      {/* Report Download and Share Section */}
+      {/* Report Download and Share Section - Semester */}
       <ShareResultsSection />
+      
+      {/* Report Download and Share Section - Bulanan */}
+      <ShareResultsMonthlySection />
     </div>
   );
 };
