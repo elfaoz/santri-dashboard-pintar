@@ -185,11 +185,11 @@ const ShareResultsSection: React.FC = () => {
     const financePercentage = semesterBudget > 0 ? Math.round((totalExpense / semesterBudget) * 100) : 0;
     
     const getFinanceStatus = (pct: number) => {
-      if (pct <= 20) return 'Baik Sekali';
-      if (pct <= 40) return 'Baik';
-      if (pct <= 60) return 'Cukup';
-      if (pct <= 80) return 'Kurang';
-      return 'Sangat Kurang';
+      if (pct <= 50) return 'Sangat Hemat';
+      if (pct <= 100) return 'Hemat';
+      if (pct <= 150) return 'Cukup Proporsional';
+      if (pct <= 200) return 'Boros';
+      return 'Sangat Boros';
     };
 
     const financeData = {
@@ -241,11 +241,18 @@ const ShareResultsSection: React.FC = () => {
     let message = `Kepada Ykh. ${recipientNames}\n\n`;
     message += `Berikut ini kami sampaikan laporan perkembangan ananda *${student.name}* per tanggal ${formattedDate}\n\n`;
 
+    // Get semester info
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth();
+    const currentSemester = currentMonth >= 6 ? 1 : 2;
+    const semesterLabel = currentSemester === 1 ? 'Ganjil' : 'Genap';
+
     if (selectedCategories.includes('profile')) {
       message += `📋 *Data Santri*\n`;
       message += `• Nama: ${studentData.profile.name}\n`;
       message += `• Kelas: ${studentData.profile.class}\n`;
-      message += `• Level: ${studentData.profile.level}\n\n`;
+      message += `• Semester: ${semesterLabel}\n`;
+      message += `• Tahun: ${currentYear}\n\n`;
     }
 
     if (selectedCategories.includes('attendance')) {
@@ -260,7 +267,9 @@ const ShareResultsSection: React.FC = () => {
     if (selectedCategories.includes('memorization')) {
       message += `📖 *Hafalan (Per Semester)*\n`;
       message += `• Target: ${studentData.memorization.target} halaman\n`;
-      message += `• Pencapaian: ${studentData.memorization.actual} halaman\n\n`;
+      message += `• Pencapaian: ${studentData.memorization.actual} halaman\n`;
+      message += `• Persentase: ${studentData.memorization.percentage}%\n`;
+      message += `• Status: ${studentData.memorization.status}\n\n`;
     }
 
     if (selectedCategories.includes('activities')) {
@@ -275,8 +284,16 @@ const ShareResultsSection: React.FC = () => {
 
     if (selectedCategories.includes('finance')) {
       message += `💰 *Keuangan (Per Semester)*\n`;
-      message += `• Total Pengeluaran: ${formatCurrency(studentData.finance.totalExpense)}\n\n`;
+      message += `• Total Pengeluaran: ${formatCurrency(studentData.finance.totalExpense)}\n`;
+      message += `• Persentase: ${studentData.finance.percentage}%\n`;
+      message += `• Status: ${studentData.finance.status}\n\n`;
     }
+
+    message += `Demikian laporan ini kami sampaikan. Semoga dapat menjadi bahan evaluasi dan motivasi bagi ananda untuk terus mengembangkan aspek kehadiran, hafalan qur'an, ibadah, dan manajemen keuangan.\n\n`;
+    message += `Wassalamu'alaikum warahmatullahi wabarakatuh.\n\n`;
+    message += `Hormat kami,\n`;
+    message += `${profileData.name}\n`;
+    message += `${profileData.role}`;
 
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
@@ -363,12 +380,19 @@ const ShareResultsSection: React.FC = () => {
       yPos += 8;
     };
 
+    // Get semester info for PDF
+    const pdfCurrentYear = new Date().getFullYear();
+    const pdfCurrentMonth = new Date().getMonth();
+    const pdfCurrentSemester = pdfCurrentMonth >= 6 ? 1 : 2;
+    const pdfSemesterLabel = pdfCurrentSemester === 1 ? 'Ganjil' : 'Genap';
+
     // Profile Section
     if (selectedCategories.includes('profile')) {
       addSectionHeader('📋 Data Santri');
       addTableRow('Nama', studentData.profile.name);
       addTableRow('Kelas', studentData.profile.class);
-      addTableRow('Level', studentData.profile.level);
+      addTableRow('Semester', pdfSemesterLabel);
+      addTableRow('Tahun', pdfCurrentYear.toString());
       yPos += 6;
     }
 
@@ -388,6 +412,8 @@ const ShareResultsSection: React.FC = () => {
       addSectionHeader('📖 Hafalan (Per Semester)');
       addTableRow('Target Hafalan', `${studentData.memorization.target} halaman`);
       addTableRow('Pencapaian', `${studentData.memorization.actual} halaman`);
+      addTableRow('Persentase', `${studentData.memorization.percentage}%`);
+      addTableRow('Status', studentData.memorization.status);
       yPos += 6;
     }
 
@@ -406,7 +432,10 @@ const ShareResultsSection: React.FC = () => {
     // Finance Section
     if (selectedCategories.includes('finance')) {
       addSectionHeader('💰 Keuangan (Per Semester)');
+      addTableRow('Anggaran Semester', formatCurrency(studentData.finance.budget));
       addTableRow('Total Pengeluaran', formatCurrency(studentData.finance.totalExpense));
+      addTableRow('Persentase', `${studentData.finance.percentage}%`);
+      addTableRow('Status', studentData.finance.status);
       yPos += 6;
     }
 
@@ -414,7 +443,7 @@ const ShareResultsSection: React.FC = () => {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(51, 51, 51);
-    const closingText = 'Demikian laporan ini kami sampaikan. Semoga dapat menjadi bahan evaluasi dan motivasi bagi ananda untuk terus berkembang dalam ibadah, akhlak, dan kedisiplinan.';
+    const closingText = 'Demikian laporan ini kami sampaikan. Semoga dapat menjadi bahan evaluasi dan motivasi bagi ananda untuk terus mengembangkan aspek kehadiran, hafalan qur\'an, ibadah, dan manajemen keuangan.';
     const splitClosing = doc.splitTextToSize(closingText, pageWidth - 40);
     doc.text(splitClosing, 20, yPos);
     yPos += splitClosing.length * 5 + 8;
@@ -429,12 +458,6 @@ const ShareResultsSection: React.FC = () => {
     yPos += 5;
     doc.setFont('helvetica', 'normal');
     doc.text(profileData.role, 20, yPos);
-    yPos += 15;
-
-    // Footer
-    doc.setFontSize(9);
-    doc.setTextColor(119, 119, 119);
-    doc.text('© 2026 Yayasan Al-Amin | SOP-Gen Generated by Karimdigital.id', pageWidth / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
 
     // Save PDF
     doc.save(`Laporan_${student.name.replace(/\s+/g, '_')}_${today.toISOString().split('T')[0]}.pdf`);
@@ -568,6 +591,7 @@ const ShareResultsSection: React.FC = () => {
       <tr><th>Nama</th><td>${studentData.profile.name}</td></tr>
       <tr><th>Kelas</th><td>${studentData.profile.class}</td></tr>
       <tr><th>Semester</th><td>${semesterLabel}</td></tr>
+      <tr><th>Tahun</th><td>${currentYear}</td></tr>
     </table>`;
     }
 
@@ -620,7 +644,7 @@ const ShareResultsSection: React.FC = () => {
 
     htmlContent += `
     <p>
-      Demikian laporan ini kami sampaikan. Semoga dapat menjadi bahan evaluasi dan motivasi bagi ananda untuk terus berkembang dalam ibadah, akhlak, dan kedisiplinan.
+      Demikian laporan ini kami sampaikan. Semoga dapat menjadi bahan evaluasi dan motivasi bagi ananda untuk terus mengembangkan aspek kehadiran, hafalan qur'an, ibadah, dan manajemen keuangan.
     </p>
 
     <div class="signature">
