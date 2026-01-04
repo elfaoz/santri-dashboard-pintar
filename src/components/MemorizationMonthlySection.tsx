@@ -85,6 +85,21 @@ const MemorizationMonthlySection: React.FC<MemorizationMonthlyProps> = ({
     return new Date(currentYear, currentMonthIndex + 1, 0).getDate();
   };
 
+  // Target berdasarkan level santri
+  const getTargetByLevel = (level: string) => {
+    const levelLower = level?.toLowerCase() || '';
+    if (levelLower.includes('tahsin')) {
+      return { daily: 4, monthly: 4, semester: 20 };
+    } else if (levelLower.includes('tahfizh kamil') || levelLower.includes('tahfidz kamil')) {
+      return { daily: 20, monthly: 20, semester: 100 };
+    } else if (levelLower.includes('tahfizh 2') || levelLower.includes('tahfidz 2')) {
+      return { daily: 10, monthly: 10, semester: 50 };
+    } else if (levelLower.includes('tahfizh 1') || levelLower.includes('tahfidz 1') || levelLower.includes('tahfizh') || levelLower.includes('tahfidz')) {
+      return { daily: 6, monthly: 6, semester: 30 };
+    }
+    return { daily: 4, monthly: 4, semester: 20 }; // Default Tahsin
+  };
+
   const getMonthlyStats = () => {
     if (!selectedStudent) return { targetHarian: 0, targetBulanan: 0, actual: 0, percentage: 0, status: '' };
 
@@ -96,10 +111,10 @@ const MemorizationMonthlySection: React.FC<MemorizationMonthlyProps> = ({
       return record.studentName === student.name && recordMonth === currentMonthIndex;
     });
 
-    const targetHarian = monthRecords.reduce((sum, r) => sum + r.target, 0);
+    const levelTarget = getTargetByLevel(student.level);
+    const targetHarian = levelTarget.daily;
+    const targetBulanan = levelTarget.monthly;
     const actual = monthRecords.reduce((sum, r) => sum + r.actual, 0);
-    const daysInMonth = getDaysInMonth();
-    const targetBulanan = targetHarian * daysInMonth;
     const percentage = targetBulanan > 0 ? Math.round((actual / targetBulanan) * 100) : 0;
 
     return {

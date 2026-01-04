@@ -154,10 +154,25 @@ const ShareResultsSection: React.FC = () => {
       return record.studentName === student.name && recordYear === currentYear && inSemester;
     });
 
-    const memTargetHarian = semesterMemorization.reduce((sum, r) => sum + r.target, 0);
+    // Target berdasarkan level santri
+    const getTargetByLevel = (level: string) => {
+      const levelLower = level?.toLowerCase() || '';
+      if (levelLower.includes('tahsin')) {
+        return { daily: 4, monthly: 4, semester: 20 };
+      } else if (levelLower.includes('tahfizh kamil') || levelLower.includes('tahfidz kamil')) {
+        return { daily: 20, monthly: 20, semester: 100 };
+      } else if (levelLower.includes('tahfizh 2') || levelLower.includes('tahfidz 2')) {
+        return { daily: 10, monthly: 10, semester: 50 };
+      } else if (levelLower.includes('tahfizh 1') || levelLower.includes('tahfidz 1') || levelLower.includes('tahfizh') || levelLower.includes('tahfidz')) {
+        return { daily: 6, monthly: 6, semester: 30 };
+      }
+      return { daily: 4, monthly: 4, semester: 20 };
+    };
+
+    const levelTarget = getTargetByLevel(student.level);
+    const memTargetHarian = levelTarget.daily;
+    const memTargetSemesteran = levelTarget.semester;
     const memActual = semesterMemorization.reduce((sum, r) => sum + r.actual, 0);
-    const daysInSemester = getDaysInSemester(currentSemester, currentYear);
-    const memTargetSemesteran = memTargetHarian * daysInSemester;
     const memPercentage = memTargetSemesteran > 0 ? Math.round((memActual / memTargetSemesteran) * 100) : 0;
 
     const memorizationData = {
@@ -198,7 +213,8 @@ const ShareResultsSection: React.FC = () => {
     });
 
     const dailyBudget = 15000;
-    const semesterBudget = dailyBudget * daysInSemester;
+    const daysInSem = getDaysInSemester(currentSemester, currentYear);
+    const semesterBudget = dailyBudget * daysInSem;
     const totalExpense = semesterExpenses.reduce((sum, record) => sum + record.jumlah, 0);
     const financePercentage = semesterBudget > 0 ? Math.round((totalExpense / semesterBudget) * 100) : 0;
 
@@ -329,63 +345,74 @@ const ShareResultsSection: React.FC = () => {
 
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     let yPos = 20;
 
+    // Helper function to check and add new page if needed
+    const checkPageBreak = (neededHeight: number) => {
+      if (yPos + neededHeight > pageHeight - 20) {
+        doc.addPage();
+        yPos = 20;
+      }
+    };
+
     // Title - Bold
-    doc.setFontSize(20);
+    doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(3, 152, 158);
     doc.text('Laporan Perkembangan Santri', pageWidth / 2, yPos, { align: 'center' });
-    yPos += 15;
+    yPos += 18;
 
     // Recipient
-    doc.setFontSize(12);
+    doc.setFontSize(13);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(51, 51, 51);
     doc.text('Kepada Yth.', 20, yPos);
-    yPos += 6;
+    yPos += 7;
     const recipientLines = recipientNames.split('\n');
     recipientLines.forEach(line => {
       doc.text(line, 20, yPos);
-      yPos += 5;
+      yPos += 6;
     });
-    yPos += 5;
+    yPos += 6;
 
     // Greeting
     doc.text("Assalamu'alaikum warahmatullahi wabarakatuh.", 20, yPos);
-    yPos += 8;
+    yPos += 10;
     doc.text(`Dengan hormat, berikut kami sampaikan laporan perkembangan ananda`, 20, yPos);
-    yPos += 6;
+    yPos += 7;
     doc.setFont('helvetica', 'bold');
     doc.text(`${student.name}`, 20, yPos);
     doc.setFont('helvetica', 'normal');
     doc.text(` per ${formattedDate}.`, 20 + doc.getTextWidth(`${student.name} `), yPos);
-    yPos += 12;
+    yPos += 14;
 
-    // Helper function for section headers - No icons
+    // Helper function for section headers
     const addSectionHeader = (title: string) => {
-      doc.setFontSize(14);
+      checkPageBreak(20);
+      doc.setFontSize(15);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(68, 68, 68);
       doc.text(title, 20, yPos);
-      yPos += 2;
+      yPos += 3;
       doc.setDrawColor(238, 238, 238);
       doc.line(20, yPos, pageWidth - 20, yPos);
-      yPos += 6;
+      yPos += 8;
     };
 
-    // Helper function for table rows - White background
+    // Helper function for table rows
     const addTableRow = (label: string, value: string) => {
-      doc.setFontSize(12);
+      checkPageBreak(12);
+      doc.setFontSize(13);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(51, 51, 51);
       doc.setFillColor(255, 255, 255);
-      doc.rect(20, yPos - 4, 60, 8, 'S');
+      doc.rect(20, yPos - 5, 65, 10, 'S');
       doc.text(label, 22, yPos);
       doc.setFont('helvetica', 'normal');
-      doc.rect(80, yPos - 4, pageWidth - 100, 8, 'S');
-      doc.text(value, 82, yPos);
-      yPos += 8;
+      doc.rect(85, yPos - 5, pageWidth - 105, 10, 'S');
+      doc.text(value, 87, yPos);
+      yPos += 10;
     };
 
     // Get semester info for PDF
@@ -394,17 +421,17 @@ const ShareResultsSection: React.FC = () => {
     const pdfCurrentSemester = pdfCurrentMonth >= 6 ? 1 : 2;
     const pdfSemesterLabel = pdfCurrentSemester === 1 ? 'Ganjil' : 'Genap';
 
-    // Profile Section - No icon
+    // Profile Section
     if (selectedCategories.includes('profile')) {
       addSectionHeader('Data Santri');
       addTableRow('Nama', studentData.profile.name);
       addTableRow('Kelas', studentData.profile.class);
       addTableRow('Semester', pdfSemesterLabel);
       addTableRow('Tahun', pdfCurrentYear.toString());
-      yPos += 6;
+      yPos += 8;
     }
 
-    // Attendance Section - No icon
+    // Attendance Section
     if (selectedCategories.includes('attendance')) {
       addSectionHeader('Kehadiran (Per Semester)');
       addTableRow('Hadir', `${studentData.attendance.hadir} hari`);
@@ -412,20 +439,20 @@ const ShareResultsSection: React.FC = () => {
       addTableRow('Sakit', `${studentData.attendance.sakit} hari`);
       addTableRow('Tanpa Keterangan', `${studentData.attendance.tanpaKeterangan} hari`);
       addTableRow('Pulang', `${studentData.attendance.pulang} hari`);
-      yPos += 6;
+      yPos += 8;
     }
 
-    // Memorization Section - No icon
+    // Memorization Section
     if (selectedCategories.includes('memorization')) {
       addSectionHeader('Hafalan (Per Semester)');
       addTableRow('Target Semesteran', `${studentData.memorization.targetSemesteran} halaman`);
       addTableRow('Pencapaian', `${studentData.memorization.actual} halaman`);
       addTableRow('Persentase', `${studentData.memorization.percentage}%`);
       addTableRow('Status', studentData.memorization.status);
-      yPos += 6;
+      yPos += 8;
     }
 
-    // Activities Section - No icon
+    // Activities Section
     if (selectedCategories.includes('activities')) {
       addSectionHeader('Aktivitas (Per Semester)');
       addTableRow('Bangun Tidur', `${studentData.activities.bangunTidur} hari`);
@@ -434,36 +461,38 @@ const ShareResultsSection: React.FC = () => {
       addTableRow('Shaum', `${studentData.activities.shaum} hari`);
       addTableRow('Tilawah', `${studentData.activities.tilawah} hari`);
       addTableRow('Piket', `${studentData.activities.piket} hari`);
-      yPos += 6;
+      yPos += 8;
     }
 
-    // Finance Section - No icon
+    // Finance Section
     if (selectedCategories.includes('finance')) {
       addSectionHeader('Keuangan (Per Semester)');
       addTableRow('Anggaran Semester', formatCurrency(studentData.finance.budget));
       addTableRow('Total Pengeluaran', formatCurrency(studentData.finance.totalExpense));
       addTableRow('Persentase', `${studentData.finance.percentage}%`);
       addTableRow('Status', studentData.finance.status);
-      yPos += 6;
+      yPos += 8;
     }
 
     // Closing message
-    doc.setFontSize(12);
+    checkPageBreak(50);
+    doc.setFontSize(13);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(51, 51, 51);
     const closingText = 'Demikian laporan ini kami sampaikan. Semoga dapat menjadi bahan evaluasi dan motivasi bagi ananda untuk terus mengembangkan aspek kehadiran, hafalan qur\'an, ibadah, dan manajemen keuangan.';
     const splitClosing = doc.splitTextToSize(closingText, pageWidth - 40);
     doc.text(splitClosing, 20, yPos);
-    yPos += splitClosing.length * 5 + 8;
+    yPos += splitClosing.length * 6 + 10;
 
     // Signature
+    checkPageBreak(40);
     doc.text("Wassalamu'alaikum warahmatullahi wabarakatuh.", 20, yPos);
-    yPos += 10;
+    yPos += 12;
     doc.text('Hormat kami,', 20, yPos);
-    yPos += 15;
+    yPos += 18;
     doc.setFont('helvetica', 'bold');
     doc.text(profileData.name, 20, yPos);
-    yPos += 5;
+    yPos += 6;
     doc.setFont('helvetica', 'normal');
     doc.text(profileData.role, 20, yPos);
 
