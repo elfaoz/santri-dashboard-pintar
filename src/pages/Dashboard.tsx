@@ -5,6 +5,7 @@ import StudentOverviewDashboard from '../components/StudentOverviewDashboard';
 import LeaderboardOverview from '../components/LeaderboardOverview';
 import ShareResultsSection from '../components/ShareResultsSection';
 import ShareResultsMonthlySection from '../components/ShareResultsMonthlySection';
+import ShareResultsDailySection from '../components/ShareResultsDailySection';
 
 const Dashboard: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['Attendance', 'Memorization', 'Activities', 'Finance']);
@@ -32,6 +33,9 @@ const Dashboard: React.FC = () => {
       
       {/* Report Download and Share Section - Bulanan */}
       <ShareResultsMonthlySection />
+      
+      {/* Report Download and Share Section - Harian */}
+      <ShareResultsDailySection />
     </div>
   );
 };
