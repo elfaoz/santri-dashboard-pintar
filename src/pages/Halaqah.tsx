@@ -375,26 +375,36 @@ const Halaqah: React.FC = () => {
                                                     </details>
                                                 </td>
                                                 <td className="px-6 py-4 text-center">
-                                                    {latestRecord ? (
-                                                        <div className="flex items-center justify-center space-x-2">
-                                                            <button
-                                                                onClick={() => handleEditRecord(latestRecord)}
-                                                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                                                                title="Edit"
-                                                            >
-                                                                <Edit size={16} />
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleDeleteClick(latestRecord)}
-                                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                                                                title="Hapus"
-                                                            >
-                                                                <Trash2 size={16} />
-                                                            </button>
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-xs text-gray-400">-</span>
-                                                    )}
+                                                    {(() => {
+                                                        // Get all records for this student up to selected date
+                                                        const allRecords = memorizationRecords.filter(r => 
+                                                            r.studentName === student.name && 
+                                                            new Date(r.date) <= new Date(selectedDate)
+                                                        ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                                                        
+                                                        const lastRecord = allRecords[0];
+                                                        
+                                                        return lastRecord ? (
+                                                            <div className="flex items-center justify-center space-x-2">
+                                                                <button
+                                                                    onClick={() => handleEditRecord(lastRecord)}
+                                                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                                                    title="Edit"
+                                                                >
+                                                                    <Edit size={16} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteClick(lastRecord)}
+                                                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                                                    title="Hapus"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-xs text-gray-400">-</span>
+                                                        );
+                                                    })()}
                                                 </td>
                                             </tr>
                                         );
