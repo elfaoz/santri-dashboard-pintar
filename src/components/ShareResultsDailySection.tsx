@@ -22,7 +22,8 @@ const ShareResultsDailySection: React.FC = () => {
   const { halaqahs } = useHalaqahs();
   
   const [selectedStudent, setSelectedStudent] = useState('');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [dateFrom, setDateFrom] = useState(new Date().toISOString().split('T')[0]);
+  const [dateTo, setDateTo] = useState(new Date().toISOString().split('T')[0]);
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([]);
 
   const recipients = [
@@ -39,16 +40,26 @@ const ShareResultsDailySection: React.FC = () => {
     }
   };
 
-  const goToPreviousDay = () => {
-    const date = new Date(selectedDate);
-    date.setDate(date.getDate() - 1);
-    setSelectedDate(date.toISOString().split('T')[0]);
+  const getStatusIndonesian = (status: string) => {
+    switch (status) {
+      case 'Fully Achieved': return 'Tercapai Penuh';
+      case 'Achieved': return 'Tercapai';
+      case 'Not Achieved': return 'Tidak Tercapai';
+      default: return status;
+    }
   };
 
-  const goToNextDay = () => {
-    const date = new Date(selectedDate);
-    date.setDate(date.getDate() + 1);
-    setSelectedDate(date.toISOString().split('T')[0]);
+  const getSemesterLabel = (semesterValue: string) => {
+    if (!semesterValue) return '-';
+    // Check if it contains semester info like "1" or "2" or "Ganjil"/"Genap"
+    if (semesterValue.includes('1') || semesterValue.toLowerCase().includes('ganjil')) {
+      return 'Ganjil';
+    } else if (semesterValue.includes('2') || semesterValue.toLowerCase().includes('genap')) {
+      return 'Genap';
+    }
+    // If it's a year format like "2025-2026", determine based on current month
+    const currentMonth = new Date().getMonth() + 1; // 1-12
+    return currentMonth >= 7 ? 'Ganjil' : 'Genap';
   };
 
   const getStudentData = () => {
@@ -61,16 +72,21 @@ const ShareResultsDailySection: React.FC = () => {
       h.selectedStudents?.includes(student.id.toString())
     );
 
-    // Get memorization records for the selected student on the selected date
+    // Get memorization records for the selected student within the date range
     const dailyRecords = memorizationRecords.filter(record => {
-      return record.studentName === student.name && record.date === selectedDate;
-    });
+      const recordDate = new Date(record.date);
+      const fromDate = new Date(dateFrom);
+      const toDate = new Date(dateTo);
+      return record.studentName === student.name && 
+             recordDate >= fromDate && 
+             recordDate <= toDate;
+    }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     const profileDataStudent = {
       name: student.name,
       class: student.class,
       level: studentHalaqah?.level || student.level || '-',
-      semester: student.period || '-',
+      semester: getSemesterLabel(student.period || ''),
       year: new Date().getFullYear().toString(),
     };
 
@@ -87,6 +103,18 @@ const ShareResultsDailySection: React.FC = () => {
       month: 'long',
       year: 'numeric'
     });
+  };
+
+  const formatShortDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  const getPeriodString = () => {
+    return `${formatShortDate(dateFrom)} - ${formatShortDate(dateTo)}`;
   };
 
   const handlePreview = () => {
@@ -108,9 +136,6 @@ const ShareResultsDailySection: React.FC = () => {
           table { width: 100%; border-collapse: collapse; margin-top: 10px; }
           th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; }
           th { background-color: #f5f5f5; font-weight: bold; }
-          .checkbox { display: inline-block; width: 16px; height: 16px; border: 2px solid #333; margin-right: 8px; vertical-align: middle; text-align: center; line-height: 12px; }
-          .checkbox.checked { background-color: #03989e; color: white; }
-          .hafalan-item { margin: 8px 0; display: flex; align-items: center; }
           .closing { margin-top: 30px; }
           .signature { margin-top: 40px; }
         </style>
@@ -126,34 +151,41 @@ const ShareResultsDailySection: React.FC = () => {
             <tr><td><strong>Level</strong></td><td>${studentData.profile.level}</td></tr>
             <tr><td><strong>Semester</strong></td><td>${studentData.profile.semester}</td></tr>
             <tr><td><strong>Tahun</strong></td><td>${studentData.profile.year}</td></tr>
-            <tr><td><strong>Tanggal</strong></td><td>${formatDate(selectedDate)}</td></tr>
+            <tr><td><strong>Periode</strong></td><td>${getPeriodString()}</td></tr>
           </table>
         </div>
         
         <div class="section">
           <h2>Data Hafalan</h2>
           ${studentData.records.length > 0 ? `
-            ${studentData.records.map(record => `
-              <div style="margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
-                <p><strong>Juz:</strong> ${record.memorizationDetail?.juz || '-'}</p>
-                <p><strong>Halaman:</strong> ${record.memorizationDetail?.pageFrom || '-'} - ${record.memorizationDetail?.pageTo || '-'}</p>
-                <p><strong>Target Harian:</strong> ${record.target} halaman</p>
-                <p><strong>Pencapaian:</strong> ${record.actual} halaman</p>
-                <p><strong>Status:</strong> ${record.status}</p>
-                <h3 style="margin-top: 15px; font-size: 14px;">Detail Surat:</h3>
-                ${record.memorizationDetail?.surahDetails && record.memorizationDetail.surahDetails.length > 0 ? 
-                  record.memorizationDetail.surahDetails.map(detail => `
-                    <div class="hafalan-item">
-                      <span class="checkbox checked">✓</span>
-                      <span><strong>${detail.surahName}</strong> - Ayat ${detail.ayahFrom} sampai ${detail.ayahTo}</span>
-                    </div>
-                  `).join('') : 
-                  '<p style="color: #888;">Tidak ada detail surat</p>'
-                }
-              </div>
-            `).join('')}
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 20%;">Tanggal</th>
+                  <th style="width: 55%;">Detail Surat</th>
+                  <th style="width: 25%;">Nilai</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${studentData.records.map(record => {
+                  const surahDetails = record.memorizationDetail?.surahDetails && record.memorizationDetail.surahDetails.length > 0
+                    ? record.memorizationDetail.surahDetails.map(detail => 
+                        `Juz ${record.memorizationDetail?.juz || '-'}, ${detail.surahName} - Ayat ${detail.ayahFrom} sampai ${detail.ayahTo}, ${record.actual} halaman`
+                      ).join('<br>')
+                    : `Juz ${record.memorizationDetail?.juz || '-'}, ${record.actual} halaman`;
+                  
+                  return `
+                    <tr>
+                      <td>${formatShortDate(record.date)}</td>
+                      <td>${surahDetails}</td>
+                      <td>${getStatusIndonesian(record.status)}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
           ` : `
-            <p style="color: #888; text-align: center; padding: 20px;">Belum ada data hafalan pada tanggal ini</p>
+            <p style="color: #888; text-align: center; padding: 20px;">Belum ada data hafalan pada periode ini</p>
           `}
         </div>
         
@@ -230,7 +262,7 @@ const ShareResultsDailySection: React.FC = () => {
     addTableRow('Level', studentData.profile.level);
     addTableRow('Semester', studentData.profile.semester);
     addTableRow('Tahun', studentData.profile.year);
-    addTableRow('Tanggal', formatDate(selectedDate));
+    addTableRow('Periode', getPeriodString());
     yPos += 10;
 
     // Data Hafalan Section
@@ -243,55 +275,56 @@ const ShareResultsDailySection: React.FC = () => {
     yPos += 10;
 
     if (studentData.records.length > 0) {
-      studentData.records.forEach((record, index) => {
-        checkPageBreak(60);
-        
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(51, 51, 51);
-        
-        doc.text(`Juz: ${record.memorizationDetail?.juz || '-'}`, 20, yPos);
-        yPos += 7;
-        doc.text(`Halaman: ${record.memorizationDetail?.pageFrom || '-'} - ${record.memorizationDetail?.pageTo || '-'}`, 20, yPos);
-        yPos += 7;
-        doc.text(`Target Harian: ${record.target} halaman`, 20, yPos);
-        yPos += 7;
-        doc.text(`Pencapaian: ${record.actual} halaman`, 20, yPos);
-        yPos += 7;
-        doc.text(`Status: ${record.status}`, 20, yPos);
-        yPos += 10;
+      // Table Header
+      checkPageBreak(15);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(245, 245, 245);
+      doc.rect(20, yPos - 5, 35, 10, 'FD');
+      doc.rect(55, yPos - 5, 95, 10, 'FD');
+      doc.rect(150, yPos - 5, 40, 10, 'FD');
+      doc.setTextColor(51, 51, 51);
+      doc.text('Tanggal', 22, yPos);
+      doc.text('Detail Surat', 57, yPos);
+      doc.text('Nilai', 152, yPos);
+      yPos += 10;
 
-        if (record.memorizationDetail?.surahDetails && record.memorizationDetail.surahDetails.length > 0) {
-          doc.setFont('helvetica', 'bold');
-          doc.text('Detail Surat:', 20, yPos);
-          yPos += 8;
-          
-          doc.setFont('helvetica', 'normal');
-          record.memorizationDetail.surahDetails.forEach(detail => {
-            checkPageBreak(10);
-            // Draw checkbox
-            doc.setFillColor(3, 152, 158);
-            doc.rect(22, yPos - 4, 5, 5, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(8);
-            doc.text('v', 23.5, yPos - 0.5);
-            
-            doc.setTextColor(51, 51, 51);
-            doc.setFontSize(12);
-            doc.text(`${detail.surahName} - Ayat ${detail.ayahFrom} sampai ${detail.ayahTo}`, 30, yPos);
-            yPos += 8;
-          });
-        }
-        yPos += 5;
+      // Table Rows
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+
+      studentData.records.forEach((record) => {
+        const surahDetailsArr = record.memorizationDetail?.surahDetails && record.memorizationDetail.surahDetails.length > 0
+          ? record.memorizationDetail.surahDetails.map(detail => 
+              `Juz ${record.memorizationDetail?.juz || '-'}, ${detail.surahName} - Ayat ${detail.ayahFrom} s/d ${detail.ayahTo}, ${record.actual} hal`
+            )
+          : [`Juz ${record.memorizationDetail?.juz || '-'}, ${record.actual} halaman`];
+        
+        const detailText = surahDetailsArr.join('\n');
+        const splitDetail = doc.splitTextToSize(detailText, 90);
+        const rowHeight = Math.max(splitDetail.length * 5 + 5, 10);
+        
+        checkPageBreak(rowHeight + 5);
+
+        doc.rect(20, yPos - 5, 35, rowHeight, 'S');
+        doc.rect(55, yPos - 5, 95, rowHeight, 'S');
+        doc.rect(150, yPos - 5, 40, rowHeight, 'S');
+
+        doc.text(formatShortDate(record.date).substring(0, 15), 22, yPos);
+        doc.text(splitDetail, 57, yPos);
+        doc.text(getStatusIndonesian(record.status), 152, yPos);
+
+        yPos += rowHeight;
       });
     } else {
       doc.setFontSize(12);
       doc.setTextColor(136, 136, 136);
-      doc.text('Belum ada data hafalan pada tanggal ini', 20, yPos);
+      doc.text('Belum ada data hafalan pada periode ini', 20, yPos);
       yPos += 15;
     }
 
     // Closing
+    yPos += 10;
     checkPageBreak(50);
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
@@ -313,7 +346,7 @@ const ShareResultsDailySection: React.FC = () => {
     doc.setFont('helvetica', 'normal');
     doc.text(profileData.role, 20, yPos);
 
-    doc.save(`Laporan_Hafalan_Harian_${studentData.profile.name}_${selectedDate}.pdf`);
+    doc.save(`Laporan_Hafalan_Harian_${studentData.profile.name}_${dateFrom}_${dateTo}.pdf`);
   };
 
   const handleWhatsAppShare = () => {
@@ -326,7 +359,7 @@ const ShareResultsDailySection: React.FC = () => {
     }).join(', ');
 
     let message = `Kepada Yth. ${recipientNames}\n\n`;
-    message += `Berikut ini kami sampaikan laporan hafalan harian ananda *${studentData.profile.name}* pada tanggal ${formatDate(selectedDate)}\n\n`;
+    message += `Berikut ini kami sampaikan laporan hafalan harian ananda *${studentData.profile.name}* periode ${getPeriodString()}\n\n`;
 
     message += `*Data Santri*\n`;
     message += `Nama: ${studentData.profile.name}\n`;
@@ -337,23 +370,17 @@ const ShareResultsDailySection: React.FC = () => {
 
     message += `*Data Hafalan*\n`;
     if (studentData.records.length > 0) {
-      studentData.records.forEach((record, index) => {
-        message += `Juz: ${record.memorizationDetail?.juz || '-'}\n`;
-        message += `Halaman: ${record.memorizationDetail?.pageFrom || '-'} - ${record.memorizationDetail?.pageTo || '-'}\n`;
-        message += `Target Harian: ${record.target} halaman\n`;
-        message += `Pencapaian: ${record.actual} halaman\n`;
-        message += `Status: ${record.status}\n`;
-        
+      studentData.records.forEach((record) => {
+        message += `📅 ${formatShortDate(record.date)}\n`;
         if (record.memorizationDetail?.surahDetails && record.memorizationDetail.surahDetails.length > 0) {
-          message += `Detail Surat:\n`;
           record.memorizationDetail.surahDetails.forEach(detail => {
-            message += `✅ ${detail.surahName} - Ayat ${detail.ayahFrom} sampai ${detail.ayahTo}\n`;
+            message += `   Juz ${record.memorizationDetail?.juz}, ${detail.surahName} - Ayat ${detail.ayahFrom} s/d ${detail.ayahTo}\n`;
           });
         }
-        message += '\n';
+        message += `   Nilai: ${getStatusIndonesian(record.status)}\n\n`;
       });
     } else {
-      message += `Belum ada data hafalan pada tanggal ini\n\n`;
+      message += `Belum ada data hafalan pada periode ini\n\n`;
     }
 
     message += `Demikian laporan hafalan harian ini kami sampaikan. Semoga dapat menjadi bahan evaluasi dan motivasi bagi ananda untuk terus mengembangkan hafalan Al-Qur'an.\n\n`;
@@ -374,28 +401,34 @@ const ShareResultsDailySection: React.FC = () => {
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-100">
         <h3 className="text-lg font-semibold text-gray-800">Download & Share Report Harian</h3>
-        <p className="text-sm text-gray-600">Laporan hafalan harian santri dengan format checkbox</p>
+        <p className="text-sm text-gray-600">Laporan hafalan harian santri dengan format tabel</p>
       </div>
       
       <div className="p-6 space-y-6">
-        {/* Date Navigation */}
+        {/* Period Selection */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Pilih Tanggal</label>
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" size="sm" onClick={goToPreviousDay}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <Button variant="outline" size="sm" onClick={goToNextDay}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Pilih Periode</label>
+          <div className="flex items-center space-x-4 flex-wrap gap-2">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">Dari:</span>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">Sampai:</span>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
           </div>
-          <p className="text-sm text-gray-500 mt-1">{formatDate(selectedDate)}</p>
+          <p className="text-sm text-gray-500 mt-1">Periode: {getPeriodString()}</p>
         </div>
 
         {/* Student Selection */}
@@ -434,22 +467,40 @@ const ShareResultsDailySection: React.FC = () => {
         {/* Preview Data */}
         {studentData && studentData.records.length > 0 && (
           <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="font-medium text-gray-800 mb-3">Preview Data Hafalan</h4>
-            {studentData.records.map((record, index) => (
-              <div key={index} className="mb-4 last:mb-0">
-                <p className="text-sm text-gray-600">Juz {record.memorizationDetail?.juz || '-'} | Halaman {record.memorizationDetail?.pageFrom || '-'} - {record.memorizationDetail?.pageTo || '-'}</p>
-                {record.memorizationDetail?.surahDetails && record.memorizationDetail.surahDetails.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {record.memorizationDetail.surahDetails.map((detail, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-sm">
-                        <CheckSquare className="h-4 w-4 text-green-600" />
-                        <span>{detail.surahName} (Ayat {detail.ayahFrom}-{detail.ayahTo})</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+            <h4 className="font-medium text-gray-800 mb-3">Preview Data Hafalan ({studentData.records.length} record)</h4>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 px-2">Tanggal</th>
+                    <th className="text-left py-2 px-2">Detail Surat</th>
+                    <th className="text-left py-2 px-2">Nilai</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {studentData.records.slice(0, 5).map((record, index) => (
+                    <tr key={index} className="border-b">
+                      <td className="py-2 px-2">{formatShortDate(record.date)}</td>
+                      <td className="py-2 px-2">
+                        {record.memorizationDetail?.surahDetails && record.memorizationDetail.surahDetails.length > 0 ? (
+                          record.memorizationDetail.surahDetails.map((detail, idx) => (
+                            <div key={idx}>
+                              Juz {record.memorizationDetail?.juz}, {detail.surahName} - Ayat {detail.ayahFrom} s/d {detail.ayahTo}
+                            </div>
+                          ))
+                        ) : (
+                          <span>Juz {record.memorizationDetail?.juz || '-'}</span>
+                        )}
+                      </td>
+                      <td className="py-2 px-2">{getStatusIndonesian(record.status)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {studentData.records.length > 5 && (
+                <p className="text-sm text-gray-500 mt-2">... dan {studentData.records.length - 5} record lainnya</p>
+              )}
+            </div>
           </div>
         )}
 
