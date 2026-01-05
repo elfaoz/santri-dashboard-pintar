@@ -27,14 +27,17 @@ interface MemorizationTableProps {
   selectedHalaqah?: string;
 }
 
-const MemorizationTable: React.FC<MemorizationTableProps> = ({ memorizationRecords = [], selectedHalaqah: propSelectedHalaqah = 'all' }) => {
+const MemorizationTable: React.FC<MemorizationTableProps> = ({ memorizationRecords: propRecords, selectedHalaqah: propSelectedHalaqah = 'all' }) => {
   const { students } = useStudents();
   const { halaqahs: registeredHalaqahs } = useHalaqahs();
-  const { updateMemorizationRecord } = useMemorization();
+  const { memorizationRecords: contextRecords, updateMemorizationRecord } = useMemorization();
+  
+  // Use context records if prop is not provided or empty
+  const memorizationRecords = propRecords && propRecords.length > 0 ? propRecords : contextRecords;
   
   const [records, setRecords] = useState<MemorizationRecord[]>(memorizationRecords);
 
-  // Update records when memorizationRecords prop changes
+  // Update records when memorizationRecords changes
   useEffect(() => {
     setRecords(memorizationRecords);
   }, [memorizationRecords]);

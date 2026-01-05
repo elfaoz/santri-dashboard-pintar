@@ -10,6 +10,15 @@ interface DetailMemorizationModalProps {
   record: MemorizationRecord | null;
 }
 
+const getStatusIndonesian = (status: string) => {
+  switch (status) {
+    case 'Fully Achieved': return 'Tercapai Penuh';
+    case 'Achieved': return 'Tercapai';
+    case 'Not Achieved': return 'Tidak Tercapai';
+    default: return status;
+  }
+};
+
 const DetailMemorizationModal: React.FC<DetailMemorizationModalProps> = ({
   isOpen,
   onClose,
@@ -17,18 +26,29 @@ const DetailMemorizationModal: React.FC<DetailMemorizationModalProps> = ({
 }) => {
   if (!record) return null;
 
+  const hasData = record.memorizationDetail && 
+    (record.memorizationDetail.juz > 0 || 
+     record.target > 0 || 
+     record.actual > 0 ||
+     (record.memorizationDetail.surahDetails && record.memorizationDetail.surahDetails.length > 0));
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Memorization Detail</DialogTitle>
+          <DialogTitle>Detail Hafalan - {record.studentName}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
             <div>
-              <span className="text-sm font-medium text-gray-600">Date:</span>
-              <p className="text-gray-900">{new Date(record.date).toLocaleDateString('id-ID')}</p>
+              <span className="text-sm font-medium text-gray-600">Tanggal:</span>
+              <p className="text-gray-900">{new Date(record.date).toLocaleDateString('id-ID', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+              })}</p>
             </div>
             <div>
               <span className="text-sm font-medium text-gray-600">Status:</span>
@@ -38,60 +58,60 @@ const DetailMemorizationModal: React.FC<DetailMemorizationModalProps> = ({
                   record.percentage >= 75 ? 'bg-yellow-100 text-yellow-800' : 
                   'bg-red-100 text-red-800'
                 }>
-                  {record.status}
+                  {getStatusIndonesian(record.status)}
                 </Badge>
               </div>
             </div>
           </div>
 
-          {record.memorizationDetail ? (
+          {hasData ? (
             <div className="space-y-4">
-              <h3 className="font-semibold text-gray-800 border-b pb-2">Memorization Details</h3>
+              <h3 className="font-semibold text-gray-800 border-b pb-2">Detail Hafalan</h3>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <div>
                     <span className="text-sm font-medium text-gray-600">Juz:</span>
-                    <p className="text-gray-900">Juz {record.memorizationDetail.juz}</p>
+                    <p className="text-gray-900">Juz {record.memorizationDetail?.juz || '-'}</p>
                   </div>
                   
                   <div>
-                    <span className="text-sm font-medium text-gray-600">Page Range:</span>
+                    <span className="text-sm font-medium text-gray-600">Halaman:</span>
                     <p className="text-gray-900">
-                      {record.memorizationDetail.pageFrom} - {record.memorizationDetail.pageTo}
+                      {record.memorizationDetail?.pageFrom || '-'} - {record.memorizationDetail?.pageTo || '-'}
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <div>
-                    <span className="text-sm font-medium text-gray-600">Target:</span>
-                    <p className="text-gray-900">{record.target} pages</p>
+                    <span className="text-sm font-medium text-gray-600">Target Harian:</span>
+                    <p className="text-gray-900">{record.target} halaman</p>
                   </div>
                   
                   <div>
-                    <span className="text-sm font-medium text-gray-600">Actual:</span>
-                    <p className="text-gray-900">{record.actual} pages</p>
+                    <span className="text-sm font-medium text-gray-600">Pencapaian:</span>
+                    <p className="text-gray-900">{record.actual} halaman</p>
                   </div>
                 </div>
               </div>
 
               <div className="pt-2 border-t">
                 <div className="mb-2">
-                  <span className="text-sm font-medium text-gray-600">Surah:</span>
-                  {record.memorizationDetail.surahDetails && record.memorizationDetail.surahDetails.length > 0 ? (
-                    <div className="space-y-2">
+                  <span className="text-sm font-medium text-gray-600">Detail Surat:</span>
+                  {record.memorizationDetail?.surahDetails && record.memorizationDetail.surahDetails.length > 0 ? (
+                    <div className="space-y-2 mt-2">
                       {record.memorizationDetail.surahDetails.map((detail, idx) => (
                         <div key={idx} className="p-2 bg-white rounded border border-gray-200">
                           <p className="text-gray-900 font-medium">{detail.surahName}</p>
                           <p className="text-sm text-gray-600">
-                            Ayah {detail.ayahFrom} - {detail.ayahTo}
+                            Ayat {detail.ayahFrom} - {detail.ayahTo}
                           </p>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-400">No surah details</p>
+                    <p className="text-gray-400 mt-1">Tidak ada detail surat</p>
                   )}
                 </div>
               </div>
@@ -99,7 +119,7 @@ const DetailMemorizationModal: React.FC<DetailMemorizationModalProps> = ({
               <div className="flex justify-center pt-4">
                 <div className="text-center">
                   <span className="text-2xl font-bold text-blue-600">{record.percentage}%</span>
-                  <p className="text-sm text-gray-600">Achievement</p>
+                  <p className="text-sm text-gray-600">Persentase Pencapaian</p>
                 </div>
               </div>
             </div>
