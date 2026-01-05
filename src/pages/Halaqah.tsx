@@ -298,9 +298,6 @@ const Halaqah: React.FC = () => {
                                         <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Riwayat
                                         </th>
-                                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Aksi
-                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
@@ -374,43 +371,11 @@ const Halaqah: React.FC = () => {
                                                         </div>
                                                     </details>
                                                 </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    {(() => {
-                                                        // Get all records for this student up to selected date
-                                                        const allRecords = memorizationRecords.filter(r => 
-                                                            r.studentName === student.name && 
-                                                            new Date(r.date) <= new Date(selectedDate)
-                                                        ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-                                                        
-                                                        const lastRecord = allRecords[0];
-                                                        
-                                                        return lastRecord ? (
-                                                            <div className="flex items-center justify-center space-x-2">
-                                                                <button
-                                                                    onClick={() => handleEditRecord(lastRecord)}
-                                                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                                                                    title="Edit"
-                                                                >
-                                                                    <Edit size={16} />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleDeleteClick(lastRecord)}
-                                                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                                                                    title="Hapus"
-                                                                >
-                                                                    <Trash2 size={16} />
-                                                                </button>
-                                                            </div>
-                                                        ) : (
-                                                            <span className="text-xs text-gray-400">-</span>
-                                                        );
-                                                    })()}
-                                                </td>
                                             </tr>
                                         );
                                     }) : (
                                         <tr>
-                                            <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                                            <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                                                 Belum ada data hafalan
                                             </td>
                                         </tr>
@@ -873,6 +838,131 @@ const Halaqah: React.FC = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Riwayat Hafalan Section */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+                        <div className="px-6 py-4 border-b border-gray-100">
+                            <h3 className="text-lg font-semibold text-gray-800">
+                                Riwayat Hafalan
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                                Daftar semua pencatatan hafalan santri
+                            </p>
+                        </div>
+                        
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Tanggal
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Nama Santri
+                                        </th>
+                                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Juz
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Surat 1
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Ayat 1
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Surat 2
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Ayat 2
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Surat 3
+                                        </th>
+                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Ayat 3
+                                        </th>
+                                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Aksi
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {memorizationRecords
+                                        .filter(r => 
+                                            (!recordsSelectedHalaqah || r.halaqah === halaqahs.find(h => h.id.toString() === recordsSelectedHalaqah)?.name) &&
+                                            (!recordsSelectedStudent || r.studentName === students.find(s => s.id.toString() === recordsSelectedStudent)?.name)
+                                        )
+                                        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                                        .map((record) => {
+                                            const surahDetails = record.memorizationDetail?.surahDetails || [];
+                                            const surah1 = surahDetails[0];
+                                            const surah2 = surahDetails[1];
+                                            const surah3 = surahDetails[2];
+                                            
+                                            return (
+                                                <tr key={record.id} className="hover:bg-gray-50">
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                                        {new Date(record.date).toLocaleDateString('id-ID')}
+                                                    </td>
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                        {record.studentName}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center text-sm text-gray-900">
+                                                        {record.memorizationDetail?.juz || '-'}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                        {surah1?.surahName || '-'}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                        {surah1 ? `${surah1.ayahFrom} - ${surah1.ayahTo}` : '-'}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                        {surah2?.surahName || '-'}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                        {surah2 ? `${surah2.ayahFrom} - ${surah2.ayahTo}` : '-'}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                        {surah3?.surahName || '-'}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-sm text-gray-900">
+                                                        {surah3 ? `${surah3.ayahFrom} - ${surah3.ayahTo}` : '-'}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        <div className="flex items-center justify-center space-x-2">
+                                                            <button
+                                                                onClick={() => handleEditRecord(record)}
+                                                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                                                title="Edit"
+                                                            >
+                                                                <Edit size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteClick(record)}
+                                                                className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                                                title="Hapus"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    {memorizationRecords.filter(r => 
+                                        (!recordsSelectedHalaqah || r.halaqah === halaqahs.find(h => h.id.toString() === recordsSelectedHalaqah)?.name) &&
+                                        (!recordsSelectedStudent || r.studentName === students.find(s => s.id.toString() === recordsSelectedStudent)?.name)
+                                    ).length === 0 && (
+                                        <tr>
+                                            <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
+                                                Belum ada data hafalan
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                     
                     {/* Memorization Monthly/Semester Section */}
                     <MemorizationMonthlySection 
@@ -884,15 +974,6 @@ const Halaqah: React.FC = () => {
                         memorizationRecords={memorizationRecords}
                         selectedStudent={recordsSelectedStudent}
                         students={students}
-                    />
-                    
-                    {/* Daily Records Table Section */}
-                    <MemorizationTable 
-                        memorizationRecords={memorizationRecords.filter(r => 
-                            (!recordsSelectedHalaqah || r.halaqah === halaqahs.find(h => h.id.toString() === recordsSelectedHalaqah)?.name) &&
-                            (!recordsSelectedStudent || r.studentName === students.find(s => s.id.toString() === recordsSelectedStudent)?.name)
-                        )}
-                        selectedHalaqah={recordsSelectedHalaqah}
                     />
                 </TabsContent>
                 
