@@ -839,14 +839,14 @@ const Halaqah: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Riwayat Hafalan Section */}
+                    {/* Rincian Riwayat Hafalan Section */}
                     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
                         <div className="px-6 py-4 border-b border-gray-100">
                             <h3 className="text-lg font-semibold text-gray-800">
-                                Riwayat Hafalan
+                                Rincian Riwayat Hafalan
                             </h3>
                             <p className="text-sm text-gray-600">
-                                Daftar semua pencatatan hafalan santri
+                                Daftar semua pencatatan hafalan santri berdasarkan filter
                             </p>
                         </div>
                         

@@ -47,7 +47,14 @@ const Profile: React.FC = () => {
       currentBalance: 0,
       accountNumber: '4043-0101-5163-532',
       nik: '3174021585123456',
-      profileImage: ''
+      profileImage: '',
+      // School identity
+      schoolName: 'ASRAMA PESANTREN PERSATUAN ISLAM 80 Al-AMIN SINDANGKASIH',
+      schoolDirector: '',
+      schoolAddress: 'Jl. Raya Ancol No. 27 Sindangkasih Ciamis 46268',
+      schoolLogo: '',
+      // Gatekeeper PIN for bonus withdrawal
+      withdrawalPin: '123456'
     };
   });
 
@@ -67,9 +74,15 @@ const Profile: React.FC = () => {
   };
 
   const handleSaveProfile = () => {
-    setProfileData(formData);
-    localStorage.setItem('profile_data', JSON.stringify(formData));
+    // Include new PIN if set
+    const updatedFormData = newPin.length === 6 
+      ? { ...formData, withdrawalPin: newPin }
+      : formData;
+    
+    setProfileData(updatedFormData);
+    localStorage.setItem('profile_data', JSON.stringify(updatedFormData));
     setIsEditing(false);
+    setNewPin('');
     toast({
       title: "Perubahan berhasil disimpan",
       description: "Data profil Anda telah diperbarui",
@@ -158,6 +171,17 @@ const Profile: React.FC = () => {
       return;
     }
 
+    // Verify PIN matches the stored withdrawal PIN
+    const storedPin = profileData.withdrawalPin || '123456';
+    if (withdrawPin !== storedPin) {
+      toast({
+        title: "PIN Salah",
+        description: "PIN yang Anda masukkan tidak sesuai",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Send WhatsApp notification with Total Bonus yang Diperoleh
     const message = `Pengajuan Penarikan Dana%0A%0AData Pemohon:%0A%0ANama: ${profileData.name}%0AEmail: ${profileData.email || 'nashers.manziel@gmail.com'}%0ANo. HP: ${profileData.phone}%0AAlamat: ${profileData.address}%0A%0ATanggal Pengajuan:%0A${new Date().toLocaleDateString('id-ID')}%0A%0ANominal Pengajuan:%0ARp ${totalBonus.toLocaleString('id-ID')}%0A%0AInformasi Rekening Penerima:%0A${profileData.bankInfo}%0ANo. Rekening: ${profileData.accountNumber || '4043-0101-5163-532'}%0AAtас Nama: ${profileData.name}%0A%0ATerima Kasih.`;
     const whatsappUrl = `https://wa.me/6285223857484?text=${message}`;
@@ -183,13 +207,13 @@ const Profile: React.FC = () => {
     // Add institution name (center, bold, size 12)
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
-    const institutionText = 'ASRAMA PESANTREN PERSATUAN ISLAM 80 Al-AMIN SINDANGKASIH';
+    const institutionText = profileData.schoolName || 'ASRAMA PESANTREN PERSATUAN ISLAM 80 Al-AMIN SINDANGKASIH';
     const institutionWidth = doc.getTextWidth(institutionText);
     doc.text(institutionText, (210 - institutionWidth) / 2, 20);
     
     // Add address (center, normal, size 12)
     doc.setFont('helvetica', 'normal');
-    const addressText = 'Jl. Raya Ancol No. 27 Sindangkasih Ciamis 46268';
+    const addressText = profileData.schoolAddress || 'Jl. Raya Ancol No. 27 Sindangkasih Ciamis 46268';
     const addressWidth = doc.getTextWidth(addressText);
     doc.text(addressText, (210 - addressWidth) / 2, 30);
     
@@ -200,7 +224,7 @@ const Profile: React.FC = () => {
     doc.text(titleText, (210 - titleWidth) / 2, 50);
     
     // Add subtitle (center, bold, size 12)
-    const subtitle1 = 'Antara Kepala dan Musyrif/Muhafizh';
+    const subtitle1 = `Antara ${profileData.schoolDirector || 'Mudir'} dan Musyrif/Muhafizh`;
     const subtitle1Width = doc.getTextWidth(subtitle1);
     doc.text(subtitle1, (210 - subtitle1Width) / 2, 60);
     
@@ -243,7 +267,7 @@ const Profile: React.FC = () => {
       '',
       'Tanda Tangan:',
       '',
-      'Kepala Lembaga',
+      profileData.schoolDirector || 'Mudir',
       '',
       '',
       '(_________________)',
@@ -289,7 +313,7 @@ const Profile: React.FC = () => {
     <div className="p-6">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-2">My Profile</h1>
-        <p className="text-gray-600">Informasi data pribadi Guru Pendamping</p>
+        <p className="text-gray-600">Informasi data pribadi</p>
       </div>
       
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -432,7 +456,7 @@ const Profile: React.FC = () => {
                   
                   {isEditing && (
                     <div className="space-y-2">
-                      <Label>Ubah PIN</Label>
+                      <Label>Ubah PIN Penarikan (6 digit)</Label>
                       <Input 
                         type="password" 
                         placeholder="Masukkan PIN baru (6 digit)" 
@@ -440,8 +464,80 @@ const Profile: React.FC = () => {
                         value={newPin}
                         onChange={(e) => setNewPin(e.target.value)}
                       />
+                      <p className="text-xs text-gray-500">PIN ini digunakan sebagai gatekeeper untuk penarikan bonus</p>
                     </div>
                   )}
+                </div>
+              </div>
+
+              {/* Identitas Sekolah Section */}
+              <div className="space-y-4 pt-6 border-t">
+                <h3 className="text-lg font-semibold">Identitas Sekolah</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Nama Sekolah</Label>
+                      <Input 
+                        value={formData.schoolName || ''} 
+                        onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
+                        disabled={!isEditing}
+                        placeholder="Masukkan nama sekolah"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Nama Mudir</Label>
+                      <Input 
+                        value={formData.schoolDirector || ''} 
+                        onChange={(e) => setFormData({ ...formData, schoolDirector: e.target.value })}
+                        disabled={!isEditing}
+                        placeholder="Masukkan nama mudir"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label>Alamat Sekolah</Label>
+                      <Textarea 
+                        value={formData.schoolAddress || ''} 
+                        onChange={(e) => setFormData({ ...formData, schoolAddress: e.target.value })}
+                        disabled={!isEditing}
+                        placeholder="Masukkan alamat sekolah"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {isEditing && (
+                      <div className="space-y-2">
+                        <Label>Upload Logo Sekolah</Label>
+                        <Input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setFormData({ ...formData, schoolLogo: reader.result as string });
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </div>
+                    )}
+                    
+                    {formData.schoolLogo && (
+                      <div className="mt-4">
+                        <Label className="mb-2 block">Preview Logo Sekolah</Label>
+                        <img 
+                          src={formData.schoolLogo} 
+                          alt="Logo Sekolah" 
+                          className="w-24 h-24 object-contain border rounded-lg"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               
@@ -478,17 +574,25 @@ const Profile: React.FC = () => {
             <TabsContent value="mou" className="mt-6">
               <div className="bg-white p-8 rounded-lg border shadow-sm font-roboto">
                 <div className="text-center mb-8">
-                  <div className="w-16 h-16 bg-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <span className="text-white font-bold text-xl">API</span>
-                  </div>
+                  {profileData.schoolLogo ? (
+                    <img 
+                      src={profileData.schoolLogo} 
+                      alt="Logo Sekolah" 
+                      className="w-16 h-16 object-contain mx-auto mb-4"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 bg-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                      <span className="text-white font-bold text-xl">API</span>
+                    </div>
+                  )}
                   <h1 className="text-xl font-bold text-gray-800">
                     Memorandum of Understanding (MoU)
                   </h1>
-                  <p className="text-gray-600 mt-2">Antara Kepala dan Musyrif/Muhafizh</p>
+                  <p className="text-gray-600 mt-2">Antara {profileData.schoolDirector || 'Mudir'} dan Musyrif/Muhafizh</p>
                   <p className="text-gray-600">Tentang: Amanah Pengasuhan, Pembinaan SKL Tahfizh, dan Sistem Penilaian Kinerja</p>
                   <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <p className="text-sm font-semibold text-blue-800">ASRAMA PESANTREN PERSATUAN ISLAM 80 Al-AMIN SINDANGKASIH</p>
-                    <p className="text-xs text-blue-600">Jl. Raya Ancol No. 27 Sindangkasih Ciamis 46268</p>
+                    <p className="text-sm font-semibold text-blue-800">{profileData.schoolName || 'ASRAMA PESANTREN PERSATUAN ISLAM 80 Al-AMIN SINDANGKASIH'}</p>
+                    <p className="text-xs text-blue-600">{profileData.schoolAddress || 'Jl. Raya Ancol No. 27 Sindangkasih Ciamis 46268'}</p>
                   </div>
                 </div>
 
@@ -557,7 +661,7 @@ const Profile: React.FC = () => {
                     
                     <div className="grid grid-cols-2 gap-8 mt-12 pt-8 border-t">
                       <div className="text-center">
-                        <p className="mb-16">Kepala Asrama</p>
+                        <p className="mb-16">{profileData.schoolDirector || 'Mudir'}</p>
                         <div className="border-b border-gray-400 w-32 mx-auto mb-2"></div>
                         <p className="text-xs">Tanda Tangan & Nama</p>
                       </div>
