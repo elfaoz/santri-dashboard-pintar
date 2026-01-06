@@ -248,7 +248,7 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
                 name="target"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Target Hafalan (halaman)</FormLabel>
+                    <FormLabel>Target Hafalan Harian (halaman)</FormLabel>
                     <FormControl>
                       <input
                         type="number"
@@ -324,7 +324,7 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
                 const availableSurahs = juzData?.ranges.map(r => r.surahName) || [];
                 return (
                   <FormItem>
-                    <FormLabel>Nama Surat</FormLabel>
+                    <FormLabel>Nama Surat (1)</FormLabel>
                     <Select onValueChange={(value) => {
                       field.onChange(value);
                       setSelectedSurah(value);
@@ -359,7 +359,7 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
                   const maxAyahForJuz = surahRange?.ayahTo || maxAyah;
                   return (
                     <FormItem>
-                      <FormLabel>Ayat (dari)</FormLabel>
+                      <FormLabel>Ayat Dari (1)</FormLabel>
                       <Select 
                         onValueChange={(value) => field.onChange(parseInt(value))} 
                         value={field.value?.toString()}
@@ -394,7 +394,7 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
                   const maxAyahForJuz = surahRange?.ayahTo || maxAyah;
                   return (
                     <FormItem>
-                      <FormLabel>Ayat (sampai)</FormLabel>
+                      <FormLabel>Ayat Sampai (1)</FormLabel>
                       <Select 
                         onValueChange={(value) => field.onChange(parseInt(value))} 
                         value={field.value?.toString()}
