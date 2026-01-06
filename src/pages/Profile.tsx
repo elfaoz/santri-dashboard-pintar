@@ -29,19 +29,51 @@ const Profile: React.FC = () => {
   const { halaqahs } = useHalaqahs();
   const { memorizationRecords } = useMemorization();
 
-  // Mock data - replace with actual data from context/API
-  const profileData = {
-    name: 'Ustadz Ahmad Wijaya',
-    role: 'Guru Pendamping Senior',
-    dateOfBirth: '15 Agustus 1985',
-    address: 'Jl. Pesantren No. 123, Jakarta Selatan',
-    bankInfo: 'BCA - 1234567890',
-    phone: '+62 812-3456-7890',
-    email: 'ahmad.wijaya@pesantren.com',
-    workPeriod: '',
-    currentBalance: 0,
-    accountNumber: '4043-0101-5163-532',
-    nik: '3174021585123456'
+  // Profile data state with localStorage persistence
+  const [profileData, setProfileData] = useState(() => {
+    const saved = localStorage.getItem('profile_data');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+    return {
+      name: 'Ustadz Ahmad Wijaya',
+      role: 'Guru Pendamping Senior',
+      dateOfBirth: '15 Agustus 1985',
+      address: 'Jl. Pesantren No. 123, Jakarta Selatan',
+      bankInfo: 'BCA - 1234567890',
+      phone: '+62 812-3456-7890',
+      email: 'ahmad.wijaya@pesantren.com',
+      workPeriod: '',
+      currentBalance: 0,
+      accountNumber: '4043-0101-5163-532',
+      nik: '3174021585123456',
+      profileImage: ''
+    };
+  });
+
+  // Editable form state
+  const [formData, setFormData] = useState(profileData);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageData = reader.result as string;
+        setFormData({ ...formData, profileImage: imageData });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveProfile = () => {
+    setProfileData(formData);
+    localStorage.setItem('profile_data', JSON.stringify(formData));
+    setIsEditing(false);
+    toast({
+      title: "Perubahan berhasil disimpan",
+      description: "Data profil Anda telah diperbarui",
+    });
   };
 
   // Get memorization data for bonus calculation from Progress Hafalan per Tanggal
@@ -266,7 +298,7 @@ const Profile: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Avatar className="w-20 h-20">
-                <AvatarImage src="/placeholder.svg" alt="Profile" />
+                <AvatarImage src={profileData.profileImage || "/placeholder.svg"} alt="Profile" />
                 <AvatarFallback className="bg-blue-100 text-blue-600 text-xl">
                   <User size={32} />
                 </AvatarFallback>
@@ -274,11 +306,13 @@ const Profile: React.FC = () => {
               <div>
                 <h2 className="text-xl font-bold text-gray-800">{profileData.name}</h2>
                 <p className="text-gray-600">{profileData.role}</p>
-                
               </div>
             </div>
             <Button 
-              onClick={() => setIsEditing(!isEditing)} 
+              onClick={() => {
+                setFormData(profileData);
+                setIsEditing(!isEditing);
+              }} 
               variant="outline"
               className="flex items-center gap-2"
             >
@@ -299,48 +333,101 @@ const Profile: React.FC = () => {
             
             {/* Edit Profile Tab */}
             <TabsContent value="profile" className="space-y-6 mt-6">
+              {/* Profile Image Upload */}
+              {isEditing && (
+                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                  <Avatar className="w-16 h-16">
+                    <AvatarImage src={formData.profileImage || "/placeholder.svg"} alt="Profile" />
+                    <AvatarFallback className="bg-blue-100 text-blue-600 text-xl">
+                      <User size={24} />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="space-y-2">
+                    <Label>Upload Gambar Profil</Label>
+                    <Input 
+                      type="file" 
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label>Nama Lengkap</Label>
-                    <Input defaultValue={profileData.name} disabled={!isEditing} />
+                    <Input 
+                      value={formData.name} 
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      disabled={!isEditing} 
+                    />
                   </div>
                   
                   <div className="space-y-2">
                     <Label>Jabatan</Label>
-                    <Input defaultValue={profileData.role} disabled={!isEditing} />
+                    <Input 
+                      value={formData.role} 
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                      disabled={!isEditing} 
+                    />
                   </div>
                   
                   <div className="space-y-2">
                     <Label>Tanggal Lahir</Label>
-                    <Input defaultValue={profileData.dateOfBirth} disabled={!isEditing} />
+                    <Input 
+                      value={formData.dateOfBirth} 
+                      onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                      disabled={!isEditing} 
+                    />
                   </div>
                   
                   <div className="space-y-2">
                     <Label>Nomor HP</Label>
-                    <Input defaultValue={profileData.phone} disabled={!isEditing} />
+                    <Input 
+                      value={formData.phone} 
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      disabled={!isEditing} 
+                    />
                   </div>
                 </div>
                 
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label>Email</Label>
-                    <Input defaultValue={profileData.email} disabled={!isEditing} />
+                    <Input 
+                      value={formData.email} 
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      disabled={!isEditing} 
+                    />
                   </div>
                   
                   <div className="space-y-2">
                     <Label>Alamat</Label>
-                    <Textarea defaultValue={profileData.address} disabled={!isEditing} />
+                    <Textarea 
+                      value={formData.address} 
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      disabled={!isEditing} 
+                    />
                   </div>
                   
                   <div className="space-y-2">
                     <Label>Rekening & Bank</Label>
-                    <Input defaultValue={profileData.bankInfo} disabled={!isEditing} />
+                    <Input 
+                      value={formData.bankInfo} 
+                      onChange={(e) => setFormData({ ...formData, bankInfo: e.target.value })}
+                      disabled={!isEditing} 
+                    />
                   </div>
                   
                   <div className="space-y-2">
                     <Label>NIK</Label>
-                    <Input defaultValue={profileData.nik} disabled={!isEditing} />
+                    <Input 
+                      value={formData.nik} 
+                      onChange={(e) => setFormData({ ...formData, nik: e.target.value })}
+                      disabled={!isEditing} 
+                    />
                   </div>
                   
                   {isEditing && (
@@ -376,14 +463,11 @@ const Profile: React.FC = () => {
               
               {isEditing && (
                 <div className="flex gap-4">
-                  <Button onClick={() => {
+                  <Button onClick={handleSaveProfile}>Simpan Perubahan</Button>
+                  <Button variant="outline" onClick={() => {
+                    setFormData(profileData);
                     setIsEditing(false);
-                    toast({
-                      title: "Perubahan berhasil disimpan",
-                      description: "Data profil Anda telah diperbarui",
-                    });
-                  }}>Simpan Perubahan</Button>
-                  <Button variant="outline" onClick={() => setIsEditing(false)}>
+                  }}>
                     Batal
                   </Button>
                 </div>
