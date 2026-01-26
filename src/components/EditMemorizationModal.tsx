@@ -23,12 +23,6 @@ interface FormData {
   surahName: string;
   ayahFrom: number;
   ayahTo: number;
-  surahName2: string;
-  ayahFrom2: number;
-  ayahTo2: number;
-  surahName3: string;
-  ayahFrom3: number;
-  ayahTo3: number;
 }
 
 const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
@@ -38,11 +32,7 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
   record
 }) => {
   const [selectedSurah, setSelectedSurah] = useState<string>('');
-  const [selectedSurah2, setSelectedSurah2] = useState<string>('');
-  const [selectedSurah3, setSelectedSurah3] = useState<string>('');
   const [maxAyah, setMaxAyah] = useState<number>(1);
-  const [maxAyah2, setMaxAyah2] = useState<number>(1);
-  const [maxAyah3, setMaxAyah3] = useState<number>(1);
   const [validationError, setValidationError] = useState<string>('');
   const [selectedJuz, setSelectedJuz] = useState<number>(1);
 
@@ -54,12 +44,6 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
       surahName: '',
       ayahFrom: 1,
       ayahTo: 1,
-      surahName2: '',
-      ayahFrom2: 1,
-      ayahTo2: 1,
-      surahName3: '',
-      ayahFrom3: 1,
-      ayahTo3: 1,
     }
   });
 
@@ -73,16 +57,8 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
         surahName: surahDetails[0]?.surahName || '',
         ayahFrom: surahDetails[0]?.ayahFrom || 1,
         ayahTo: surahDetails[0]?.ayahTo || 1,
-        surahName2: surahDetails[1]?.surahName || '',
-        ayahFrom2: surahDetails[1]?.ayahFrom || 1,
-        ayahTo2: surahDetails[1]?.ayahTo || 1,
-        surahName3: surahDetails[2]?.surahName || '',
-        ayahFrom3: surahDetails[2]?.ayahFrom || 1,
-        ayahTo3: surahDetails[2]?.ayahTo || 1,
       });
       setSelectedSurah(surahDetails[0]?.surahName || '');
-      setSelectedSurah2(surahDetails[1]?.surahName || '');
-      setSelectedSurah3(surahDetails[2]?.surahName || '');
       setSelectedJuz(record.memorizationDetail?.juz || 1);
     }
   }, [record, form]);
@@ -90,34 +66,11 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
   // Auto-populate Surah and Ayah based on selected Juz
   useEffect(() => {
     const juzData = getJuzData(selectedJuz);
-    if (juzData && juzData.ranges.length > 0) {
-      // First Surah
-      if (juzData.ranges[0]) {
-        form.setValue('surahName', juzData.ranges[0].surahName);
-        form.setValue('ayahFrom', juzData.ranges[0].ayahFrom);
-        form.setValue('ayahTo', juzData.ranges[0].ayahTo);
-        setSelectedSurah(juzData.ranges[0].surahName);
-      }
-      // Second Surah
-      if (juzData.ranges[1]) {
-        form.setValue('surahName2', juzData.ranges[1].surahName);
-        form.setValue('ayahFrom2', juzData.ranges[1].ayahFrom);
-        form.setValue('ayahTo2', juzData.ranges[1].ayahTo);
-        setSelectedSurah2(juzData.ranges[1].surahName);
-      } else {
-        form.setValue('surahName2', '');
-        setSelectedSurah2('');
-      }
-      // Third Surah
-      if (juzData.ranges[2]) {
-        form.setValue('surahName3', juzData.ranges[2].surahName);
-        form.setValue('ayahFrom3', juzData.ranges[2].ayahFrom);
-        form.setValue('ayahTo3', juzData.ranges[2].ayahTo);
-        setSelectedSurah3(juzData.ranges[2].surahName);
-      } else {
-        form.setValue('surahName3', '');
-        setSelectedSurah3('');
-      }
+    if (juzData && juzData.ranges.length > 0 && juzData.ranges[0]) {
+      form.setValue('surahName', juzData.ranges[0].surahName);
+      form.setValue('ayahFrom', juzData.ranges[0].ayahFrom);
+      form.setValue('ayahTo', juzData.ranges[0].ayahTo);
+      setSelectedSurah(juzData.ranges[0].surahName);
     }
   }, [selectedJuz, form]);
 
@@ -129,24 +82,6 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
       }
     }
   }, [selectedSurah]);
-
-  useEffect(() => {
-    if (selectedSurah2) {
-      const surah = getSurahByName(selectedSurah2);
-      if (surah) {
-        setMaxAyah2(surah.verses);
-      }
-    }
-  }, [selectedSurah2]);
-
-  useEffect(() => {
-    if (selectedSurah3) {
-      const surah = getSurahByName(selectedSurah3);
-      if (surah) {
-        setMaxAyah3(surah.verses);
-      }
-    }
-  }, [selectedSurah3]);
 
   const onFormSubmit = (data: FormData) => {
     if (!record) return;
@@ -168,27 +103,13 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
     if (percentage === 100) status = 'Fully Achieved';
     else if (percentage >= 75) status = 'Achieved';
 
-    // Collect all surah details
+    // Collect surah details
     const surahDetails: SurahDetail[] = [];
     if (data.surahName && data.ayahFrom && data.ayahTo) {
       surahDetails.push({
         surahName: data.surahName,
         ayahFrom: data.ayahFrom,
         ayahTo: data.ayahTo,
-      });
-    }
-    if (data.surahName2 && data.ayahFrom2 && data.ayahTo2) {
-      surahDetails.push({
-        surahName: data.surahName2,
-        ayahFrom: data.ayahFrom2,
-        ayahTo: data.ayahTo2,
-      });
-    }
-    if (data.surahName3 && data.ayahFrom3 && data.ayahTo3) {
-      surahDetails.push({
-        surahName: data.surahName3,
-        ayahFrom: data.ayahFrom3,
-        ayahTo: data.ayahTo3,
       });
     }
 
@@ -420,221 +341,6 @@ const EditMemorizationModal: React.FC<EditMemorizationModalProps> = ({
               />
             </div>
 
-            {/* Surah 2 */}
-            <FormField
-              control={form.control}
-              name="surahName2"
-              render={({ field }) => {
-                const juzData = getJuzData(selectedJuz);
-                const availableSurahs = juzData?.ranges.map(r => r.surahName) || [];
-                return (
-                  <FormItem>
-                    <FormLabel>Nama Surat (2)</FormLabel>
-                    <Select onValueChange={(value) => {
-                      field.onChange(value);
-                      setSelectedSurah2(value);
-                    }} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="bg-white">
-                          <SelectValue placeholder="Pilih Surat" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                        <SelectItem value="" className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                          Tidak ada
-                        </SelectItem>
-                        {surahs.filter(s => availableSurahs.includes(s.name)).map((surah) => (
-                          <SelectItem key={surah.number} value={surah.name} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                            {surah.number}. {surah.name} ({surah.arabicName})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="ayahFrom2"
-                render={({ field }) => {
-                  const juzData = getJuzData(selectedJuz);
-                  const surahRange = juzData?.ranges.find(r => r.surahName === selectedSurah2);
-                  const minAyah = surahRange?.ayahFrom || 1;
-                  const maxAyahForJuz = surahRange?.ayahTo || maxAyah2;
-                  return (
-                    <FormItem>
-                      <FormLabel>Ayat Dari (2)</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        value={field.value?.toString()}
-                        disabled={!selectedSurah2}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="bg-white">
-                            <SelectValue placeholder="Dari" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                          {selectedSurah2 && Array.from({ length: maxAyahForJuz - minAyah + 1 }, (_, i) => minAyah + i).map((ayah) => (
-                            <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                              {ayah}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
-                name="ayahTo2"
-                render={({ field }) => {
-                  const juzData = getJuzData(selectedJuz);
-                  const surahRange = juzData?.ranges.find(r => r.surahName === selectedSurah2);
-                  const minAyah = surahRange?.ayahFrom || 1;
-                  const maxAyahForJuz = surahRange?.ayahTo || maxAyah2;
-                  return (
-                    <FormItem>
-                      <FormLabel>Ayat Sampai (2)</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        value={field.value?.toString()}
-                        disabled={!selectedSurah2}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="bg-white">
-                            <SelectValue placeholder="Sampai" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                          {selectedSurah2 && Array.from({ length: maxAyahForJuz - minAyah + 1 }, (_, i) => minAyah + i).map((ayah) => (
-                            <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                              {ayah}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-            </div>
-
-            {/* Surah 3 */}
-            <FormField
-              control={form.control}
-              name="surahName3"
-              render={({ field }) => {
-                const juzData = getJuzData(selectedJuz);
-                const availableSurahs = juzData?.ranges.map(r => r.surahName) || [];
-                return (
-                  <FormItem>
-                    <FormLabel>Nama Surat (3)</FormLabel>
-                    <Select onValueChange={(value) => {
-                      field.onChange(value);
-                      setSelectedSurah3(value);
-                    }} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="bg-white">
-                          <SelectValue placeholder="Pilih Surat" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                        <SelectItem value="" className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                          Tidak ada
-                        </SelectItem>
-                        {surahs.filter(s => availableSurahs.includes(s.name)).map((surah) => (
-                          <SelectItem key={surah.number} value={surah.name} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                            {surah.number}. {surah.name} ({surah.arabicName})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="ayahFrom3"
-                render={({ field }) => {
-                  const juzData = getJuzData(selectedJuz);
-                  const surahRange = juzData?.ranges.find(r => r.surahName === selectedSurah3);
-                  const minAyah = surahRange?.ayahFrom || 1;
-                  const maxAyahForJuz = surahRange?.ayahTo || maxAyah3;
-                  return (
-                    <FormItem>
-                      <FormLabel>Ayat Dari (3)</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        value={field.value?.toString()}
-                        disabled={!selectedSurah3}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="bg-white">
-                            <SelectValue placeholder="Dari" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                          {selectedSurah3 && Array.from({ length: maxAyahForJuz - minAyah + 1 }, (_, i) => minAyah + i).map((ayah) => (
-                            <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-50 focus:bg-blue-100 cursor-pointer">
-                              {ayah}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-
-              <FormField
-                control={form.control}
-                name="ayahTo3"
-                render={({ field }) => {
-                  const juzData = getJuzData(selectedJuz);
-                  const surahRange = juzData?.ranges.find(r => r.surahName === selectedSurah3);
-                  const minAyah = surahRange?.ayahFrom || 1;
-                  const maxAyahForJuz = surahRange?.ayahTo || maxAyah3;
-                  return (
-                    <FormItem>
-                      <FormLabel>Ayat Sampai (3)</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        value={field.value?.toString()}
-                        disabled={!selectedSurah3}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="bg-white">
-                            <SelectValue placeholder="Sampai" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-60 bg-white border border-gray-200 shadow-lg z-50">
-                          {selectedSurah3 && Array.from({ length: maxAyahForJuz - minAyah + 1 }, (_, i) => minAyah + i).map((ayah) => (
-                            <SelectItem key={ayah} value={ayah.toString()} className="hover:bg-blue-100 focus:bg-blue-100 cursor-pointer">
-                              {ayah}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  );
-                }}
-              />
-            </div>
 
             <div className="flex space-x-3 pt-4">
               <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700">
