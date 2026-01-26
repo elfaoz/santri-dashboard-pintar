@@ -52,13 +52,6 @@ const Halaqah: React.FC = () => {
     const [ayahFrom, setAyahFrom] = useState('');
     const [ayahTo, setAyahTo] = useState('');
     
-    // Additional surah fields
-    const [selectedSurah2, setSelectedSurah2] = useState('');
-    const [ayahFrom2, setAyahFrom2] = useState('');
-    const [ayahTo2, setAyahTo2] = useState('');
-    const [selectedSurah3, setSelectedSurah3] = useState('');
-    const [ayahFrom3, setAyahFrom3] = useState('');
-    const [ayahTo3, setAyahTo3] = useState('');
     
     // Detail modal state
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -116,22 +109,6 @@ const Halaqah: React.FC = () => {
                 ayahTo: parseInt(ayahTo),
             });
         }
-        if (selectedSurah2 && ayahFrom2 && ayahTo2) {
-            const surahData2 = getSurahByName(selectedSurah2);
-            surahDetails.push({
-                surahName: surahData2?.name || selectedSurah2,
-                ayahFrom: parseInt(ayahFrom2),
-                ayahTo: parseInt(ayahTo2),
-            });
-        }
-        if (selectedSurah3 && ayahFrom3 && ayahTo3) {
-            const surahData3 = getSurahByName(selectedSurah3);
-            surahDetails.push({
-                surahName: surahData3?.name || selectedSurah3,
-                ayahFrom: parseInt(ayahFrom3),
-                ayahTo: parseInt(ayahTo3),
-            });
-        }
 
         const newRecord: MemorizationRecord = {
             id: `${recordsSelectedStudent}-${selectedDate}-${Date.now()}`,
@@ -161,12 +138,6 @@ const Halaqah: React.FC = () => {
         setSelectedSurah('');
         setAyahFrom('');
         setAyahTo('');
-        setSelectedSurah2('');
-        setAyahFrom2('');
-        setAyahTo2('');
-        setSelectedSurah3('');
-        setAyahFrom3('');
-        setAyahTo3('');
         toast.success('Data hafalan berhasil ditambahkan');
     };
 
@@ -599,8 +570,6 @@ const Halaqah: React.FC = () => {
                                             setSelectedJuz(e.target.value);
                                             // Reset Surah/Ayat saat Juz berubah
                                             setSelectedSurah(''); setAyahFrom(''); setAyahTo('');
-                                            setSelectedSurah2(''); setAyahFrom2(''); setAyahTo2('');
-                                            setSelectedSurah3(''); setAyahFrom3(''); setAyahTo3('');
                                         }}
                                         className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     >
@@ -677,153 +646,6 @@ const Halaqah: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* 2. Surah dan Ayat Kedua (Menggunakan filter Juz) */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Nama Surat (2)
-                                    </label>
-                                    <select
-                                        value={selectedSurah2}
-                                        onChange={(e) => {
-                                            setSelectedSurah2(e.target.value);
-                                            setAyahFrom2('');
-                                            setAyahTo2('');
-                                        }}
-                                        disabled={!selectedJuz}
-                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                                    >
-                                        <option value="">{selectedJuz ? 'Pilih Surat di Juz ini' : 'Pilih Juz Dahulu'}</option>
-                                        {availableSurahs.map(surahName => {
-                                            const surahData = getSurahByName(surahName);
-                                            return (
-                                                <option key={surahName} value={surahName}>
-                                                    {surahData?.number}. {surahName} ({surahData?.arabicName})
-                                                </option>
-                                            );
-                                        })}
-                                    </select>
-                                </div>
-                                
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Ayat (dari - sampai) (2)
-                                    </label>
-                                    <div className="flex space-x-2">
-                                        <select
-                                            value={ayahFrom2}
-                                            onChange={(e) => setAyahFrom2(e.target.value)}
-                                            disabled={!selectedSurah2}
-                                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                                        >
-                                            <option value="">Dari</option>
-                                            {(() => {
-                                                const selectedRange2 = currentJuzData?.ranges.find(r => r.surahName === selectedSurah2);
-                                                if (!selectedRange2) return null;
-                                                return Array.from({ length: selectedRange2.ayahTo - selectedRange2.ayahFrom + 1 },
-                                                                    (_, i) => selectedRange2.ayahFrom + i).map((ayah) => (
-                                                    <option key={ayah} value={ayah}>
-                                                        {ayah}
-                                                    </option>
-                                                ));
-                                            })()}
-                                        </select>
-                                        <select
-                                            value={ayahTo2}
-                                            onChange={(e) => setAyahTo2(e.target.value)}
-                                            disabled={!selectedSurah2 || !ayahFrom2}
-                                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                                        >
-                                            <option value="">Sampai</option>
-                                            {(() => {
-                                                const selectedRange2 = currentJuzData?.ranges.find(r => r.surahName === selectedSurah2);
-                                                if (!selectedRange2) return null;
-                                                const ayahs2 = Array.from({ length: selectedRange2.ayahTo - selectedRange2.ayahFrom + 1 },
-                                                                        (_, i) => selectedRange2.ayahFrom + i);
-                                                return ayahs2.filter(ayah => ayah >= Number(ayahFrom2)).map((ayah) => (
-                                                    <option key={ayah} value={ayah}>
-                                                        {ayah}
-                                                    </option>
-                                                ));
-                                            })()}
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* 3. Surah dan Ayat Ketiga (Menggunakan filter Juz) */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Nama Surat (3)
-                                    </label>
-                                    <select
-                                        value={selectedSurah3}
-                                        onChange={(e) => {
-                                            setSelectedSurah3(e.target.value);
-                                            setAyahFrom3('');
-                                            setAyahTo3('');
-                                        }}
-                                        disabled={!selectedJuz}
-                                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                                    >
-                                        <option value="">{selectedJuz ? 'Pilih Surat di Juz ini' : 'Pilih Juz Dahulu'}</option>
-                                        {availableSurahs.map(surahName => {
-                                            const surahData = getSurahByName(surahName);
-                                            return (
-                                                <option key={surahName} value={surahName}>
-                                                    {surahData?.number}. {surahName} ({surahData?.arabicName})
-                                                </option>
-                                            );
-                                        })}
-                                    </select>
-                                </div>
-                                
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Ayat (dari - sampai) (3)
-                                    </label>
-                                    <div className="flex space-x-2">
-                                        <select
-                                            value={ayahFrom3}
-                                            onChange={(e) => setAyahFrom3(e.target.value)}
-                                            disabled={!selectedSurah3}
-                                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                                        >
-                                            <option value="">Dari</option>
-                                            {(() => {
-                                                const selectedRange3 = currentJuzData?.ranges.find(r => r.surahName === selectedSurah3);
-                                                if (!selectedRange3) return null;
-                                                return Array.from({ length: selectedRange3.ayahTo - selectedRange3.ayahFrom + 1 },
-                                                                    (_, i) => selectedRange3.ayahFrom + i).map((ayah) => (
-                                                    <option key={ayah} value={ayah}>
-                                                        {ayah}
-                                                    </option>
-                                                ));
-                                            })()}
-                                        </select>
-                                        <select
-                                            value={ayahTo3}
-                                            onChange={(e) => setAyahTo3(e.target.value)}
-                                            disabled={!selectedSurah3 || !ayahFrom3}
-                                            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                                        >
-                                            <option value="">Sampai</option>
-                                            {(() => {
-                                                const selectedRange3 = currentJuzData?.ranges.find(r => r.surahName === selectedSurah3);
-                                                if (!selectedRange3) return null;
-                                                const ayahs3 = Array.from({ length: selectedRange3.ayahTo - selectedRange3.ayahFrom + 1 },
-                                                                        (_, i) => selectedRange3.ayahFrom + i);
-                                                return ayahs3.filter(ayah => ayah >= Number(ayahFrom3)).map((ayah) => (
-                                                    <option key={ayah} value={ayah}>
-                                                        {ayah}
-                                                    </option>
-                                                ));
-                                            })()}
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
 
                             {/* Tombol Simpan */}
                             <div className="mt-6 flex justify-end">
@@ -869,18 +691,6 @@ const Halaqah: React.FC = () => {
                                         <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Ayat 1
                                         </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Surat 2
-                                        </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Ayat 2
-                                        </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Surat 3
-                                        </th>
-                                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Ayat 3
-                                        </th>
                                         <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Aksi
                                         </th>
@@ -896,8 +706,6 @@ const Halaqah: React.FC = () => {
                                         .map((record) => {
                                             const surahDetails = record.memorizationDetail?.surahDetails || [];
                                             const surah1 = surahDetails[0];
-                                            const surah2 = surahDetails[1];
-                                            const surah3 = surahDetails[2];
                                             
                                             return (
                                                 <tr key={record.id} className="hover:bg-gray-50">
@@ -915,18 +723,6 @@ const Halaqah: React.FC = () => {
                                                     </td>
                                                     <td className="px-4 py-3 text-sm text-gray-900">
                                                         {surah1 ? `${surah1.ayahFrom} - ${surah1.ayahTo}` : '-'}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm text-gray-900">
-                                                        {surah2?.surahName || '-'}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm text-gray-900">
-                                                        {surah2 ? `${surah2.ayahFrom} - ${surah2.ayahTo}` : '-'}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm text-gray-900">
-                                                        {surah3?.surahName || '-'}
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm text-gray-900">
-                                                        {surah3 ? `${surah3.ayahFrom} - ${surah3.ayahTo}` : '-'}
                                                     </td>
                                                     <td className="px-4 py-3 text-center">
                                                         <div className="flex items-center justify-center space-x-2">
@@ -954,7 +750,7 @@ const Halaqah: React.FC = () => {
                                         (!recordsSelectedStudent || r.studentName === students.find(s => s.id.toString() === recordsSelectedStudent)?.name)
                                     ).length === 0 && (
                                         <tr>
-                                            <td colSpan={10} className="px-6 py-8 text-center text-gray-500">
+                                            <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                                                 Belum ada data hafalan
                                             </td>
                                         </tr>
