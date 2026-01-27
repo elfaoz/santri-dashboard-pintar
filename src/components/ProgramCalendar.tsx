@@ -2,29 +2,12 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronUp, ChevronDown, Calendar as CalendarIcon } from 'lucide-react';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay, isSameMonth } from 'date-fns';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay } from 'date-fns';
 import { id } from 'date-fns/locale';
-
-interface WorkProgram {
-  id: string;
-  title: string;
-  description: string;
-  date: Date;
-  status: 'completed' | 'upcoming' | 'canceled';
-}
-
-// Sample data - in real app, this would come from context/API
-const samplePrograms: WorkProgram[] = [
-  { id: '1', title: 'Rapat Bulanan Ustadz', description: 'Evaluasi program bulan lalu dan rencana bulan depan', date: new Date(2026, 0, 5), status: 'completed' },
-  { id: '2', title: 'Ujian Hafalan Juz 30', description: 'Ujian hafalan untuk santri tingkat dasar', date: new Date(2026, 0, 10), status: 'completed' },
-  { id: '3', title: 'Kunjungan Wali Santri', description: 'Pertemuan dengan wali santri membahas perkembangan', date: new Date(2026, 0, 15), status: 'upcoming' },
-  { id: '4', title: 'Perlombaan Tahfidz', description: 'Kompetisi hafalan antar halaqah', date: new Date(2026, 0, 20), status: 'upcoming' },
-  { id: '5', title: 'Camping Santri', description: 'Kegiatan outdoor untuk santri', date: new Date(2026, 0, 25), status: 'canceled' },
-  { id: '6', title: 'Wisuda Tahfidz', description: 'Wisuda untuk santri yang lulus program', date: new Date(2026, 1, 5), status: 'upcoming' },
-  { id: '7', title: 'Pelatihan Ustadz', description: 'Training metode pengajaran baru', date: new Date(2026, 0, 2), status: 'completed' },
-];
+import { useEvents } from '@/contexts/EventContext';
 
 const ProgramCalendar: React.FC = () => {
+  const { events } = useEvents();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
@@ -40,15 +23,15 @@ const ProgramCalendar: React.FC = () => {
 
   // Get programs for selected date
   const selectedDatePrograms = selectedDate
-    ? samplePrograms.filter(p => isSameDay(p.date, selectedDate))
+    ? events.filter(p => isSameDay(new Date(p.date), selectedDate))
     : [];
 
   // Check if a date has programs
-  const hasPrograms = (date: Date) => samplePrograms.some(p => isSameDay(p.date, date));
+  const hasPrograms = (date: Date) => events.some(p => isSameDay(new Date(p.date), date));
 
   // Get status color for calendar dot
   const getDateStatus = (date: Date) => {
-    const programs = samplePrograms.filter(p => isSameDay(p.date, date));
+    const programs = events.filter(p => isSameDay(new Date(p.date), date));
     if (programs.some(p => p.status === 'upcoming')) return 'bg-orange-500';
     if (programs.some(p => p.status === 'completed')) return 'bg-purple-500';
     if (programs.some(p => p.status === 'canceled')) return 'bg-gray-400';
@@ -132,7 +115,7 @@ const ProgramCalendar: React.FC = () => {
                       onClick={() => setSelectedDate(day)}
                       className={`
                         h-9 w-full rounded-md text-sm relative transition-colors
-                        ${isSelected ? 'bg-primary text-primary-foreground' : ''}
+                        ${isSelected ? 'bg-[#5db3d2] text-white' : ''}
                         ${isToday && !isSelected ? 'bg-accent text-accent-foreground font-bold' : ''}
                         ${!isSelected && !isToday ? 'hover:bg-muted' : ''}
                       `}
@@ -180,7 +163,6 @@ const ProgramCalendar: React.FC = () => {
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <h4 className="font-medium">{program.title}</h4>
-                        <p className="text-sm mt-1 opacity-80">{program.description}</p>
                       </div>
                       <span className="text-xs px-2 py-1 rounded-full bg-background/50 whitespace-nowrap">
                         {getStatusLabel(program.status)}

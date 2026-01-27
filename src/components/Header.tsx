@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Menu, Bell, User, LogOut, Edit3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import LanguageToggle from './LanguageToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,26 +55,29 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+    <header className="sticky top-0 z-50 bg-[#5db3d2] shadow-sm border-b border-[#5db3d2] px-6 py-4 flex items-center justify-between">
       <div className="flex items-center">
         <button
           onClick={onToggleSidebar}
-          className="p-2 rounded-lg hover:bg-gray-100 mr-4 transition-colors"
+          className="p-2 rounded-lg hover:bg-white/20 mr-4 transition-colors text-white"
         >
           <Menu size={20} />
         </button>
         <div>
-          <h2 className="text-lg font-semibold text-gray-800">Selamat Datang</h2>
-          <p className="text-sm text-gray-600">Kelola data santri dengan mudah</p>
+          <h2 className="text-lg font-semibold text-white">Selamat Datang</h2>
+          <p className="text-sm text-white/80">Kelola data santri dengan mudah</p>
         </div>
       </div>
       
       <div className="flex items-center space-x-4">
+        {/* Language Toggle */}
+        <LanguageToggle />
+        
         {/* Bell Notification */}
         <Popover open={notificationsOpen} onOpenChange={setNotificationsOpen}>
           <PopoverTrigger asChild>
-            <button className="p-2 rounded-lg hover:bg-gray-100 relative">
-              <Bell size={20} className="text-gray-600" />
+            <button className="p-2 rounded-lg hover:bg-white/20 relative text-white">
+              <Bell size={20} />
               <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 {notifications.length}
               </span>
@@ -98,11 +102,11 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         {/* User Account Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <User size={16} className="text-blue-600" />
+            <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-white/20">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <User size={16} className="text-white" />
               </div>
-              <span className="text-sm font-medium text-gray-700 hidden sm:inline">Guru Pendamping</span>
+              <span className="text-sm font-medium text-white hidden sm:inline">Guru Pendamping</span>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-48 bg-white border border-gray-200 shadow-lg z-50" align="end">

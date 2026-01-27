@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, MapPin, Calendar, CreditCard, Phone, Mail, Clock, Edit3, Download, DollarSign } from 'lucide-react';
+import { User, MapPin, Calendar, CreditCard, Phone, Mail, Clock, Edit3, Download } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -338,7 +338,7 @@ const Profile: React.FC = () => {
                 setIsEditing(!isEditing);
               }} 
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 border-[#5db3d2] text-[#5db3d2] hover:bg-[#5db3d2] hover:text-white"
             >
               <Edit3 size={16} />
               Edit Profile
@@ -541,25 +541,11 @@ const Profile: React.FC = () => {
                 </div>
               </div>
               
-              {isEditing && (
-                <div className="space-y-4 pt-6 border-t">
-                  <h3 className="text-lg font-semibold">Ubah Password Login</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Password Lama</Label>
-                      <Input type="password" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Password Baru</Label>
-                      <Input type="password" />
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* Password section removed */}
               
               {isEditing && (
                 <div className="flex gap-4">
-                  <Button onClick={handleSaveProfile}>Simpan Perubahan</Button>
+                  <Button onClick={handleSaveProfile} className="bg-[#5db3d2] hover:bg-[#4a9ab8] text-white">Simpan Perubahan</Button>
                   <Button variant="outline" onClick={() => {
                     setFormData(profileData);
                     setIsEditing(false);
@@ -699,7 +685,7 @@ const Profile: React.FC = () => {
                 )}
 
                 <div className="mt-8 text-center">
-                  <Button onClick={handleDownloadPDF} className="flex items-center gap-2 mx-auto">
+                  <Button onClick={handleDownloadPDF} className="flex items-center gap-2 mx-auto bg-[#5db3d2] hover:bg-[#4a9ab8] text-white">
                     <Download size={16} />
                     Download PDF
                   </Button>
@@ -721,7 +707,7 @@ const Profile: React.FC = () => {
                     <p className="text-blue-600 font-semibold">Barakallahu Fiik</p>
                   </div>
                   <DialogFooter>
-                    <Button onClick={() => setShowAgreementModal(false)} className="w-full">
+                    <Button onClick={() => setShowAgreementModal(false)} className="w-full bg-[#5db3d2] hover:bg-[#4a9ab8] text-white">
                       Terima Kasih
                     </Button>
                   </DialogFooter>
@@ -734,16 +720,15 @@ const Profile: React.FC = () => {
               <div className="space-y-6">
                 {/* Bonus Display */}
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg border">
-                  <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
                     <div>
                       <h3 className="text-lg font-semibold text-gray-800">Total Bonus yang Diperoleh</h3>
                       <p className="text-3xl font-bold text-green-600 mt-2">
                         Rp {totalBonus.toLocaleString('id-ID')}
                       </p>
-                      <p className="text-sm text-gray-600 mt-1">Periode September 2025</p>
                     </div>
-                    <div className="text-green-600">
-                      <DollarSign size={48} />
+                    <div className="text-green-600 text-4xl font-bold">
+                      IDR
                     </div>
                   </div>
                 </div>
@@ -841,7 +826,7 @@ const Profile: React.FC = () => {
                         <Button variant="outline" onClick={() => setShowWithdrawModal(false)}>
                           Batal
                         </Button>
-                        <Button onClick={handleWithdrawConfirm}>
+                        <Button onClick={handleWithdrawConfirm} className="bg-[#5db3d2] hover:bg-[#4a9ab8] text-white">
                           Ya, Lanjutkan
                         </Button>
                       </DialogFooter>
@@ -885,7 +870,7 @@ const Profile: React.FC = () => {
                       <Button variant="outline" onClick={() => setShowPinModal(false)}>
                         Batal
                       </Button>
-                      <Button onClick={handleWithdrawSubmit}>
+                      <Button onClick={handleWithdrawSubmit} className="bg-[#5db3d2] hover:bg-[#4a9ab8] text-white">
                         Kirim Pengajuan
                       </Button>
                     </DialogFooter>

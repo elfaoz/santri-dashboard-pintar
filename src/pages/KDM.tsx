@@ -73,7 +73,7 @@ const KDM = () => {
             {/* Header */}
             <div className="text-center mb-6">
               <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-[#5e17eb] to-[#e88b00] bg-clip-text text-transparent mb-4">
-                KDM - Karim Dashboard Manager
+                KDM Pro 1.0 - Karim Dashboard Manager
               </h1>
               <div className="h-1 w-32 bg-gradient-to-r from-[#5e17eb] to-[#e88b00] mx-auto rounded-full"></div>
             </div>
