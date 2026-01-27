@@ -2,8 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
-import Layout from '@/components/Layout';
+import { Check, Award } from 'lucide-react';
+import Footer from '@/components/Footer';
 
 const UpgradePlan: React.FC = () => {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ const UpgradePlan: React.FC = () => {
     {
       id: 'attendance',
       name: 'Attendance',
-      price: '80k',
+      price: '65k',
       features: [
         'Input data kehadiran santri',
         'Laporan kehadiran harian',
@@ -24,7 +24,7 @@ const UpgradePlan: React.FC = () => {
     {
       id: 'memorization',
       name: 'Memorization',
-      price: '100k',
+      price: '120k',
       features: [
         'Tracking hafalan Al-Quran',
         'Input progress per juz dan surah',
@@ -37,7 +37,8 @@ const UpgradePlan: React.FC = () => {
     {
       id: 'activities',
       name: 'Activities',
-      price: '75k',
+      price: '82.5k',
+      originalPrice: '8.25k',
       features: [
         'Tracking aktivitas harian',
         'Monitor Tilawah & Tahajud',
@@ -49,7 +50,7 @@ const UpgradePlan: React.FC = () => {
     {
       id: 'finance',
       name: 'Finance',
-      price: '90k',
+      price: '99k',
       features: [
         'Manajemen keuangan santri',
         'Pencatatan pengeluaran',
@@ -62,7 +63,7 @@ const UpgradePlan: React.FC = () => {
     {
       id: 'full-package',
       name: 'Full Package',
-      price: '235k',
+      price: '249k',
       popular: true,
       features: [
         'Semua fitur Attendance',
@@ -82,63 +83,98 @@ const UpgradePlan: React.FC = () => {
   };
 
   return (
-    <Layout>
-      <div className="container mx-auto py-8 px-4">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Upgrade Paket Anda</h1>
-          <p className="text-muted-foreground text-lg">
-            Pilih paket yang sesuai dengan kebutuhan pesantren Anda
-          </p>
-        </div>
+    <div className="min-h-screen flex flex-col">
+      {/* Main Content with gradient background */}
+      <div className="flex-1 bg-gradient-to-br from-[#5db3d2] via-[#4a9ab8] to-[#3d8aa8] py-12 px-4">
+        <div className="container mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold mb-4 text-white drop-shadow-lg">Upgrade Paket Anda</h1>
+            <p className="text-white/90 text-lg">
+              Pilih paket yang sesuai dengan kebutuhan pesantren Anda
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-          {plans.map((plan) => (
-            <Card
-              key={plan.id}
-              className={`relative flex flex-col ${
-                plan.popular ? 'border-primary shadow-lg scale-105 bg-blue-50' : ''
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-primary text-primary-foreground px-4 py-1 rounded-full text-sm font-semibold">
-                    Paling Populer
-                  </span>
-                </div>
-              )}
-              
-              <CardHeader>
-                <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                <CardDescription>
-                  <span className="text-3xl font-bold text-foreground">{plan.price}</span>
-                  <span className="text-muted-foreground">/bulan</span>
-                </CardDescription>
-              </CardHeader>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            {plans.map((plan) => (
+              <Card
+                key={plan.id}
+                className={`relative flex flex-col transition-all duration-300 hover:scale-105 ${
+                  plan.popular 
+                    ? 'border-2 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.5)] bg-white' 
+                    : 'bg-white/95 backdrop-blur-sm shadow-[0_0_20px_rgba(93,179,210,0.3)] hover:shadow-[0_0_30px_rgba(93,179,210,0.5)]'
+                }`}
+                style={{
+                  boxShadow: plan.popular 
+                    ? '0 0 30px rgba(239, 68, 68, 0.4), inset 0 0 60px rgba(239, 68, 68, 0.05)'
+                    : '0 0 20px rgba(93, 179, 210, 0.3), inset 0 0 60px rgba(93, 179, 210, 0.05)'
+                }}
+              >
+                {/* Neon glow effect */}
+                <div 
+                  className={`absolute inset-0 rounded-lg opacity-50 pointer-events-none ${
+                    plan.popular ? 'bg-gradient-to-br from-red-500/10 to-transparent' : 'bg-gradient-to-br from-[#5db3d2]/10 to-transparent'
+                  }`}
+                />
+                
+                {plan.popular && (
+                  <div className="absolute -top-3 -right-3 z-10">
+                    <div className="relative">
+                      <Award className="h-16 w-16 text-red-500 fill-red-500" />
+                      <span className="absolute inset-0 flex items-center justify-center text-white text-[8px] font-bold leading-tight text-center pt-1">
+                        Full<br/>Package
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
+                <CardHeader className="relative z-10">
+                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                  <CardDescription>
+                    <div className="flex items-baseline gap-2">
+                      <span className={`text-3xl font-bold ${plan.popular ? 'text-red-600' : 'text-foreground'}`}>
+                        {plan.price}
+                      </span>
+                      {plan.originalPrice && (
+                        <span className="text-sm text-muted-foreground line-through">
+                          {plan.originalPrice}
+                        </span>
+                      )}
+                      <span className="text-muted-foreground">/bulan</span>
+                    </div>
+                  </CardDescription>
+                </CardHeader>
 
-              <CardContent className="flex-grow">
-                <ul className="space-y-3">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start">
-                      <Check className="h-5 w-5 text-primary mr-2 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
+                <CardContent className="flex-grow relative z-10">
+                  <ul className="space-y-3">
+                    {plan.features.map((feature, index) => (
+                      <li key={index} className="flex items-start">
+                        <Check className={`h-5 w-5 mr-2 flex-shrink-0 mt-0.5 ${plan.popular ? 'text-red-500' : 'text-[#5db3d2]'}`} />
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
 
-              <CardFooter>
-                <Button
-                  onClick={() => handleSelectPlan(plan.id)}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Pilih Paket
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+                <CardFooter className="relative z-10">
+                  <Button
+                    onClick={() => handleSelectPlan(plan.id)}
+                    className={`w-full font-semibold ${
+                      plan.popular 
+                        ? 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]' 
+                        : 'bg-[#5db3d2] hover:bg-[#4a9ab8] text-white shadow-[0_0_15px_rgba(93,179,210,0.5)]'
+                    }`}
+                  >
+                    Pilih Paket
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
-    </Layout>
+      
+      <Footer />
+    </div>
   );
 };
 

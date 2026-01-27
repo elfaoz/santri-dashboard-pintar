@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { User, Calendar, Book, FileText, BarChart3, X, UserPlus, LogOut, ChevronUp, ChevronDown } from 'lucide-react';
+import { User, Calendar, Book, FileText, BarChart3, X, UserPlus, LogOut, ChevronUp, ChevronDown, CalendarDays } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SidebarProps {
@@ -20,6 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { path: '/halaqah', icon: Book, label: 'Memorization', emoji: '📖' },
     { path: '/activities', icon: FileText, label: 'Activities', emoji: '📝' },
     { path: '/finance', icon: FileText, label: 'Finance', emoji: '💸' },
+    { path: '/event', icon: CalendarDays, label: 'Event', emoji: '🗓️' },
     { path: '/add-student', icon: UserPlus, label: 'Add Student', emoji: '➕' },
   ];
 
@@ -56,14 +57,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-[#5db3d2]">
           <div>
-            <h1 className="text-xl font-bold text-gray-800">Dashboard</h1>
-            <p className="text-sm text-gray-600">KDM 1.0 Karim Dashboard Manager</p>
+            <h1 className="text-xl font-bold text-white">Dashboard</h1>
+            <p className="text-sm text-white/80">KDM Pro 1.0 Karim Dashboard Manager</p>
           </div>
           <button 
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 lg:hidden"
+            className="p-2 rounded-lg hover:bg-white/20 lg:hidden text-white"
           >
             <X size={20} />
           </button>
@@ -88,7 +89,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     className={({ isActive }) =>
                       `flex items-center px-4 py-3 rounded-lg transition-colors ${
                         isActive
-                          ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                          ? 'bg-[#5db3d2]/10 text-[#5db3d2] border-r-2 border-[#5db3d2]'
                           : 'text-gray-700 hover:bg-gray-50'
                       }`
                     }
