@@ -6,14 +6,16 @@ import LeaderboardOverview from '../components/LeaderboardOverview';
 import ShareResultsSection from '../components/ShareResultsSection';
 import ShareResultsMonthlySection from '../components/ShareResultsMonthlySection';
 import ShareResultsDailySection from '../components/ShareResultsDailySection';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Dashboard: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['Attendance', 'Memorization', 'Activities', 'Finance']);
+  const { t } = useLanguage();
 
   return (
     <div className="p-6 space-y-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground mb-2">Dashboard Overview</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-2">{t('dashboard')}</h1>
         <p className="text-muted-foreground">Ustadz Ahmad Wijaya</p>
       </div>
       

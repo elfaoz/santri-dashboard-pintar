@@ -321,7 +321,7 @@ const Finance: React.FC = () => {
                   <button 
                     onClick={handleSaveExpense}
                     disabled={!selectedStudent || !expenseAmount}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="bg-[#5db3d2] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#4a9ab8] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
                     Save Expense
                   </button>

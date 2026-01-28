@@ -4,12 +4,14 @@ import StatCard from './StatCard';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
 import { useMemorization } from '@/contexts/MemorizationContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const DashboardStats: React.FC = () => {
   // Update dashboard stats to use context data
   const { students } = useStudents();
   const { halaqahs } = useHalaqahs();
   const { memorizationRecords } = useMemorization();
+  const { t } = useLanguage();
 
   // Calculate total bonus from memorization records
   const calculateTotalBonus = () => {
@@ -45,22 +47,22 @@ const DashboardStats: React.FC = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
       <StatCard
-        title="Jumlah Murid"
+        title={t('students')}
         icon="👥"
         value={students.length.toString()}
-        subtitle="Santri aktif"
+        subtitle={t('activeStudents')}
       />
       <StatCard
-        title="Jumlah Halaqah"
+        title={t('halaqah')}
         icon="📖"
         value={halaqahs.length.toString()}
-        subtitle="Kelompok belajar"
+        subtitle={t('studyGroups')}
       />
       <StatCard
-        title="Bonus"
+        title={t('bonus')}
         icon="💰"
         value={formatCurrency(totalBonus)}
-        subtitle="Bonus Bulan Ini"
+        subtitle={t('bonusThisMonth')}
       />
     </div>
   );

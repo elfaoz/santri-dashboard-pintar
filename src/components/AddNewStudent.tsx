@@ -281,7 +281,7 @@ const AddNewStudent: React.FC = () => {
 
           {/* Submit Button */}
           <div className="pt-4">
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2">
+            <Button type="submit" className="bg-[#5db3d2] hover:bg-[#4a9ab8] text-white px-8 py-2">
               Add Student
             </Button>
           </div>

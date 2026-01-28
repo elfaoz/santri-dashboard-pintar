@@ -3,13 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronUp, ChevronDown, Calendar as CalendarIcon } from 'lucide-react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, getDay } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id, enUS } from 'date-fns/locale';
 import { useEvents } from '@/contexts/EventContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const ProgramCalendar: React.FC = () => {
   const { events } = useEvents();
+  const { t, language } = useLanguage();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+
+  const locale = language === 'id' ? id : enUS;
 
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -49,21 +53,23 @@ const ProgramCalendar: React.FC = () => {
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'completed': return 'Selesai';
-      case 'upcoming': return 'Akan Datang';
-      case 'canceled': return 'Dibatalkan';
+      case 'completed': return t('completed');
+      case 'upcoming': return t('upcoming');
+      case 'canceled': return t('canceled');
       default: return status;
     }
   };
 
-  const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+  const dayNames = language === 'id' 
+    ? ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
+    : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CalendarIcon className="h-5 w-5" />
-          Program Calendar
+          {t('programCalendar')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -73,7 +79,7 @@ const ProgramCalendar: React.FC = () => {
             {/* Month Navigation */}
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">
-                {format(currentMonth, 'MMMM yyyy', { locale: id })}
+                {format(currentMonth, 'MMMM yyyy', { locale })}
               </h3>
               <div className="flex flex-col gap-1">
                 <Button variant="outline" size="icon" className="h-7 w-7" onClick={handlePrevMonth}>
@@ -134,15 +140,15 @@ const ProgramCalendar: React.FC = () => {
             <div className="flex flex-wrap gap-4 text-xs">
               <div className="flex items-center gap-1.5">
                 <span className="h-3 w-3 rounded-full bg-purple-500" />
-                <span>Selesai</span>
+                <span>{t('completed')}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="h-3 w-3 rounded-full bg-orange-500" />
-                <span>Akan Datang</span>
+                <span>{t('upcoming')}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="h-3 w-3 rounded-full bg-gray-400" />
-                <span>Dibatalkan</span>
+                <span>{t('canceled')}</span>
               </div>
             </div>
           </div>
@@ -150,7 +156,7 @@ const ProgramCalendar: React.FC = () => {
           {/* Right: Program Details */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">
-              {selectedDate ? format(selectedDate, 'EEEE, d MMMM yyyy', { locale: id }) : 'Pilih Tanggal'}
+              {selectedDate ? format(selectedDate, 'EEEE, d MMMM yyyy', { locale }) : t('selectDate')}
             </h3>
 
             {selectedDatePrograms.length > 0 ? (
@@ -174,7 +180,7 @@ const ProgramCalendar: React.FC = () => {
             ) : (
               <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                 <CalendarIcon className="h-12 w-12 mb-3 opacity-50" />
-                <p className="text-sm">Tidak ada program pada tanggal ini</p>
+                <p className="text-sm">{t('noProgram')}</p>
               </div>
             )}
           </div>

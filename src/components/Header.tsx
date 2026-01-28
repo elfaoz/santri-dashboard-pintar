@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Menu, Bell, User, LogOut, Edit3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import LanguageToggle from './LanguageToggle';
 import {
   DropdownMenu,
@@ -23,6 +24,7 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { t } = useLanguage();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   const notifications = [
@@ -64,8 +66,8 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
           <Menu size={20} />
         </button>
         <div>
-          <h2 className="text-lg font-semibold text-white">Selamat Datang</h2>
-          <p className="text-sm text-white/80">Kelola data santri dengan mudah</p>
+          <h2 className="text-lg font-semibold text-white">{t('welcome')}</h2>
+          <p className="text-sm text-white/80">{t('manageStudents')}</p>
         </div>
       </div>
       
@@ -115,14 +117,14 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
               className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50"
             >
               <Edit3 size={16} />
-              <span>Edit My Profile</span>
+              <span>{t('myProfile')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={handleLogout}
               className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 text-red-600"
             >
               <LogOut size={16} />
-              <span>Logout</span>
+              <span>{t('logout')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
