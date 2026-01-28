@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { User, Calendar, Book, FileText, BarChart3, X, UserPlus, LogOut, ChevronUp, ChevronDown, CalendarDays } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -11,17 +12,18 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { t } = useLanguage();
   const navRef = useRef<HTMLDivElement>(null);
 
   const navItems = [
-    { path: '/dashboard', icon: BarChart3, label: 'Dashboard', emoji: '📊' },
-    { path: '/profile', icon: User, label: 'My Profile', emoji: '👤' },
-    { path: '/attendance', icon: Calendar, label: 'Attendance', emoji: '📅' },
-    { path: '/halaqah', icon: Book, label: 'Memorization', emoji: '📖' },
-    { path: '/activities', icon: FileText, label: 'Activities', emoji: '📝' },
-    { path: '/finance', icon: FileText, label: 'Finance', emoji: '💸' },
-    { path: '/event', icon: CalendarDays, label: 'Event', emoji: '🗓️' },
-    { path: '/add-student', icon: UserPlus, label: 'Add Student', emoji: '➕' },
+    { path: '/dashboard', icon: BarChart3, label: t('dashboard'), emoji: '📊' },
+    { path: '/profile', icon: User, label: t('myProfile'), emoji: '👤' },
+    { path: '/attendance', icon: Calendar, label: t('attendance'), emoji: '📅' },
+    { path: '/halaqah', icon: Book, label: t('memorization'), emoji: '📖' },
+    { path: '/activities', icon: FileText, label: t('activities'), emoji: '📝' },
+    { path: '/finance', icon: FileText, label: t('finance'), emoji: '💸' },
+    { path: '/event', icon: CalendarDays, label: t('event'), emoji: '🗓️' },
+    { path: '/add-student', icon: UserPlus, label: t('addStudent'), emoji: '➕' },
   ];
 
   const handleLogout = () => {
@@ -60,7 +62,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-[#5db3d2]">
           <div>
             <h1 className="text-xl font-bold text-white">Dashboard</h1>
-            <p className="text-sm text-white/80">KDM Pro 1.0 Karim Dashboard Manager</p>
+            <p className="text-sm text-white/80">KDM 1.0 Karim Dashboard Manager</p>
           </div>
           <button 
             onClick={onClose}
@@ -118,7 +120,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               className="flex items-center w-full px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
             >
               <LogOut size={20} className="mr-3" />
-              <span className="font-medium">Logout</span>
+              <span className="font-medium">{t('logout')}</span>
             </button>
           </div>
         </div>

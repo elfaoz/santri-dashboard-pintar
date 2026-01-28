@@ -10,14 +10,17 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Plus, Edit, Trash2, Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id, enUS } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useEvents, EventProgram } from '@/contexts/EventContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
 
 const Event: React.FC = () => {
   const { events, addEvent, updateEvent, deleteEvent } = useEvents();
   const { toast } = useToast();
+  const { t, language } = useLanguage();
+  const locale = language === 'id' ? id : enUS;
   
   // Form state for adding new events
   const [formRows, setFormRows] = useState<{ date: Date | undefined; title: string }[]>([
@@ -52,8 +55,8 @@ const Event: React.FC = () => {
     
     if (validRows.length === 0) {
       toast({
-        title: 'Data tidak lengkap',
-        description: 'Silakan isi tanggal dan nama event',
+        title: language === 'id' ? 'Data tidak lengkap' : 'Incomplete data',
+        description: language === 'id' ? 'Silakan isi tanggal dan nama event' : 'Please fill in date and event name',
         variant: 'destructive',
       });
       return;
@@ -69,8 +72,8 @@ const Event: React.FC = () => {
 
     setFormRows([{ date: undefined, title: '' }]);
     toast({
-      title: 'Event berhasil ditambahkan',
-      description: `${validRows.length} event telah ditambahkan`,
+      title: language === 'id' ? 'Event berhasil ditambahkan' : 'Event added successfully',
+      description: language === 'id' ? `${validRows.length} event telah ditambahkan` : `${validRows.length} event(s) added`,
     });
   };
 
@@ -85,8 +88,8 @@ const Event: React.FC = () => {
   const handleSaveEdit = () => {
     if (!editingEvent || !editDate || !editTitle.trim()) {
       toast({
-        title: 'Data tidak lengkap',
-        description: 'Silakan isi semua field',
+        title: language === 'id' ? 'Data tidak lengkap' : 'Incomplete data',
+        description: language === 'id' ? 'Silakan isi semua field' : 'Please fill all fields',
         variant: 'destructive',
       });
       return;
@@ -101,25 +104,25 @@ const Event: React.FC = () => {
     setShowEditModal(false);
     setEditingEvent(null);
     toast({
-      title: 'Event berhasil diperbarui',
+      title: language === 'id' ? 'Event berhasil diperbarui' : 'Event updated successfully',
     });
   };
 
   const handleDelete = (id: string) => {
     deleteEvent(id);
     toast({
-      title: 'Event berhasil dihapus',
+      title: language === 'id' ? 'Event berhasil dihapus' : 'Event deleted successfully',
     });
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">Selesai</span>;
+        return <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">{t('completed')}</span>;
       case 'upcoming':
-        return <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">Akan Datang</span>;
+        return <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">{t('upcoming')}</span>;
       case 'canceled':
-        return <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">Dibatalkan</span>;
+        return <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">{t('canceled')}</span>;
       default:
         return null;
     }
@@ -128,8 +131,8 @@ const Event: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">Event Management</h1>
-        <p className="text-gray-600">Kelola program dan kegiatan pesantren</p>
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">{t('event')} Management</h1>
+        <p className="text-gray-600">{language === 'id' ? 'Kelola program dan kegiatan pesantren' : 'Manage programs and activities'}</p>
       </div>
 
       {/* Input Event Form */}
@@ -137,7 +140,7 @@ const Event: React.FC = () => {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <CalendarIcon className="h-5 w-5" />
-            Input Event
+            {t('inputEvent')}
           </CardTitle>
           <Button 
             onClick={addFormRow} 
@@ -145,14 +148,14 @@ const Event: React.FC = () => {
             className="bg-[#5db3d2] hover:bg-[#4a9ab8] text-white"
           >
             <Plus className="h-4 w-4 mr-1" />
-            Tambah Baris
+            {t('add')}
           </Button>
         </CardHeader>
         <CardContent className="space-y-4">
           {formRows.map((row, index) => (
             <div key={index} className="flex items-end gap-4">
               <div className="flex-1 space-y-2">
-                <Label>Tanggal</Label>
+                <Label>{t('date')}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -163,7 +166,7 @@ const Event: React.FC = () => {
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {row.date ? format(row.date, "PPP", { locale: id }) : <span>Pilih tanggal</span>}
+                      {row.date ? format(row.date, "PPP", { locale }) : <span>{t('selectDate')}</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -178,11 +181,11 @@ const Event: React.FC = () => {
                 </Popover>
               </div>
               <div className="flex-1 space-y-2">
-                <Label>Nama Event</Label>
+                <Label>{t('eventName')}</Label>
                 <Input
                   value={row.title}
                   onChange={(e) => updateFormRow(index, 'title', e.target.value)}
-                  placeholder="Masukkan nama event"
+                  placeholder={language === 'id' ? 'Masukkan nama event' : 'Enter event name'}
                 />
               </div>
               {formRows.length > 1 && (
@@ -202,7 +205,7 @@ const Event: React.FC = () => {
             onClick={handleSubmitEvents} 
             className="w-full bg-[#5db3d2] hover:bg-[#4a9ab8] text-white"
           >
-            Simpan Event
+            {t('save')} Event
           </Button>
         </CardContent>
       </Card>
@@ -210,16 +213,16 @@ const Event: React.FC = () => {
       {/* Registered Program Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Registered Program</CardTitle>
+          <CardTitle>{t('registeredProgram')}</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Tanggal</TableHead>
-                <TableHead>Nama Event</TableHead>
+                <TableHead>{t('date')}</TableHead>
+                <TableHead>{t('eventName')}</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-center">Aksi</TableHead>
+                <TableHead className="text-center">{t('action')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -228,7 +231,7 @@ const Event: React.FC = () => {
                   .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
                   .map((event) => (
                     <TableRow key={event.id}>
-                      <TableCell>{format(new Date(event.date), "d MMMM yyyy", { locale: id })}</TableCell>
+                      <TableCell>{format(new Date(event.date), "d MMMM yyyy", { locale })}</TableCell>
                       <TableCell>{event.title}</TableCell>
                       <TableCell>{getStatusBadge(event.status)}</TableCell>
                       <TableCell>
@@ -256,7 +259,7 @@ const Event: React.FC = () => {
               ) : (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8 text-gray-500">
-                    Belum ada event terdaftar
+                    {t('noData')}
                   </TableCell>
                 </TableRow>
               )}
@@ -269,12 +272,12 @@ const Event: React.FC = () => {
       <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Event</DialogTitle>
-            <DialogDescription>Ubah detail event</DialogDescription>
+            <DialogTitle>{t('edit')} Event</DialogTitle>
+            <DialogDescription>{language === 'id' ? 'Ubah detail event' : 'Edit event details'}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Tanggal</Label>
+              <Label>{t('date')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -285,7 +288,7 @@ const Event: React.FC = () => {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {editDate ? format(editDate, "PPP", { locale: id }) : <span>Pilih tanggal</span>}
+                    {editDate ? format(editDate, "PPP", { locale }) : <span>{t('selectDate')}</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -300,11 +303,11 @@ const Event: React.FC = () => {
               </Popover>
             </div>
             <div className="space-y-2">
-              <Label>Nama Event</Label>
+              <Label>{t('eventName')}</Label>
               <Input
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                placeholder="Masukkan nama event"
+                placeholder={language === 'id' ? 'Masukkan nama event' : 'Enter event name'}
               />
             </div>
             <div className="space-y-2">
@@ -314,19 +317,19 @@ const Event: React.FC = () => {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="upcoming">Akan Datang</SelectItem>
-                  <SelectItem value="completed">Selesai</SelectItem>
-                  <SelectItem value="canceled">Dibatalkan</SelectItem>
+                  <SelectItem value="upcoming">{t('upcoming')}</SelectItem>
+                  <SelectItem value="completed">{t('completed')}</SelectItem>
+                  <SelectItem value="canceled">{t('canceled')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditModal(false)}>
-              Batal
+              {t('cancel')}
             </Button>
             <Button onClick={handleSaveEdit} className="bg-[#5db3d2] hover:bg-[#4a9ab8] text-white">
-              Simpan
+              {t('save')}
             </Button>
           </DialogFooter>
         </DialogContent>

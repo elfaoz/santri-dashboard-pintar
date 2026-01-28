@@ -652,7 +652,7 @@ const Halaqah: React.FC = () => {
                                 <button
                                     onClick={handleSaveMemorization}
                                     disabled={!recordsSelectedStudent || !memorizationTarget || !memorizationActual}
-                                    className="flex items-center space-x-2 bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+                                    className="flex items-center space-x-2 bg-[#5db3d2] text-white font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-[#4a9ab8] transition-colors disabled:bg-gray-400"
                                 >
                                     <Plus size={20} />
                                     <span>Simpan Hafalan</span>
