@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Award } from 'lucide-react';
+import { Check } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 const UpgradePlan: React.FC = () => {
@@ -37,8 +37,8 @@ const UpgradePlan: React.FC = () => {
     {
       id: 'activities',
       name: 'Activities',
-      price: '82.5k',
-      originalPrice: '8.25k',
+      price: '8.25k',
+      originalPrice: '82.5k',
       features: [
         'Tracking aktivitas harian',
         'Monitor Tilawah & Tahajud',
@@ -64,7 +64,7 @@ const UpgradePlan: React.FC = () => {
       id: 'full-package',
       name: 'Full Package',
       price: '249k',
-      popular: true,
+      isFullPackage: true,
       features: [
         'Semua fitur Attendance',
         'Semua fitur Memorization',
@@ -85,12 +85,12 @@ const UpgradePlan: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Main Content with gradient background */}
-      <div className="flex-1 bg-gradient-to-br from-[#5db3d2] via-[#4a9ab8] to-[#3d8aa8] py-12 px-4">
+      <div className="flex-1 bg-[#5db3d2] py-12 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold mb-4 text-white drop-shadow-lg">Upgrade Paket Anda</h1>
             <p className="text-white/90 text-lg">
-              Pilih paket yang sesuai dengan kebutuhan pesantren Anda
+              Pilih paket yang sesuai dengan kebutuhan Anda
             </p>
           </div>
 
@@ -98,40 +98,31 @@ const UpgradePlan: React.FC = () => {
             {plans.map((plan) => (
               <Card
                 key={plan.id}
-                className={`relative flex flex-col transition-all duration-300 hover:scale-105 ${
-                  plan.popular 
-                    ? 'border-2 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.5)] bg-white' 
-                    : 'bg-white/95 backdrop-blur-sm shadow-[0_0_20px_rgba(93,179,210,0.3)] hover:shadow-[0_0_30px_rgba(93,179,210,0.5)]'
+                className={`relative flex flex-col transition-all duration-300 hover:scale-105 bg-white ${
+                  plan.isFullPackage 
+                    ? 'border-2 border-green-500 shadow-[0_0_30px_rgba(34,197,94,0.5)]' 
+                    : 'border-2 border-[#5db3d2] shadow-[0_0_20px_rgba(93,179,210,0.3)] hover:shadow-[0_0_30px_rgba(93,179,210,0.5)]'
                 }`}
                 style={{
-                  boxShadow: plan.popular 
-                    ? '0 0 30px rgba(239, 68, 68, 0.4), inset 0 0 60px rgba(239, 68, 68, 0.05)'
+                  boxShadow: plan.isFullPackage 
+                    ? '0 0 30px rgba(34, 197, 94, 0.4), inset 0 0 60px rgba(34, 197, 94, 0.05)'
                     : '0 0 20px rgba(93, 179, 210, 0.3), inset 0 0 60px rgba(93, 179, 210, 0.05)'
                 }}
               >
                 {/* Neon glow effect */}
                 <div 
                   className={`absolute inset-0 rounded-lg opacity-50 pointer-events-none ${
-                    plan.popular ? 'bg-gradient-to-br from-red-500/10 to-transparent' : 'bg-gradient-to-br from-[#5db3d2]/10 to-transparent'
+                    plan.isFullPackage ? 'bg-gradient-to-br from-green-500/10 to-transparent' : 'bg-gradient-to-br from-[#5db3d2]/10 to-transparent'
                   }`}
                 />
                 
-                {plan.popular && (
-                  <div className="absolute -top-3 -right-3 z-10">
-                    <div className="relative">
-                      <Award className="h-16 w-16 text-red-500 fill-red-500" />
-                      <span className="absolute inset-0 flex items-center justify-center text-white text-[8px] font-bold leading-tight text-center pt-1">
-                        Full<br/>Package
-                      </span>
-                    </div>
-                  </div>
-                )}
-                
                 <CardHeader className="relative z-10">
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                  <CardTitle className={`text-2xl ${plan.isFullPackage ? 'text-green-600' : 'text-[#5db3d2]'}`}>
+                    {plan.name}
+                  </CardTitle>
                   <CardDescription>
                     <div className="flex items-baseline gap-2">
-                      <span className={`text-3xl font-bold ${plan.popular ? 'text-red-600' : 'text-foreground'}`}>
+                      <span className={`text-3xl font-bold ${plan.isFullPackage ? 'text-green-600' : 'text-[#5db3d2]'}`}>
                         {plan.price}
                       </span>
                       {plan.originalPrice && (
@@ -148,7 +139,7 @@ const UpgradePlan: React.FC = () => {
                   <ul className="space-y-3">
                     {plan.features.map((feature, index) => (
                       <li key={index} className="flex items-start">
-                        <Check className={`h-5 w-5 mr-2 flex-shrink-0 mt-0.5 ${plan.popular ? 'text-red-500' : 'text-[#5db3d2]'}`} />
+                        <Check className={`h-5 w-5 mr-2 flex-shrink-0 mt-0.5 ${plan.isFullPackage ? 'text-green-500' : 'text-[#5db3d2]'}`} />
                         <span className="text-sm">{feature}</span>
                       </li>
                     ))}
@@ -159,8 +150,8 @@ const UpgradePlan: React.FC = () => {
                   <Button
                     onClick={() => handleSelectPlan(plan.id)}
                     className={`w-full font-semibold ${
-                      plan.popular 
-                        ? 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]' 
+                      plan.isFullPackage 
+                        ? 'bg-green-500 hover:bg-green-600 text-white shadow-[0_0_15px_rgba(34,197,94,0.5)]' 
                         : 'bg-[#5db3d2] hover:bg-[#4a9ab8] text-white shadow-[0_0_15px_rgba(93,179,210,0.5)]'
                     }`}
                   >
