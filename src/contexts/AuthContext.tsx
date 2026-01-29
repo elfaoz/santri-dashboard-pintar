@@ -38,6 +38,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('kdm_user', username);
       return true;
     }
+
+    // Guest account
+    if (username === 'guest' && password === 'guest123') {
+      setIsAuthenticated(true);
+      localStorage.setItem('kdm_auth', 'true');
+      localStorage.setItem('kdm_user', username);
+      return true;
+    }
     
     // Demo accounts
     const demoAccounts = [

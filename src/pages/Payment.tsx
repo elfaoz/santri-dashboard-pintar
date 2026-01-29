@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CreditCard, Building2, MessageCircle, Copy, Check, ArrowLeft, Plus, X } from 'lucide-react';
+import { CreditCard, Building2, MessageCircle, Copy, Check, ArrowLeft, Plus, X, Tag } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { toast } from '@/hooks/use-toast';
 import { useProfile } from '@/contexts/ProfileContext';
@@ -17,11 +17,20 @@ const Payment: React.FC = () => {
   const [selectedPlans, setSelectedPlans] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState<string>('12');
+  const [voucherCode, setVoucherCode] = useState('');
+  const [appliedVoucher, setAppliedVoucher] = useState<{ code: string; discount: number } | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
   });
+
+  const vouchers: { [key: string]: number } = {
+    'ramadhan': 49,
+    'merdeka': 17,
+    'muharam': 20,
+    'bayardengandoa': 90,
+  };
 
   useEffect(() => {
     // Pre-fill from profile
@@ -49,7 +58,7 @@ const Payment: React.FC = () => {
   const bankAccount = '404301015163532';
   const whatsappNumber = '+6285223857484';
 
-  const calculateTotal = () => {
+  const calculateSubtotal = () => {
     if (selectedPlans.includes('full-package')) {
       return 249000 * parseInt(selectedDuration);
     }
@@ -59,7 +68,35 @@ const Payment: React.FC = () => {
     return subtotal * parseInt(selectedDuration);
   };
 
-  const totalPrice = calculateTotal();
+  const subtotalPrice = calculateSubtotal();
+  const discountAmount = appliedVoucher ? Math.round(subtotalPrice * (appliedVoucher.discount / 100)) : 0;
+  const totalPrice = subtotalPrice - discountAmount;
+
+  const handleApplyVoucher = () => {
+    const code = voucherCode.toLowerCase().trim();
+    if (vouchers[code]) {
+      setAppliedVoucher({ code: code, discount: vouchers[code] });
+      toast({
+        title: 'Voucher Berhasil Diterapkan',
+        description: `Diskon ${vouchers[code]}% telah diterapkan`,
+      });
+    } else {
+      toast({
+        title: 'Voucher Tidak Valid',
+        description: 'Kode voucher tidak ditemukan',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRemoveVoucher = () => {
+    setAppliedVoucher(null);
+    setVoucherCode('');
+    toast({
+      title: 'Voucher Dihapus',
+      description: 'Diskon telah dihapus dari pesanan',
+    });
+  };
 
   const handleAddPlan = (planId: string) => {
     // If trying to add full package, replace everything with full package
@@ -118,7 +155,8 @@ const Payment: React.FC = () => {
     }
 
     const selectedPackages = selectedPlans.map(id => planDetails[id]?.name).join(', ');
-    const message = `Assalamualaikum, saya ingin konfirmasi pembayaran Aplikasi KDM:%0A%0ANama: ${formData.name}%0AEmail: ${formData.email}%0ANo. HP: ${formData.phone}%0APaket: ${selectedPackages}%0ADurasi: ${selectedDuration} bulan%0ATotal: Rp ${totalPrice.toLocaleString('id-ID')}%0A%0ASaya sudah melakukan transfer ke rekening BRI a.n MARKAZ QURAN.`;
+    const voucherInfo = appliedVoucher ? `%0AVoucher: ${appliedVoucher.code.toUpperCase()} (${appliedVoucher.discount}% off)` : '';
+    const message = `Assalamualaikum, saya ingin konfirmasi pembayaran Aplikasi KDM:%0A%0ANama: ${formData.name}%0AEmail: ${formData.email}%0ANo. HP: ${formData.phone}%0APaket: ${selectedPackages}%0ADurasi: ${selectedDuration} bulan${voucherInfo}%0ATotal: Rp ${totalPrice.toLocaleString('id-ID')}%0A%0ASaya sudah melakukan transfer ke rekening BRI a.n MARKAZ QURAN.`;
     
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
@@ -190,6 +228,51 @@ const Payment: React.FC = () => {
           </CardContent>
         </Card>
 
+        {/* Voucher Section */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Tag className="mr-2 h-5 w-5" />
+              Voucher Diskon
+            </CardTitle>
+            <CardDescription>Masukkan kode voucher jika ada</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {appliedVoucher ? (
+              <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div>
+                  <p className="font-medium text-green-700">{appliedVoucher.code.toUpperCase()}</p>
+                  <p className="text-sm text-green-600">Diskon {appliedVoucher.discount}% diterapkan</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleRemoveVoucher}
+                  className="border-red-300 text-red-600 hover:bg-red-50"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Hapus
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Masukkan kode voucher"
+                  value={voucherCode}
+                  onChange={(e) => setVoucherCode(e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  onClick={handleApplyVoucher}
+                  className="bg-[#5db3d2] hover:bg-[#4a9ab8] text-white"
+                >
+                  Terapkan
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Order Summary */}
         <Card className="mb-6">
           <CardHeader>
@@ -234,8 +317,26 @@ const Payment: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                <div className="flex justify-between items-center text-lg font-bold border-t pt-4 mt-4">
-                  <span>Total ({selectedDuration} Bulan)</span>
+
+                {/* Subtotal */}
+                <div className="flex justify-between items-center border-t pt-4">
+                  <span className="text-muted-foreground">Subtotal ({selectedDuration} Bulan)</span>
+                  <span className={appliedVoucher ? 'line-through text-muted-foreground' : 'font-semibold'}>
+                    Rp {subtotalPrice.toLocaleString('id-ID')}
+                  </span>
+                </div>
+
+                {/* Discount */}
+                {appliedVoucher && (
+                  <div className="flex justify-between items-center text-green-600">
+                    <span>Diskon ({appliedVoucher.discount}%)</span>
+                    <span>- Rp {discountAmount.toLocaleString('id-ID')}</span>
+                  </div>
+                )}
+
+                {/* Total */}
+                <div className="flex justify-between items-center text-lg font-bold border-t pt-4 mt-2">
+                  <span>Total</span>
                   <span className="text-[#5db3d2]">Rp {totalPrice.toLocaleString('id-ID')}</span>
                 </div>
               </>

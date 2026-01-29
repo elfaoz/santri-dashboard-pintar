@@ -60,17 +60,17 @@ const App = () => (
                             <Route path="/payment" element={<Payment />} />
                             <Route path="/install" element={<Install />} />
 
-                            {/* Halaman yang dilindungi */}
+                            {/* Dashboard - tidak dilindungi */}
                             <Route
                               path="/dashboard"
                               element={
-                                <ProtectedRoute>
-                                  <Layout>
-                                    <Dashboard />
-                                  </Layout>
-                                </ProtectedRoute>
+                                <Layout>
+                                  <Dashboard />
+                                </Layout>
                               }
                             />
+                            
+                            {/* Halaman yang dilindungi */}
                             <Route
                               path="/profile"
                               element={
