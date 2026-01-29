@@ -60,13 +60,15 @@ const App = () => (
                             <Route path="/payment" element={<Payment />} />
                             <Route path="/install" element={<Install />} />
 
-                            {/* Dashboard - tidak dilindungi */}
+                            {/* Dashboard - guest allowed */}
                             <Route
                               path="/dashboard"
                               element={
-                                <Layout>
-                                  <Dashboard />
-                                </Layout>
+                                <ProtectedRoute guestAllowed={true}>
+                                  <Layout>
+                                    <Dashboard />
+                                  </Layout>
+                                </ProtectedRoute>
                               }
                             />
                             

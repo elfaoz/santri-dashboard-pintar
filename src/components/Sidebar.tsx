@@ -11,11 +11,12 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
   const { t } = useLanguage();
   const navRef = useRef<HTMLDivElement>(null);
 
-  const navItems = [
+  const { logout, isGuest } = useAuth();
+
+  const allNavItems = [
     { path: '/dashboard', icon: BarChart3, label: t('dashboard'), emoji: '📊' },
     { path: '/profile', icon: User, label: t('myProfile'), emoji: '👤' },
     { path: '/attendance', icon: Calendar, label: t('attendance'), emoji: '📅' },
@@ -25,6 +26,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { path: '/event', icon: CalendarDays, label: t('event'), emoji: '🗓️' },
     { path: '/add-student', icon: UserPlus, label: t('addStudent'), emoji: '➕' },
   ];
+
+  // Guest users can only see Dashboard
+  const navItems = isGuest 
+    ? allNavItems.filter(item => item.path === '/dashboard')
+    : allNavItems;
 
   const handleLogout = () => {
     logout();
