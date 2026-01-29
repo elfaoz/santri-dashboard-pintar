@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CreditCard, Building2, MessageCircle, Copy, Check, ArrowLeft, Plus, X, Tag } from 'lucide-react';
-import Layout from '@/components/Layout';
+import { toast } from '@/hooks/use-toast';
 import { toast } from '@/hooks/use-toast';
 import { useProfile } from '@/contexts/ProfileContext';
 
@@ -162,8 +162,7 @@ const Payment: React.FC = () => {
   };
 
   return (
-    <Layout>
-      <div className="bg-blue-50 min-h-screen py-8">
+    <div className="bg-blue-50 min-h-screen py-8">
         <div className="container mx-auto px-4 max-w-2xl">
         <Button
           variant="ghost"
@@ -447,7 +446,7 @@ const Payment: React.FC = () => {
         </Card>
         </div>
       </div>
-    </Layout>
+    </div>
   );
 };
 
