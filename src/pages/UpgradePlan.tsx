@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
+import { Check, ArrowLeft } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 const UpgradePlan: React.FC = () => {
@@ -87,6 +87,15 @@ const UpgradePlan: React.FC = () => {
       {/* Main Content with gradient background */}
       <div className="flex-1 bg-[#5db3d2] py-12 px-4">
         <div className="container mx-auto">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/dashboard')}
+            className="mb-6 text-white hover:bg-white/20"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Kembali ke Dashboard
+          </Button>
+          
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold mb-4 text-white drop-shadow-lg">Upgrade Paket Anda</h1>
             <p className="text-white/90 text-lg">
