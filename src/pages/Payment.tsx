@@ -49,13 +49,13 @@ const Payment: React.FC = () => {
   const planDetails: { [key: string]: { name: string; price: number } } = {
     'attendance': { name: 'Attendance', price: 65000 },
     'memorization': { name: 'Memorization', price: 120000 },
-    'activities': { name: 'Activities', price: 82500 },
+    'activities': { name: 'Activities', price: 8250 },
     'finance': { name: 'Finance', price: 99000 },
     'full-package': { name: 'Full Package', price: 249000 },
   };
 
   const bankAccount = '404301015163532';
-  const whatsappNumber = '+6285223857484';
+  const whatsappNumber = '6285223857484';
 
   const calculateSubtotal = () => {
     if (selectedPlans.includes('full-package')) {
