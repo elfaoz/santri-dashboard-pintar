@@ -19,6 +19,8 @@ import UpgradePlan from "./pages/UpgradePlan";
 import Payment from "./pages/Payment";
 import Install from "./pages/Install";
 import Event from "./pages/Event";
+import Settings from "./pages/Settings";
+import UserManagement from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -116,6 +118,26 @@ const App = () => (
             <ProtectedRoute>
               <Layout>
                 <AddStudent />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Settings />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/user-management"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <UserManagement />
               </Layout>
             </ProtectedRoute>
           }

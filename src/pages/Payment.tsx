@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,11 +8,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CreditCard, Building2, MessageCircle, Copy, Check, ArrowLeft, Plus, X, Tag } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useProfile } from '@/contexts/ProfileContext';
+import { useSettings } from '@/contexts/SettingsContext';
 
 const Payment: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { profileData } = useProfile();
+  const { prices, vouchers, banks, whatsappNumber } = useSettings();
+  
   const [selectedPlans, setSelectedPlans] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState<string>('12');
@@ -24,12 +27,24 @@ const Payment: React.FC = () => {
     phone: '',
   });
 
-  const vouchers: { [key: string]: number } = {
-    'ramadhan': 49,
-    'merdeka': 17,
-    'muharam': 20,
-    'bayardengandoa': 90,
-  };
+  // Convert prices array to planDetails object
+  const planDetails = useMemo(() => {
+    const details: { [key: string]: { name: string; price: number } } = {};
+    prices.forEach(p => {
+      details[p.id] = { name: p.name, price: p.price };
+    });
+    return details;
+  }, [prices]);
+
+  // Get active vouchers (within date range)
+  const activeVouchers = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return vouchers.filter(v => v.startDate <= today && v.endDate >= today);
+  }, [vouchers]);
+
+  // Get first bank account
+  const primaryBank = banks[0];
+  const bankAccount = primaryBank?.accountNumber || '';
 
   useEffect(() => {
     // Pre-fill from profile
@@ -46,16 +61,6 @@ const Payment: React.FC = () => {
     }
   }, [profileData, location.state]);
 
-  const planDetails: { [key: string]: { name: string; price: number } } = {
-    'attendance': { name: 'Attendance', price: 65000 },
-    'memorization': { name: 'Memorization', price: 120000 },
-    'activities': { name: 'Activities', price: 8250 },
-    'finance': { name: 'Finance', price: 99000 },
-    'full-package': { name: 'Full Package', price: 249000 },
-  };
-
-  const bankAccount = '404301015163532';
-  const whatsappNumber = '6285223857484';
 
   const calculateSubtotal = () => {
     if (selectedPlans.includes('full-package')) {
@@ -73,16 +78,18 @@ const Payment: React.FC = () => {
 
   const handleApplyVoucher = () => {
     const code = voucherCode.toLowerCase().trim();
-    if (vouchers[code]) {
-      setAppliedVoucher({ code: code, discount: vouchers[code] });
+    const foundVoucher = activeVouchers.find(v => v.code.toLowerCase() === code);
+    
+    if (foundVoucher) {
+      setAppliedVoucher({ code: foundVoucher.code, discount: foundVoucher.discount });
       toast({
         title: 'Voucher Berhasil Diterapkan',
-        description: `Diskon ${vouchers[code]}% telah diterapkan`,
+        description: `Diskon ${foundVoucher.discount}% telah diterapkan`,
       });
     } else {
       toast({
         title: 'Voucher Tidak Valid',
-        description: 'Kode voucher tidak ditemukan',
+        description: 'Kode voucher tidak ditemukan atau sudah kadaluarsa',
         variant: 'destructive',
       });
     }
@@ -155,7 +162,9 @@ const Payment: React.FC = () => {
 
     const selectedPackages = selectedPlans.map(id => planDetails[id]?.name).join(', ');
     const voucherInfo = appliedVoucher ? `%0AVoucher: ${appliedVoucher.code.toUpperCase()} (${appliedVoucher.discount}% off)` : '';
-    const message = `Assalamualaikum, saya ingin konfirmasi pembayaran Aplikasi KDM:%0A%0ANama: ${formData.name}%0AEmail: ${formData.email}%0ANo. HP: ${formData.phone}%0APaket: ${selectedPackages}%0ADurasi: ${selectedDuration} bulan${voucherInfo}%0ATotal: Rp ${totalPrice.toLocaleString('id-ID')}%0A%0ASaya sudah melakukan transfer ke rekening BRI a.n MARKAZ QURAN.`;
+    const bankName = primaryBank?.bankName || 'Bank';
+    const accountHolder = primaryBank?.accountHolder || '';
+    const message = `Assalamualaikum, saya ingin konfirmasi pembayaran Aplikasi KDM:%0A%0ANama: ${formData.name}%0AEmail: ${formData.email}%0ANo. HP: ${formData.phone}%0APaket: ${selectedPackages}%0ADurasi: ${selectedDuration} bulan${voucherInfo}%0ATotal: Rp ${totalPrice.toLocaleString('id-ID')}%0A%0ASaya sudah melakukan transfer ke rekening ${bankName} a.n ${accountHolder}.`;
     
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
@@ -354,11 +363,11 @@ const Payment: React.FC = () => {
           <CardContent className="space-y-4">
             <div>
               <Label className="text-sm text-muted-foreground">Bank</Label>
-              <p className="text-lg font-semibold">BRI</p>
+              <p className="text-lg font-semibold">{primaryBank?.bankName || '-'}</p>
             </div>
             <div>
               <Label className="text-sm text-muted-foreground">Atas Nama</Label>
-              <p className="text-lg font-semibold">MARKAZ QURAN</p>
+              <p className="text-lg font-semibold">{primaryBank?.accountHolder || '-'}</p>
             </div>
             <div>
               <Label className="text-sm text-muted-foreground">Nomor Rekening</Label>
