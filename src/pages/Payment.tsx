@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CreditCard, Building2, MessageCircle, Copy, Check, ArrowLeft, Plus, X, Tag } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { toast } from '@/hooks/use-toast';
 import { useProfile } from '@/contexts/ProfileContext';
 
 const Payment: React.FC = () => {
@@ -446,7 +445,6 @@ const Payment: React.FC = () => {
         </Card>
         </div>
       </div>
-    </div>
   );
 };
 
