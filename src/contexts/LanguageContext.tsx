@@ -15,7 +15,7 @@ const translations: Translations = {
   manageStudents: { id: 'Kelola data santri dengan mudah', en: 'Manage student data easily' },
   
   // Dashboard
-  dashboard: { id: 'Dashboard Overview', en: 'Dashboard Overview' },
+  dashboard: { id: 'Overview', en: 'Overview' },
   students: { id: 'Jumlah Murid', en: 'Total Students' },
   activeStudents: { id: 'Santri aktif', en: 'Active students' },
   halaqah: { id: 'Jumlah Halaqah', en: 'Total Halaqah' },
@@ -46,6 +46,8 @@ const translations: Translations = {
   addStudent: { id: 'Tambah Santri', en: 'Add Student' },
   myProfile: { id: 'My Profile', en: 'My Profile' },
   logout: { id: 'Keluar', en: 'Logout' },
+  userManagement: { id: 'User Management', en: 'User Management' },
+  settings: { id: 'Settings', en: 'Settings' },
   
   // Actions
   save: { id: 'Simpan', en: 'Save' },

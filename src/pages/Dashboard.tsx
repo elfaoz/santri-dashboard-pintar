@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import DashboardStats from '../components/DashboardStats';
+import DashboardNavCards from '../components/DashboardNavCards';
 import ProgramCalendar from '../components/ProgramCalendar';
 import StudentOverviewDashboard from '../components/StudentOverviewDashboard';
 import LeaderboardOverview from '../components/LeaderboardOverview';
@@ -7,10 +8,12 @@ import ShareResultsSection from '../components/ShareResultsSection';
 import ShareResultsMonthlySection from '../components/ShareResultsMonthlySection';
 import ShareResultsDailySection from '../components/ShareResultsDailySection';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Dashboard: React.FC = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['Attendance', 'Memorization', 'Activities', 'Finance']);
   const { t } = useLanguage();
+  const { isGuest } = useAuth();
 
   return (
     <div className="p-6 space-y-8">
@@ -20,6 +23,9 @@ const Dashboard: React.FC = () => {
       </div>
       
       <DashboardStats />
+      
+      {/* Navigation Cards - hidden for guest */}
+      {!isGuest && <DashboardNavCards />}
       
       <ProgramCalendar />
       

@@ -171,7 +171,7 @@ const LeaderboardOverview: React.FC<LeaderboardOverviewProps> = ({
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-      <h2 className="text-xl font-bold text-gray-800 mb-6">Leaderboard Overview</h2>
+      <h2 className="text-xl font-bold text-gray-800 mb-6">Overview</h2>
       
       {/* Category Selection */}
       <div className="mb-6">

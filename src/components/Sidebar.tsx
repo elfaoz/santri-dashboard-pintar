@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { User, Calendar, Book, FileText, BarChart3, X, UserPlus, LogOut, ChevronUp, ChevronDown, CalendarDays } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+import { User, Calendar, Book, FileText, BarChart3, X, UserPlus, ChevronUp, ChevronDown, CalendarDays, Settings, Users } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -10,11 +10,10 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const navigate = useNavigate();
   const { t } = useLanguage();
   const navRef = useRef<HTMLDivElement>(null);
 
-  const { logout, isGuest } = useAuth();
+  const { isGuest } = useAuth();
 
   const allNavItems = [
     { path: '/dashboard', icon: BarChart3, label: t('dashboard'), emoji: '📊' },
@@ -25,18 +24,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { path: '/finance', icon: FileText, label: t('finance'), emoji: '💸' },
     { path: '/event', icon: CalendarDays, label: t('event'), emoji: '🗓️' },
     { path: '/add-student', icon: UserPlus, label: t('addStudent'), emoji: '➕' },
+    { path: '/user-management', icon: Users, label: t('userManagement'), emoji: '👥' },
+    { path: '/settings', icon: Settings, label: t('settings'), emoji: '⚙️' },
   ];
 
   // Guest users can only see Dashboard
   const navItems = isGuest 
     ? allNavItems.filter(item => item.path === '/dashboard')
     : allNavItems;
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-    onClose();
-  };
 
   const scrollUp = () => {
     if (navRef.current) {
@@ -118,17 +113,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           >
             <ChevronDown size={20} />
           </button>
-          
-          {/* Logout Button */}
-          <div className="p-4 border-t border-gray-100">
-            <button
-              onClick={handleLogout}
-              className="flex items-center w-full px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
-            >
-              <LogOut size={20} className="mr-3" />
-              <span className="font-medium">{t('logout')}</span>
-            </button>
-          </div>
         </div>
       </div>
     </>

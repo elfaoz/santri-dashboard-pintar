@@ -4,15 +4,32 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Check, ArrowLeft } from 'lucide-react';
 import Footer from '@/components/Footer';
+import { useSettings } from '@/contexts/SettingsContext';
 
 const UpgradePlan: React.FC = () => {
   const navigate = useNavigate();
+  const { prices } = useSettings();
+
+  // Get price by id
+  const getPrice = (id: string) => {
+    const price = prices.find(p => p.id === id);
+    return price || { price: 0, originalPrice: undefined };
+  };
+
+  // Format price to display string
+  const formatPriceDisplay = (price: number) => {
+    if (price >= 1000) {
+      return `${(price / 1000).toFixed(price % 1000 === 0 ? 0 : 2)}k`;
+    }
+    return price.toString();
+  };
 
   const plans = [
     {
       id: 'attendance',
       name: 'Attendance',
-      price: '65k',
+      price: formatPriceDisplay(getPrice('attendance').price),
+      originalPrice: getPrice('attendance').originalPrice ? formatPriceDisplay(getPrice('attendance').originalPrice!) : undefined,
       features: [
         'Input data kehadiran santri',
         'Laporan kehadiran harian',
@@ -24,7 +41,8 @@ const UpgradePlan: React.FC = () => {
     {
       id: 'memorization',
       name: 'Memorization',
-      price: '120k',
+      price: formatPriceDisplay(getPrice('memorization').price),
+      originalPrice: getPrice('memorization').originalPrice ? formatPriceDisplay(getPrice('memorization').originalPrice!) : undefined,
       features: [
         'Tracking hafalan Al-Quran',
         'Input progress per juz dan surah',
@@ -37,8 +55,8 @@ const UpgradePlan: React.FC = () => {
     {
       id: 'activities',
       name: 'Activities',
-      price: '8.25k',
-      originalPrice: '82.5k',
+      price: formatPriceDisplay(getPrice('activities').price),
+      originalPrice: getPrice('activities').originalPrice ? formatPriceDisplay(getPrice('activities').originalPrice!) : undefined,
       features: [
         'Tracking aktivitas harian',
         'Monitor Tilawah & Tahajud',
@@ -50,7 +68,8 @@ const UpgradePlan: React.FC = () => {
     {
       id: 'finance',
       name: 'Finance',
-      price: '99k',
+      price: formatPriceDisplay(getPrice('finance').price),
+      originalPrice: getPrice('finance').originalPrice ? formatPriceDisplay(getPrice('finance').originalPrice!) : undefined,
       features: [
         'Manajemen keuangan santri',
         'Pencatatan pengeluaran',
@@ -63,7 +82,8 @@ const UpgradePlan: React.FC = () => {
     {
       id: 'full-package',
       name: 'Full Package',
-      price: '249k',
+      price: formatPriceDisplay(getPrice('full-package').price),
+      originalPrice: getPrice('full-package').originalPrice ? formatPriceDisplay(getPrice('full-package').originalPrice!) : undefined,
       isFullPackage: true,
       features: [
         'Semua fitur Attendance',
