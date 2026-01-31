@@ -957,10 +957,12 @@ const Profile: React.FC = () => {
                     </TableHeader>
                     <TableBody>
                       {userWithdrawalRequests.length > 0 ? userWithdrawalRequests.map((req, idx) => {
-                        const runningBalance = totalBonus - userWithdrawalRequests
+                        // Calculate running balance - show 0 if this request is completed
+                        const completedAmountUpToHere = userWithdrawalRequests
                           .slice(0, idx + 1)
                           .filter(r => r.status === 'completed')
                           .reduce((sum, r) => sum + r.amount, 0);
+                        const runningBalance = req.status === 'completed' ? 0 : Math.max(0, totalBonus - completedAmountUpToHere);
                         
                         return (
                           <TableRow key={req.id}>
@@ -977,7 +979,7 @@ const Profile: React.FC = () => {
                               >
                                 {req.status === 'pending' && 'Menunggu'}
                                 {req.status === 'approved' && 'Disetujui'}
-                                {req.status === 'completed' && 'Berhasil/Selesai'}
+                                {req.status === 'completed' && 'Berhasil'}
                                 {req.status === 'rejected' && 'Ditolak'}
                               </Badge>
                             </TableCell>
@@ -1037,9 +1039,8 @@ const Profile: React.FC = () => {
                     <p className="font-semibold mb-2">📋 Ketentuan Penarikan Dana:</p>
                     <ul className="space-y-1 text-xs text-left">
                       <li>• Minimal penarikan: <span className="font-semibold">Rp 500.000</span></li>
-                      <li>• <span className="font-semibold">Revisi penarikan hanya dapat dilakukan di akhir semester</span></li>
+                      <li>• <span className="font-semibold">Penarikan hanya dapat dilakukan di akhir semester</span></li>
                       <li>• Wajib melampirkan dokumen bukti penarikan dalam format <span className="font-semibold">PDF</span></li>
-                      <li>• Dokumen penarikan harus disertai <span className="font-semibold">tanda tangan Admin</span> dan kolom nama</li>
                       <li>• Lampirkan <span className="font-semibold">laporan lengkap setiap santri</span> dalam dokumen</li>
                       <li>• Proses verifikasi membutuhkan waktu 1-3 hari kerja</li>
                       <li>• Pastikan data rekening sudah benar sebelum mengajukan</li>
