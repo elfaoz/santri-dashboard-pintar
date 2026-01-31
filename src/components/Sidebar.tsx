@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { NavLink } from 'react-router-dom';
-import { User, Calendar, Book, FileText, BarChart3, X, UserPlus, ChevronUp, ChevronDown, CalendarDays, Settings, Users } from 'lucide-react';
+import { User, Calendar, Book, FileText, BarChart3, X, UserPlus, ChevronUp, ChevronDown, CalendarDays, Settings, Users, Database } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -13,7 +13,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { t } = useLanguage();
   const navRef = useRef<HTMLDivElement>(null);
 
-  const { isGuest } = useAuth();
+  const { isGuest, username } = useAuth();
+
+  // Get user role from stored users
+  const usersWithRoles = JSON.parse(localStorage.getItem('kdm_users_roles') || '[]');
+  const currentUser = usersWithRoles.find((u: any) => u.username === username);
+  const userRole = currentUser?.role || 'admin';
+
+  // Role-based protected routes
+  const roleProtectedRoutes: { [role: string]: string[] } = {
+    student: ['/profile', '/event', '/user-management', '/settings', '/backup'],
+    teacher: ['/event', '/user-management', '/settings', '/backup'],
+    parent: ['/profile', '/attendance', '/halaqah', '/activities', '/finance', '/event', '/add-student', '/user-management', '/settings'],
+    admin: [],
+  };
 
   const allNavItems = [
     { path: '/dashboard', icon: BarChart3, label: t('dashboard'), emoji: '📊' },
@@ -26,12 +39,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { path: '/add-student', icon: UserPlus, label: t('addStudent'), emoji: '➕' },
     { path: '/user-management', icon: Users, label: t('userManagement'), emoji: '👥' },
     { path: '/settings', icon: Settings, label: t('settings'), emoji: '⚙️' },
+    { path: '/backup', icon: Database, label: t('backupData'), emoji: '💾' },
   ];
 
-  // Guest users can only see Dashboard
+  // Filter nav items based on user role and guest status
   const navItems = isGuest 
     ? allNavItems.filter(item => item.path === '/dashboard')
-    : allNavItems;
+    : allNavItems.filter(item => {
+        const protectedRoutes = roleProtectedRoutes[userRole] || [];
+        return !protectedRoutes.includes(item.path);
+      });
 
   const scrollUp = () => {
     if (navRef.current) {
