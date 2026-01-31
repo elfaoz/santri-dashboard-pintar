@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { User, MapPin, Calendar, CreditCard, Phone, Mail, Clock, Edit3, Download } from 'lucide-react';
+import { User, MapPin, Calendar, CreditCard, Phone, Mail, Clock, Edit3, Download, Lock } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useStudents } from "@/contexts/StudentContext";
 import { useHalaqahs } from "@/contexts/HalaqahContext";
 import { useMemorization } from "@/contexts/MemorizationContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import jsPDF from 'jspdf';
 
 const Profile: React.FC = () => {
@@ -28,6 +30,7 @@ const Profile: React.FC = () => {
   const { students } = useStudents();
   const { halaqahs } = useHalaqahs();
   const { memorizationRecords } = useMemorization();
+  const { bonusSettings, withdrawalRequests, addWithdrawalRequest } = useSettings();
 
   // Profile data state with localStorage persistence
   const [profileData, setProfileData] = useState(() => {
@@ -55,9 +58,6 @@ const Profile: React.FC = () => {
       schoolLogo: '',
       // Gatekeeper PIN for bonus withdrawal
       withdrawalPin: '123456',
-      // Hak Musyrif/Muhafizh
-      gajiPokok: 600000,
-      bonusPerHalaman: 1500,
     };
   });
 
@@ -114,12 +114,12 @@ const Profile: React.FC = () => {
       }
     });
     
-    // Convert to array format for table
+      // Convert to array format for table
     let counter = 1;
     uniqueStudents.forEach((data) => {
       const persentase = Math.min(Math.round((data.totalActual / data.target) * 100), 100);
-      const bonusPerHalaman = profileData.bonusPerHalaman || 1500;
-      const idr = data.totalActual * bonusPerHalaman; // IDR = Pencapaian × bonus per halaman
+      const bonusPerHalaman = bonusSettings.bonusPerHalaman;
+      const idr = data.totalActual * bonusPerHalaman;
       
       halaqahData.push({
         no: counter++,
@@ -186,9 +186,28 @@ const Profile: React.FC = () => {
       return;
     }
 
-    // Send WhatsApp notification with Total Bonus yang Diperoleh
+    // Add withdrawal request to settings context
+    const studentReports = memorizationData.map(item => ({
+      nama: item.nama,
+      halaqah: item.halaqah,
+      pencapaian: item.pencapaian,
+      bonus: item.idr
+    }));
+    
+    addWithdrawalRequest({
+      userName: profileData.name,
+      userEmail: profileData.email || 'email@example.com',
+      userPhone: profileData.phone,
+      bankInfo: profileData.bankInfo,
+      accountNumber: profileData.accountNumber || '',
+      amount: totalBonus,
+      requestDate: new Date().toISOString(),
+      studentReports
+    });
+
+    // Send WhatsApp notification
     const message = `Pengajuan Penarikan Dana%0A%0AData Pemohon:%0A%0ANama: ${profileData.name}%0AEmail: ${profileData.email || 'nashers.manziel@gmail.com'}%0ANo. HP: ${profileData.phone}%0AAlamat: ${profileData.address}%0A%0ATanggal Pengajuan:%0A${new Date().toLocaleDateString('id-ID')}%0A%0ANominal Pengajuan:%0ARp ${totalBonus.toLocaleString('id-ID')}%0A%0AInformasi Rekening Penerima:%0A${profileData.bankInfo}%0ANo. Rekening: ${profileData.accountNumber || '4043-0101-5163-532'}%0AAtас Nama: ${profileData.name}%0A%0ATerima Kasih.`;
-    const whatsappUrl = `https://wa.me/6285223857484?text=${message}`;
+    const whatsappUrl = `https://wa.me/${bonusSettings.withdrawalWhatsapp}?text=${message}`;
     
     window.open(whatsappUrl, '_blank');
     
@@ -198,7 +217,7 @@ const Profile: React.FC = () => {
     
     toast({
       title: "Pengajuan berhasil dikirim",
-      description: "Pengajuan penarikan dana telah dikirim ke admin pusat melalui WhatsApp",
+      description: "Pengajuan penarikan dana telah dikirim dan menunggu validasi admin",
     });
   };
 
@@ -258,11 +277,11 @@ const Profile: React.FC = () => {
       '• Membangun komunikasi yang baik dengan santri dan orangtua',
       '',
       'IV. Hak Musyrif/Muhafizh',
-      `• Gaji pokok bulanan sebesar maksimal Rp${(profileData.gajiPokok || 600000).toLocaleString('id-ID')}, diberikan secara tetap tanpa bergantung pada capaian target.`,
+      `• Gaji pokok bulanan sebesar maksimal Rp${bonusSettings.gajiPokok.toLocaleString('id-ID')}, diberikan secara tetap tanpa bergantung pada capaian target.`,
       '• Bonus capaian bulanan:',
       `   - Dihitung dari: Gaji pokok + Bonus hafalan.`,
-      `   - Bonus hafalan = Jumlah halaman × Rp${(profileData.bonusPerHalaman || 1500).toLocaleString('id-ID')}.`,
-      `   - Contoh: Gaji Pokok Rp${(profileData.gajiPokok || 600000).toLocaleString('id-ID')} + Bonus hafalan 200 halaman = Rp${((profileData.gajiPokok || 600000) + 200 * (profileData.bonusPerHalaman || 1500)).toLocaleString('id-ID')}.`,
+      `   - Bonus hafalan = Jumlah halaman × Rp${bonusSettings.bonusPerHalaman.toLocaleString('id-ID')}.`,
+      `   - Contoh: Gaji Pokok Rp${bonusSettings.gajiPokok.toLocaleString('id-ID')} + Bonus hafalan 200 halaman = Rp${(bonusSettings.gajiPokok + 200 * bonusSettings.bonusPerHalaman).toLocaleString('id-ID')}.`,
       '• Total penerimaan = gaji pokok + bonus hafalan.',
       '',
       'V. Penutup',
@@ -319,7 +338,7 @@ const Profile: React.FC = () => {
     
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.text('Laporan Bonus Hafalan', 105, 20, { align: 'center' });
+    doc.text('Laporan Bonus Hafalan & Pengajuan Penarikan', 105, 20, { align: 'center' });
     
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
@@ -329,15 +348,18 @@ const Profile: React.FC = () => {
     doc.setFontSize(11);
     doc.text(`Nama: ${profileData.name}`, 20, 50);
     doc.text(`Jabatan: ${profileData.role}`, 20, 58);
-    doc.text(`Gaji Pokok: Rp ${(profileData.gajiPokok || 600000).toLocaleString('id-ID')}`, 20, 66);
-    doc.text(`Bonus per Halaman: Rp ${(profileData.bonusPerHalaman || 1500).toLocaleString('id-ID')}`, 20, 74);
+    doc.text(`Gaji Pokok: Rp ${bonusSettings.gajiPokok.toLocaleString('id-ID')}`, 20, 66);
+    doc.text(`Bonus per Halaman: Rp ${bonusSettings.bonusPerHalaman.toLocaleString('id-ID')}`, 20, 74);
     
     // Table header
     let yPos = 90;
     doc.setFont('helvetica', 'bold');
+    doc.text('LAPORAN LENGKAP PER SANTRI', 20, yPos);
+    yPos += 10;
+    doc.setFontSize(9);
     doc.text('No', 20, yPos);
-    doc.text('Nama', 35, yPos);
-    doc.text('Target', 95, yPos);
+    doc.text('Nama', 30, yPos);
+    doc.text('Halaqah', 80, yPos);
     doc.text('Pencapaian', 120, yPos);
     doc.text('Bonus (Rp)', 155, yPos);
     
@@ -346,13 +368,13 @@ const Profile: React.FC = () => {
     
     memorizationData.forEach((item, idx) => {
       doc.text(String(idx + 1), 20, yPos);
-      doc.text(item.nama.substring(0, 20), 35, yPos);
-      doc.text(String(item.target), 95, yPos);
+      doc.text(item.nama.substring(0, 20), 30, yPos);
+      doc.text(item.halaqah.substring(0, 15), 80, yPos);
       doc.text(String(item.pencapaian), 120, yPos);
       doc.text(item.idr.toLocaleString('id-ID'), 155, yPos);
       yPos += 7;
       
-      if (yPos > 270) {
+      if (yPos > 250) {
         doc.addPage();
         yPos = 20;
       }
@@ -363,13 +385,36 @@ const Profile: React.FC = () => {
     doc.setFont('helvetica', 'bold');
     doc.text(`Total Bonus Hafalan: Rp ${totalBonus.toLocaleString('id-ID')}`, 20, yPos);
     yPos += 8;
-    doc.text(`Gaji Pokok: Rp ${(profileData.gajiPokok || 600000).toLocaleString('id-ID')}`, 20, yPos);
+    doc.text(`Gaji Pokok: Rp ${bonusSettings.gajiPokok.toLocaleString('id-ID')}`, 20, yPos);
     yPos += 8;
     doc.setFontSize(12);
-    doc.text(`Total Penerimaan: Rp ${((profileData.gajiPokok || 600000) + totalBonus).toLocaleString('id-ID')}`, 20, yPos);
+    doc.text(`Total Penerimaan: Rp ${(bonusSettings.gajiPokok + totalBonus).toLocaleString('id-ID')}`, 20, yPos);
+    
+    // Signature section
+    yPos += 20;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Tanda Tangan:', 20, yPos);
+    
+    yPos += 15;
+    doc.text('Pemohon,', 40, yPos);
+    doc.text('Admin,', 140, yPos);
+    
+    yPos += 30;
+    doc.text('_________________', 30, yPos);
+    doc.text('_________________', 130, yPos);
+    
+    yPos += 8;
+    doc.text(`(${profileData.name})`, 40, yPos);
+    doc.text('(                        )', 140, yPos);
     
     doc.save('Laporan_Bonus_Hafalan.pdf');
   };
+
+  // Get user's withdrawal requests
+  const userWithdrawalRequests = withdrawalRequests.filter(
+    req => req.userName === profileData.name
+  );
 
   return (
     <div className="p-6">
@@ -603,28 +648,30 @@ const Profile: React.FC = () => {
                 </div>
               </div>
 
-              {/* Hak Musyrif/Muhafizh Section */}
+              {/* Hak Musyrif/Muhafizh Section - Read Only from Settings */}
               <div className="space-y-4 pt-6 border-t">
-                <h3 className="text-lg font-semibold">Hak Musyrif/Muhafizh</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold">Hak Musyrif/Muhafizh</h3>
+                  <Lock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">(Diatur di Settings)</span>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label>Gaji Pokok (Rp)</Label>
                     <Input 
                       type="number"
-                      value={formData.gajiPokok || 600000} 
-                      onChange={(e) => setFormData({ ...formData, gajiPokok: parseInt(e.target.value) || 600000 })}
-                      disabled={!isEditing}
-                      placeholder="600000"
+                      value={bonusSettings.gajiPokok}
+                      disabled={true}
+                      className="bg-muted"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label>Bonus Hafalan per Halaman (Rp)</Label>
                     <Input 
                       type="number"
-                      value={formData.bonusPerHalaman || 1500} 
-                      onChange={(e) => setFormData({ ...formData, bonusPerHalaman: parseInt(e.target.value) || 1500 })}
-                      disabled={!isEditing}
-                      placeholder="1500"
+                      value={bonusSettings.bonusPerHalaman}
+                      disabled={true}
+                      className="bg-muted"
                     />
                   </div>
                 </div>
@@ -705,12 +752,12 @@ const Profile: React.FC = () => {
                   <section>
                     <h2 className="text-lg font-semibold text-gray-800 mb-3">IV. Hak Musyrif/Muhafizh</h2>
                     <ul className="list-disc pl-6 space-y-2">
-                      <li>Gaji pokok bulanan sebesar maksimal Rp{(profileData.gajiPokok || 600000).toLocaleString('id-ID')}, diberikan secara tetap tanpa bergantung pada capaian target.</li>
+                      <li>Gaji pokok bulanan sebesar maksimal Rp{bonusSettings.gajiPokok.toLocaleString('id-ID')}, diberikan secara tetap tanpa bergantung pada capaian target.</li>
                       <li>Bonus capaian bulanan:
                         <ul className="list-disc pl-6 mt-2 space-y-1">
                           <li>Dihitung dari: Gaji pokok + Bonus hafalan.</li>
-                          <li>Bonus hafalan = Jumlah halaman × Rp{(profileData.bonusPerHalaman || 1500).toLocaleString('id-ID')}.</li>
-                          <li>Contoh: Gaji Pokok Rp{(profileData.gajiPokok || 600000).toLocaleString('id-ID')} + Bonus hafalan (200 halaman × Rp{(profileData.bonusPerHalaman || 1500).toLocaleString('id-ID')}) = Rp{((profileData.gajiPokok || 600000) + 200 * (profileData.bonusPerHalaman || 1500)).toLocaleString('id-ID')}.</li>
+                          <li>Bonus hafalan = Jumlah halaman × Rp{bonusSettings.bonusPerHalaman.toLocaleString('id-ID')}.</li>
+                          <li>Contoh: Gaji Pokok Rp{bonusSettings.gajiPokok.toLocaleString('id-ID')} + Bonus hafalan (200 halaman × Rp{bonusSettings.bonusPerHalaman.toLocaleString('id-ID')}) = Rp{(bonusSettings.gajiPokok + 200 * bonusSettings.bonusPerHalaman).toLocaleString('id-ID')}.</li>
                         </ul>
                       </li>
                       <li>Total penerimaan = gaji pokok + bonus hafalan.</li>
@@ -894,6 +941,59 @@ const Profile: React.FC = () => {
                   </div>
                 )}
 
+                {/* Transaction Details Table */}
+                <div className="bg-white rounded-lg border">
+                  <div className="p-4 border-b">
+                    <h3 className="text-lg font-semibold text-gray-800">Detail Transaksi Penarikan</h3>
+                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tanggal</TableHead>
+                        <TableHead>Jumlah Transaksi</TableHead>
+                        <TableHead>Saldo Akhir</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {userWithdrawalRequests.length > 0 ? userWithdrawalRequests.map((req, idx) => {
+                        const runningBalance = totalBonus - userWithdrawalRequests
+                          .slice(0, idx + 1)
+                          .filter(r => r.status === 'completed')
+                          .reduce((sum, r) => sum + r.amount, 0);
+                        
+                        return (
+                          <TableRow key={req.id}>
+                            <TableCell>{new Date(req.requestDate).toLocaleDateString('id-ID')}</TableCell>
+                            <TableCell>Rp {req.amount.toLocaleString('id-ID')}</TableCell>
+                            <TableCell>Rp {runningBalance.toLocaleString('id-ID')}</TableCell>
+                            <TableCell>
+                              <Badge 
+                                variant={
+                                  req.status === 'completed' ? 'default' :
+                                  req.status === 'approved' ? 'secondary' :
+                                  req.status === 'rejected' ? 'destructive' : 'outline'
+                                }
+                              >
+                                {req.status === 'pending' && 'Menunggu'}
+                                {req.status === 'approved' && 'Disetujui'}
+                                {req.status === 'completed' && 'Berhasil/Selesai'}
+                                {req.status === 'rejected' && 'Ditolak'}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      }) : (
+                        <TableRow>
+                          <TableCell colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                            Belum ada transaksi penarikan
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+
                 {/* Withdraw and Download Buttons */}
                 <div className="text-center space-y-4">
                   <div className="flex gap-4 justify-center">
@@ -932,12 +1032,15 @@ const Profile: React.FC = () => {
                   </Dialog>
                   </div>
                   
-                  {/* Withdrawal Notes */}
+                  {/* Updated Withdrawal Notes */}
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
                     <p className="font-semibold mb-2">📋 Ketentuan Penarikan Dana:</p>
-                    <ul className="space-y-1 text-xs">
+                    <ul className="space-y-1 text-xs text-left">
                       <li>• Minimal penarikan: <span className="font-semibold">Rp 500.000</span></li>
-                      <li>• Pengajuan hanya dapat dilakukan pada <span className="font-semibold">tanggal 1-10</span> setiap bulan</li>
+                      <li>• <span className="font-semibold">Revisi penarikan hanya dapat dilakukan di akhir semester</span></li>
+                      <li>• Wajib melampirkan dokumen bukti penarikan dalam format <span className="font-semibold">PDF</span></li>
+                      <li>• Dokumen penarikan harus disertai <span className="font-semibold">tanda tangan Admin</span> dan kolom nama</li>
+                      <li>• Lampirkan <span className="font-semibold">laporan lengkap setiap santri</span> dalam dokumen</li>
                       <li>• Proses verifikasi membutuhkan waktu 1-3 hari kerja</li>
                       <li>• Pastikan data rekening sudah benar sebelum mengajukan</li>
                     </ul>
