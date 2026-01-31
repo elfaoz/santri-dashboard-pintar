@@ -12,17 +12,17 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const allPages = [
-  { id: 'dashboard', label: 'Dashboard' },
-  { id: 'profile', label: 'Profile' },
-  { id: 'attendance', label: 'Attendance' },
-  { id: 'halaqah', label: 'Halaqah' },
-  { id: 'activities', label: 'Activities' },
-  { id: 'finance', label: 'Finance' },
-  { id: 'event', label: 'Event' },
-  { id: 'add-student', label: 'Add Student' },
-  { id: 'upgrade', label: 'Upgrade' },
-  { id: 'payment', label: 'Payment' },
-  { id: 'setting', label: 'Setting' },
+  { id: 'dashboard', labelKey: 'dashboard' },
+  { id: 'profile', labelKey: 'myProfile' },
+  { id: 'attendance', labelKey: 'attendance' },
+  { id: 'halaqah', labelKey: 'memorization' },
+  { id: 'activities', labelKey: 'activities' },
+  { id: 'finance', labelKey: 'finance' },
+  { id: 'event', labelKey: 'event' },
+  { id: 'add-student', labelKey: 'addStudent' },
+  { id: 'upgrade', labelKey: 'upgrade' },
+  { id: 'payment', labelKey: 'payment' },
+  { id: 'setting', labelKey: 'settings' },
 ];
 
 const Settings: React.FC = () => {
@@ -54,35 +54,35 @@ const Settings: React.FC = () => {
   // Handle voucher add
   const handleAddVoucher = () => {
     if (!newVoucher.code || !newVoucher.discount || !newVoucher.startDate || !newVoucher.endDate) {
-      toast({ title: 'Error', description: 'Lengkapi semua field voucher', variant: 'destructive' });
+      toast({ title: t('error'), description: t('fillAllFields') + ' voucher', variant: 'destructive' });
       return;
     }
     addVoucher(newVoucher);
     setNewVoucher({ code: '', discount: 0, startDate: '', endDate: '' });
-    toast({ title: 'Berhasil', description: 'Voucher berhasil ditambahkan' });
+    toast({ title: t('success'), description: t('voucherAdded') });
   };
 
   // Handle bank add
   const handleAddBank = () => {
     if (!newBank.bankName || !newBank.accountNumber || !newBank.accountHolder) {
-      toast({ title: 'Error', description: 'Lengkapi semua field bank', variant: 'destructive' });
+      toast({ title: t('error'), description: t('fillAllFields') + ' bank', variant: 'destructive' });
       return;
     }
     addBank(newBank);
     setNewBank({ bankName: '', accountNumber: '', accountHolder: '' });
-    toast({ title: 'Berhasil', description: 'Bank berhasil ditambahkan' });
+    toast({ title: t('success'), description: t('bankAdded') });
   };
 
   return (
     <div className="p-6 space-y-6">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground mb-2">Settings</h1>
-        <p className="text-muted-foreground">Kelola pengaturan aplikasi</p>
+        <h1 className="text-2xl font-bold text-foreground mb-2">{t('settings')}</h1>
+        <p className="text-muted-foreground">{t('manageAppSettings')}</p>
       </div>
 
       <Tabs defaultValue="role" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="role">Role Management</TabsTrigger>
+          <TabsTrigger value="role">{t('roleManagement')}</TabsTrigger>
           <TabsTrigger value="upgrade">Upgrade</TabsTrigger>
           <TabsTrigger value="payment">Payment</TabsTrigger>
         </TabsList>
@@ -92,17 +92,17 @@ const Settings: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>Role-Based Access Control (RBAC)</CardTitle>
-              <CardDescription>Kelola akses halaman untuk setiap pengguna dengan toggle on/off</CardDescription>
+              <CardDescription>{t('rbacDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="sticky left-0 bg-background">User</TableHead>
+                      <TableHead className="sticky left-0 bg-background">{t('user')}</TableHead>
                       {allPages.map(page => (
                         <TableHead key={page.id} className="text-center min-w-[100px]">
-                          {page.label}
+                          {t(page.labelKey)}
                         </TableHead>
                       ))}
                     </TableRow>
@@ -135,17 +135,17 @@ const Settings: React.FC = () => {
           {/* Prices Card */}
           <Card>
             <CardHeader>
-              <CardTitle>Pengaturan Harga</CardTitle>
-              <CardDescription>Atur harga asli dan harga coret untuk setiap paket</CardDescription>
+              <CardTitle>{t('priceSettings')}</CardTitle>
+              <CardDescription>{t('priceSettingsDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Paket</TableHead>
-                    <TableHead>Harga Asli</TableHead>
-                    <TableHead>Harga Coret</TableHead>
-                    <TableHead>Aksi</TableHead>
+                    <TableHead>{t('package')}</TableHead>
+                    <TableHead>{t('originalPrice')}</TableHead>
+                    <TableHead>{t('strikethroughPrice')}</TableHead>
+                    <TableHead>{t('action')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -171,7 +171,7 @@ const Settings: React.FC = () => {
                             value={tempPrice.originalPrice || ''}
                             onChange={(e) => setTempPrice({ ...tempPrice, originalPrice: parseInt(e.target.value) || undefined })}
                             className="w-32"
-                            placeholder="Opsional"
+                            placeholder={t('optional')}
                           />
                         ) : (
                           price.originalPrice ? `Rp ${price.originalPrice.toLocaleString('id-ID')}` : '-'
@@ -185,7 +185,7 @@ const Settings: React.FC = () => {
                               onClick={() => {
                                 updatePrice(price.id, tempPrice);
                                 setEditingPriceId(null);
-                                toast({ title: 'Berhasil', description: 'Harga berhasil diperbarui' });
+                                toast({ title: t('success'), description: t('priceUpdated') });
                               }}
                             >
                               <Save className="h-4 w-4" />
@@ -217,22 +217,22 @@ const Settings: React.FC = () => {
           {/* Vouchers Card */}
           <Card>
             <CardHeader>
-              <CardTitle>Manajemen Voucher</CardTitle>
-              <CardDescription>Tambah, edit, atau hapus voucher diskon</CardDescription>
+              <CardTitle>{t('voucherManagement')}</CardTitle>
+              <CardDescription>{t('voucherManagementDesc')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Add Voucher Form */}
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border rounded-lg bg-muted/50">
                 <div>
-                  <Label>Kode Voucher</Label>
+                  <Label>{t('voucherCode')}</Label>
                   <Input
                     value={newVoucher.code}
                     onChange={(e) => setNewVoucher({ ...newVoucher, code: e.target.value })}
-                    placeholder="Contoh: RAMADHAN"
+                    placeholder="RAMADHAN"
                   />
                 </div>
                 <div>
-                  <Label>Diskon (%)</Label>
+                  <Label>{t('discount')} (%)</Label>
                   <Input
                     type="number"
                     value={newVoucher.discount || ''}
@@ -241,7 +241,7 @@ const Settings: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <Label>Tanggal Mulai</Label>
+                  <Label>{t('startDate')}</Label>
                   <Input
                     type="date"
                     value={newVoucher.startDate}
@@ -249,7 +249,7 @@ const Settings: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <Label>Tanggal Berakhir</Label>
+                  <Label>{t('endDate')}</Label>
                   <Input
                     type="date"
                     value={newVoucher.endDate}
@@ -259,7 +259,7 @@ const Settings: React.FC = () => {
                 <div className="flex items-end">
                   <Button onClick={handleAddVoucher} className="w-full">
                     <Plus className="h-4 w-4 mr-2" />
-                    Tambah
+                    {t('add')}
                   </Button>
                 </div>
               </div>
@@ -268,10 +268,10 @@ const Settings: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Kode</TableHead>
-                    <TableHead>Diskon</TableHead>
-                    <TableHead>Periode</TableHead>
-                    <TableHead>Aksi</TableHead>
+                    <TableHead>{t('voucherCode')}</TableHead>
+                    <TableHead>{t('discount')}</TableHead>
+                    <TableHead>{t('period')}</TableHead>
+                    <TableHead>{t('action')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -290,7 +290,7 @@ const Settings: React.FC = () => {
                             variant="destructive"
                             onClick={() => {
                               deleteVoucher(voucher.id);
-                              toast({ title: 'Berhasil', description: 'Voucher berhasil dihapus' });
+                              toast({ title: t('success'), description: t('voucherDeleted') });
                             }}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -310,14 +310,14 @@ const Settings: React.FC = () => {
           {/* Banks Card */}
           <Card>
             <CardHeader>
-              <CardTitle>Rekening Bank</CardTitle>
-              <CardDescription>Kelola rekening bank untuk pembayaran</CardDescription>
+              <CardTitle>{t('bankAccount')}</CardTitle>
+              <CardDescription>{t('bankAccountDesc')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Add Bank Form */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/50">
                 <div>
-                  <Label>Nama Bank</Label>
+                  <Label>{t('bankName')}</Label>
                   <Input
                     value={newBank.bankName}
                     onChange={(e) => setNewBank({ ...newBank, bankName: e.target.value })}
@@ -325,7 +325,7 @@ const Settings: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <Label>Nomor Rekening</Label>
+                  <Label>{t('accountNumber')}</Label>
                   <Input
                     value={newBank.accountNumber}
                     onChange={(e) => setNewBank({ ...newBank, accountNumber: e.target.value })}
@@ -333,7 +333,7 @@ const Settings: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <Label>Atas Nama</Label>
+                  <Label>{t('accountHolder')}</Label>
                   <Input
                     value={newBank.accountHolder}
                     onChange={(e) => setNewBank({ ...newBank, accountHolder: e.target.value })}
@@ -343,7 +343,7 @@ const Settings: React.FC = () => {
                 <div className="flex items-end">
                   <Button onClick={handleAddBank} className="w-full">
                     <Plus className="h-4 w-4 mr-2" />
-                    Tambah
+                    {t('add')}
                   </Button>
                 </div>
               </div>
@@ -352,10 +352,10 @@ const Settings: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Bank</TableHead>
-                    <TableHead>Nomor Rekening</TableHead>
-                    <TableHead>Atas Nama</TableHead>
-                    <TableHead>Aksi</TableHead>
+                    <TableHead>{t('bankName')}</TableHead>
+                    <TableHead>{t('accountNumber')}</TableHead>
+                    <TableHead>{t('accountHolder')}</TableHead>
+                    <TableHead>{t('action')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -374,7 +374,7 @@ const Settings: React.FC = () => {
                             variant="destructive"
                             onClick={() => {
                               deleteBank(bank.id);
-                              toast({ title: 'Berhasil', description: 'Bank berhasil dihapus' });
+                              toast({ title: t('success'), description: t('bankDeleted') });
                             }}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -391,13 +391,13 @@ const Settings: React.FC = () => {
           {/* WhatsApp Card */}
           <Card>
             <CardHeader>
-              <CardTitle>Nomor Konfirmasi WhatsApp</CardTitle>
-              <CardDescription>Nomor tujuan untuk konfirmasi pembayaran</CardDescription>
+              <CardTitle>{t('whatsappConfirmation')}</CardTitle>
+              <CardDescription>{t('whatsappConfirmationDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex gap-4 items-end">
                 <div className="flex-1">
-                  <Label>Nomor WhatsApp</Label>
+                  <Label>{t('whatsappNumber')}</Label>
                   <Input
                     value={editingWhatsapp ? tempWhatsapp : whatsappNumber}
                     onChange={(e) => setTempWhatsapp(e.target.value)}
@@ -411,23 +411,27 @@ const Settings: React.FC = () => {
                       onClick={() => {
                         setWhatsappNumber(tempWhatsapp);
                         setEditingWhatsapp(false);
-                        toast({ title: 'Berhasil', description: 'Nomor WhatsApp berhasil diperbarui' });
+                        toast({ title: t('success'), description: t('whatsappUpdated') });
                       }}
                     >
                       <Save className="h-4 w-4 mr-2" />
-                      Simpan
+                      {t('save')}
                     </Button>
-                    <Button variant="outline" onClick={() => setEditingWhatsapp(false)}>
-                      <X className="h-4 w-4" />
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setTempWhatsapp(whatsappNumber);
+                        setEditingWhatsapp(false);
+                      }}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      {t('cancel')}
                     </Button>
                   </div>
                 ) : (
-                  <Button variant="outline" onClick={() => {
-                    setTempWhatsapp(whatsappNumber);
-                    setEditingWhatsapp(true);
-                  }}>
+                  <Button onClick={() => setEditingWhatsapp(true)}>
                     <Pencil className="h-4 w-4 mr-2" />
-                    Edit
+                    {t('edit')}
                   </Button>
                 )}
               </div>
