@@ -153,6 +153,33 @@ const translations: Translations = {
   usernameExists: { id: 'Username sudah digunakan', en: 'Username already exists' },
   passwordRequired: { id: 'Password tidak boleh kosong', en: 'Password cannot be empty' },
   user: { id: 'User', en: 'User' },
+  
+  // Bonus Settings
+  bonusSettings: { id: 'Pengaturan Bonus', en: 'Bonus Settings' },
+  bonusSettingsDesc: { id: 'Atur gaji pokok, bonus per halaman, dan nomor tujuan penarikan', en: 'Set base salary, bonus per page, and withdrawal destination number' },
+  gajiPokok: { id: 'Gaji Pokok', en: 'Base Salary' },
+  bonusPerHalaman: { id: 'Bonus per Halaman', en: 'Bonus per Page' },
+  withdrawalWhatsapp: { id: 'No WA (Tujuan Penarikan)', en: 'WhatsApp Number (Withdrawal)' },
+  bonusSettingsUpdated: { id: 'Pengaturan bonus berhasil diperbarui', en: 'Bonus settings updated successfully' },
+  
+  // Withdrawal Requests
+  withdrawalRequests: { id: 'Pengajuan Penarikan', en: 'Withdrawal Requests' },
+  withdrawalRequestsDesc: { id: 'Validasi dan selesaikan pengajuan penarikan dari user', en: 'Validate and complete withdrawal requests from users' },
+  noWithdrawalRequests: { id: 'Belum ada pengajuan penarikan', en: 'No withdrawal requests yet' },
+  amount: { id: 'Jumlah', en: 'Amount' },
+  bankInfo: { id: 'Info Bank', en: 'Bank Info' },
+  status: { id: 'Status', en: 'Status' },
+  pending: { id: 'Menunggu', en: 'Pending' },
+  approved: { id: 'Disetujui', en: 'Approved' },
+  rejected: { id: 'Ditolak', en: 'Rejected' },
+  complete: { id: 'Selesaikan', en: 'Complete' },
+  requestApproved: { id: 'Pengajuan berhasil disetujui', en: 'Request approved successfully' },
+  requestRejected: { id: 'Pengajuan ditolak', en: 'Request rejected' },
+  requestCompleted: { id: 'Pengajuan berhasil diselesaikan', en: 'Request completed successfully' },
+  requestDeleted: { id: 'Pengajuan berhasil dihapus', en: 'Request deleted successfully' },
+  name: { id: 'Nama', en: 'Name' },
+  upgrade: { id: 'Upgrade', en: 'Upgrade' },
+  payment: { id: 'Pembayaran', en: 'Payment' },
 };
 
 interface LanguageContextType {

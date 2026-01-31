@@ -30,6 +30,25 @@ export interface RolePermission {
   };
 }
 
+export interface BonusSettings {
+  gajiPokok: number;
+  bonusPerHalaman: number;
+  withdrawalWhatsapp: string;
+}
+
+export interface WithdrawalRequest {
+  id: string;
+  userName: string;
+  userEmail: string;
+  userPhone: string;
+  bankInfo: string;
+  accountNumber: string;
+  amount: number;
+  requestDate: string;
+  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  studentReports?: { nama: string; halaqah: string; pencapaian: number; bonus: number }[];
+}
+
 interface SettingsContextType {
   // Vouchers
   vouchers: VoucherData[];
@@ -58,6 +77,16 @@ interface SettingsContextType {
   deleteUser: (userId: string) => void;
   updateUserPassword: (userId: string, newPassword: string) => void;
   users: { id: string; username: string; password: string }[];
+  
+  // Bonus Settings
+  bonusSettings: BonusSettings;
+  updateBonusSettings: (settings: Partial<BonusSettings>) => void;
+  
+  // Withdrawal Requests
+  withdrawalRequests: WithdrawalRequest[];
+  addWithdrawalRequest: (request: Omit<WithdrawalRequest, 'id' | 'status'>) => void;
+  updateWithdrawalStatus: (id: string, status: WithdrawalRequest['status']) => void;
+  deleteWithdrawalRequest: (id: string) => void;
 }
 
 const defaultPrices: PriceData[] = [
@@ -78,6 +107,12 @@ const defaultVouchers: VoucherData[] = [
 const defaultBanks: BankData[] = [
   { id: '1', bankName: 'BRI', accountNumber: '404301015163532', accountHolder: 'MARKAZ QURAN' },
 ];
+
+const defaultBonusSettings: BonusSettings = {
+  gajiPokok: 600000,
+  bonusPerHalaman: 1500,
+  withdrawalWhatsapp: '6285223857484',
+};
 
 const defaultUsers = [
   { id: '1', username: 'admin', password: 'admin123' },
@@ -143,6 +178,16 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const stored = localStorage.getItem('kdm_users');
     return stored ? JSON.parse(stored) : defaultUsers;
   });
+  
+  const [bonusSettings, setBonusSettings] = useState<BonusSettings>(() => {
+    const stored = localStorage.getItem('kdm_bonus_settings');
+    return stored ? JSON.parse(stored) : defaultBonusSettings;
+  });
+  
+  const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>(() => {
+    const stored = localStorage.getItem('kdm_withdrawal_requests');
+    return stored ? JSON.parse(stored) : [];
+  });
 
   // Persist to localStorage
   useEffect(() => {
@@ -168,6 +213,14 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   useEffect(() => {
     localStorage.setItem('kdm_users', JSON.stringify(users));
   }, [users]);
+  
+  useEffect(() => {
+    localStorage.setItem('kdm_bonus_settings', JSON.stringify(bonusSettings));
+  }, [bonusSettings]);
+  
+  useEffect(() => {
+    localStorage.setItem('kdm_withdrawal_requests', JSON.stringify(withdrawalRequests));
+  }, [withdrawalRequests]);
 
   // Voucher functions
   const addVoucher = (voucher: Omit<VoucherData, 'id'>) => {
@@ -242,6 +295,31 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const updateUserPassword = (userId: string, newPassword: string) => {
     setUsers(users.map(u => u.id === userId ? { ...u, password: newPassword } : u));
   };
+  
+  // Bonus settings functions
+  const updateBonusSettings = (settings: Partial<BonusSettings>) => {
+    setBonusSettings(prev => ({ ...prev, ...settings }));
+  };
+  
+  // Withdrawal request functions
+  const addWithdrawalRequest = (request: Omit<WithdrawalRequest, 'id' | 'status'>) => {
+    const newRequest: WithdrawalRequest = {
+      ...request,
+      id: Date.now().toString(),
+      status: 'pending',
+    };
+    setWithdrawalRequests(prev => [...prev, newRequest]);
+  };
+  
+  const updateWithdrawalStatus = (id: string, status: WithdrawalRequest['status']) => {
+    setWithdrawalRequests(prev => 
+      prev.map(req => req.id === id ? { ...req, status } : req)
+    );
+  };
+  
+  const deleteWithdrawalRequest = (id: string) => {
+    setWithdrawalRequests(prev => prev.filter(req => req.id !== id));
+  };
 
   return (
     <SettingsContext.Provider value={{
@@ -263,6 +341,12 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       deleteUser,
       updateUserPassword,
       users,
+      bonusSettings,
+      updateBonusSettings,
+      withdrawalRequests,
+      addWithdrawalRequest,
+      updateWithdrawalStatus,
+      deleteWithdrawalRequest,
     }}>
       {children}
     </SettingsContext.Provider>

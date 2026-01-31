@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Pencil, Trash2, Save, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Pencil, Trash2, Save, X, Check, XCircle, Clock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -33,6 +34,8 @@ const Settings: React.FC = () => {
     prices, updatePrice,
     whatsappNumber, setWhatsappNumber,
     rolePermissions, updateRolePermission,
+    bonusSettings, updateBonusSettings,
+    withdrawalRequests, updateWithdrawalStatus, deleteWithdrawalRequest,
   } = useSettings();
 
   // Voucher form state
@@ -50,6 +53,10 @@ const Settings: React.FC = () => {
   // WhatsApp editing
   const [tempWhatsapp, setTempWhatsapp] = useState(whatsappNumber);
   const [editingWhatsapp, setEditingWhatsapp] = useState(false);
+
+  // Bonus settings editing
+  const [editingBonus, setEditingBonus] = useState(false);
+  const [tempBonusSettings, setTempBonusSettings] = useState(bonusSettings);
 
   // Handle voucher add
   const handleAddVoucher = () => {
@@ -81,10 +88,11 @@ const Settings: React.FC = () => {
       </div>
 
       <Tabs defaultValue="role" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="role">{t('roleManagement')}</TabsTrigger>
           <TabsTrigger value="upgrade">Upgrade</TabsTrigger>
           <TabsTrigger value="payment">Payment</TabsTrigger>
+          <TabsTrigger value="bonus">Bonus</TabsTrigger>
         </TabsList>
 
         {/* Role Management Tab */}
@@ -435,6 +443,186 @@ const Settings: React.FC = () => {
                   </Button>
                 )}
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Bonus Tab */}
+        <TabsContent value="bonus" className="space-y-4">
+          {/* Bonus Settings Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('bonusSettings')}</CardTitle>
+              <CardDescription>{t('bonusSettingsDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg bg-muted/50">
+                <div>
+                  <Label>{t('gajiPokok')} (Rp)</Label>
+                  <Input
+                    type="number"
+                    value={editingBonus ? tempBonusSettings.gajiPokok : bonusSettings.gajiPokok}
+                    onChange={(e) => setTempBonusSettings({ ...tempBonusSettings, gajiPokok: parseInt(e.target.value) || 0 })}
+                    disabled={!editingBonus}
+                  />
+                </div>
+                <div>
+                  <Label>{t('bonusPerHalaman')} (Rp)</Label>
+                  <Input
+                    type="number"
+                    value={editingBonus ? tempBonusSettings.bonusPerHalaman : bonusSettings.bonusPerHalaman}
+                    onChange={(e) => setTempBonusSettings({ ...tempBonusSettings, bonusPerHalaman: parseInt(e.target.value) || 0 })}
+                    disabled={!editingBonus}
+                  />
+                </div>
+                <div>
+                  <Label>{t('withdrawalWhatsapp')}</Label>
+                  <Input
+                    value={editingBonus ? tempBonusSettings.withdrawalWhatsapp : bonusSettings.withdrawalWhatsapp}
+                    onChange={(e) => setTempBonusSettings({ ...tempBonusSettings, withdrawalWhatsapp: e.target.value })}
+                    disabled={!editingBonus}
+                    placeholder="6285223857484"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {editingBonus ? (
+                  <>
+                    <Button
+                      onClick={() => {
+                        updateBonusSettings(tempBonusSettings);
+                        setEditingBonus(false);
+                        toast({ title: t('success'), description: t('bonusSettingsUpdated') });
+                      }}
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {t('save')}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setTempBonusSettings(bonusSettings);
+                        setEditingBonus(false);
+                      }}
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      {t('cancel')}
+                    </Button>
+                  </>
+                ) : (
+                  <Button onClick={() => {
+                    setTempBonusSettings(bonusSettings);
+                    setEditingBonus(true);
+                  }}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    {t('edit')}
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Withdrawal Requests Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('withdrawalRequests')}</CardTitle>
+              <CardDescription>{t('withdrawalRequestsDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {withdrawalRequests.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  {t('noWithdrawalRequests')}
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('date')}</TableHead>
+                      <TableHead>{t('name')}</TableHead>
+                      <TableHead>{t('amount')}</TableHead>
+                      <TableHead>{t('bankInfo')}</TableHead>
+                      <TableHead>{t('status')}</TableHead>
+                      <TableHead>{t('action')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {withdrawalRequests.map(request => (
+                      <TableRow key={request.id}>
+                        <TableCell>{new Date(request.requestDate).toLocaleDateString('id-ID')}</TableCell>
+                        <TableCell>{request.userName}</TableCell>
+                        <TableCell>Rp {request.amount.toLocaleString('id-ID')}</TableCell>
+                        <TableCell>{request.bankInfo} - {request.accountNumber}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={
+                              request.status === 'completed' ? 'default' :
+                              request.status === 'approved' ? 'secondary' :
+                              request.status === 'rejected' ? 'destructive' : 'outline'
+                            }
+                          >
+                            {request.status === 'pending' && <Clock className="h-3 w-3 mr-1" />}
+                            {request.status === 'approved' && <Check className="h-3 w-3 mr-1" />}
+                            {request.status === 'completed' && <Check className="h-3 w-3 mr-1" />}
+                            {request.status === 'rejected' && <XCircle className="h-3 w-3 mr-1" />}
+                            {t(request.status)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            {request.status === 'pending' && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-green-600 border-green-600 hover:bg-green-50"
+                                  onClick={() => {
+                                    updateWithdrawalStatus(request.id, 'approved');
+                                    toast({ title: t('success'), description: t('requestApproved') });
+                                  }}
+                                >
+                                  <Check className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-red-600 border-red-600 hover:bg-red-50"
+                                  onClick={() => {
+                                    updateWithdrawalStatus(request.id, 'rejected');
+                                    toast({ title: t('success'), description: t('requestRejected') });
+                                  }}
+                                >
+                                  <XCircle className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                            {request.status === 'approved' && (
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  updateWithdrawalStatus(request.id, 'completed');
+                                  toast({ title: t('success'), description: t('requestCompleted') });
+                                }}
+                              >
+                                {t('complete')}
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                deleteWithdrawalRequest(request.id);
+                                toast({ title: t('success'), description: t('requestDeleted') });
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
