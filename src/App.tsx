@@ -21,6 +21,7 @@ import Install from "./pages/Install";
 import Event from "./pages/Event";
 import Settings from "./pages/Settings";
 import UserManagement from "./pages/UserManagement";
+import BackupData from "./pages/BackupData";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -138,6 +139,16 @@ const App = () => (
             <ProtectedRoute>
               <Layout>
                 <UserManagement />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/backup"
+          element={
+            <ProtectedRoute guestAllowed={true}>
+              <Layout>
+                <BackupData />
               </Layout>
             </ProtectedRoute>
           }

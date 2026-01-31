@@ -519,7 +519,7 @@ const Profile: React.FC = () => {
       
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {/* Header Profile */}
-        <div className="px-6 py-8 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="px-6 py-8 bg-gradient-to-r from-[#5db3d2]/20 to-[#5db3d2]/10">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Avatar className="w-20 h-20">
