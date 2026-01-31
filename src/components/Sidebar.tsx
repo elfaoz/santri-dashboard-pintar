@@ -89,13 +89,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <li key={item.path}>
                   <NavLink
                     to={item.path}
-                    className={({ isActive }) =>
-                      `flex items-center px-4 py-3 rounded-lg transition-colors ${
-                        isActive
-                          ? 'bg-[#5db3d2]/10 text-[#5db3d2] border-r-2 border-[#5db3d2]'
-                          : 'text-gray-700 hover:bg-gray-50'
-                      }`
-                    }
+                  className={({ isActive }) =>
+                    `flex items-center px-4 py-3 rounded-lg transition-colors ${
+                      isActive
+                        ? 'bg-[#5db3d2]/10 text-[#5db3d2] border-r-2 border-[#5db3d2]'
+                        : 'text-gray-700 hover:bg-[#5db3d2]/10 hover:text-[#5db3d2]'
+                    }`
+                  }
                     onClick={onClose}
                   >
                     <span className="text-lg mr-3">{item.emoji}</span>

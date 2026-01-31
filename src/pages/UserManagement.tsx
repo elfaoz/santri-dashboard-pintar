@@ -5,11 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Pencil, Trash2, Key, Eye, EyeOff } from 'lucide-react';
+import { Plus, Trash2, Key, Eye, EyeOff } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const UserManagement: React.FC = () => {
+  const { t } = useLanguage();
   const { users, addUser, deleteUser, updateUserPassword } = useSettings();
   
   const [newUser, setNewUser] = useState({ username: '', password: '' });
@@ -22,31 +24,31 @@ const UserManagement: React.FC = () => {
 
   const handleAddUser = () => {
     if (!newUser.username || !newUser.password) {
-      toast({ title: 'Error', description: 'Username dan password harus diisi', variant: 'destructive' });
+      toast({ title: t('error'), description: t('usernamePasswordRequired'), variant: 'destructive' });
       return;
     }
     
     // Check if username already exists
     if (users.find(u => u.username.toLowerCase() === newUser.username.toLowerCase())) {
-      toast({ title: 'Error', description: 'Username sudah digunakan', variant: 'destructive' });
+      toast({ title: t('error'), description: t('usernameExists'), variant: 'destructive' });
       return;
     }
     
     addUser(newUser);
     setNewUser({ username: '', password: '' });
     setAddDialogOpen(false);
-    toast({ title: 'Berhasil', description: 'User berhasil ditambahkan' });
+    toast({ title: t('success'), description: t('userAdded') });
   };
 
   const handleUpdatePassword = (userId: string) => {
     if (!newPassword) {
-      toast({ title: 'Error', description: 'Password tidak boleh kosong', variant: 'destructive' });
+      toast({ title: t('error'), description: t('passwordRequired'), variant: 'destructive' });
       return;
     }
     updateUserPassword(userId, newPassword);
     setEditPasswordId(null);
     setNewPassword('');
-    toast({ title: 'Berhasil', description: 'Password berhasil diperbarui' });
+    toast({ title: t('success'), description: t('passwordUpdated') });
   };
 
   const handleDeleteUser = () => {
@@ -54,7 +56,7 @@ const UserManagement: React.FC = () => {
       deleteUser(userToDelete);
       setUserToDelete(null);
       setDeleteDialogOpen(false);
-      toast({ title: 'Berhasil', description: 'User berhasil dihapus' });
+      toast({ title: t('success'), description: t('userDeleted') });
     }
   };
 
@@ -65,50 +67,50 @@ const UserManagement: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground mb-2">User Management</h1>
-        <p className="text-muted-foreground">Kelola pengguna aplikasi</p>
+        <h1 className="text-2xl font-bold text-foreground mb-2">{t('userManagement')}</h1>
+        <p className="text-muted-foreground">{t('manageAppUsers')}</p>
       </div>
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Daftar User</CardTitle>
-            <CardDescription>Tambah, edit password, atau hapus pengguna</CardDescription>
+            <CardTitle>{t('userList')}</CardTitle>
+            <CardDescription>{t('addEditDeleteUsers')}</CardDescription>
           </div>
           <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Tambah User
+                {t('addUser')}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Tambah User Baru</DialogTitle>
-                <DialogDescription>Masukkan username dan password untuk user baru</DialogDescription>
+                <DialogTitle>{t('addNewUser')}</DialogTitle>
+                <DialogDescription>{t('enterUsernamePassword')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div>
-                  <Label>Username</Label>
+                  <Label>{t('username')}</Label>
                   <Input
                     value={newUser.username}
                     onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-                    placeholder="Masukkan username"
+                    placeholder={t('username')}
                   />
                 </div>
                 <div>
-                  <Label>Password</Label>
+                  <Label>{t('password')}</Label>
                   <Input
                     type="password"
                     value={newUser.password}
                     onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                    placeholder="Masukkan password"
+                    placeholder={t('password')}
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setAddDialogOpen(false)}>Batal</Button>
-                <Button onClick={handleAddUser}>Tambah</Button>
+                <Button variant="outline" onClick={() => setAddDialogOpen(false)}>{t('cancel')}</Button>
+                <Button onClick={handleAddUser}>{t('add')}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -117,9 +119,9 @@ const UserManagement: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Username</TableHead>
-                <TableHead>Password</TableHead>
-                <TableHead>Aksi</TableHead>
+                <TableHead>{t('username')}</TableHead>
+                <TableHead>{t('password')}</TableHead>
+                <TableHead>{t('action')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -133,17 +135,17 @@ const UserManagement: React.FC = () => {
                           type="password"
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="Password baru"
+                          placeholder={t('newPassword')}
                           className="w-40"
                         />
                         <Button size="sm" onClick={() => handleUpdatePassword(user.id)}>
-                          Simpan
+                          {t('save')}
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => {
                           setEditPasswordId(null);
                           setNewPassword('');
                         }}>
-                          Batal
+                          {t('cancel')}
                         </Button>
                       </div>
                     ) : (
@@ -172,7 +174,7 @@ const UserManagement: React.FC = () => {
                         }}
                       >
                         <Key className="h-4 w-4 mr-1" />
-                        Edit Password
+                        {t('editPassword')}
                       </Button>
                       <Dialog open={deleteDialogOpen && userToDelete === user.id} onOpenChange={(open) => {
                         setDeleteDialogOpen(open);
@@ -189,14 +191,14 @@ const UserManagement: React.FC = () => {
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Hapus User</DialogTitle>
+                            <DialogTitle>{t('deleteUser')}</DialogTitle>
                             <DialogDescription>
-                              Apakah Anda yakin ingin menghapus user "{user.username}"? Aksi ini tidak dapat dibatalkan.
+                              {t('confirmDeleteUser')} "{user.username}"? {t('actionCannotBeUndone')}.
                             </DialogDescription>
                           </DialogHeader>
                           <DialogFooter>
-                            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Batal</Button>
-                            <Button variant="destructive" onClick={handleDeleteUser}>Hapus</Button>
+                            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>{t('cancel')}</Button>
+                            <Button variant="destructive" onClick={handleDeleteUser}>{t('delete')}</Button>
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
