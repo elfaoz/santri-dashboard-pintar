@@ -335,78 +335,172 @@ const Profile: React.FC = () => {
 
   const handleDownloadBonusPDF = () => {
     const doc = new jsPDF();
+    const pageWidth = 210;
+    const margin = 20;
     
+    // Add logo if available
+    if (profileData.schoolLogo) {
+      try {
+        doc.addImage(profileData.schoolLogo, 'PNG', (pageWidth - 25) / 2, 10, 25, 25);
+      } catch (e) {
+        console.log('Could not add logo to PDF');
+      }
+    }
+    
+    // Header - Institution name
+    let yPos = profileData.schoolLogo ? 42 : 20;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.text('Laporan Bonus Hafalan & Pengajuan Penarikan', 105, 20, { align: 'center' });
+    const institutionText = profileData.schoolName || 'ASRAMA PESANTREN PERSATUAN ISLAM 80 Al-AMIN SINDANGKASIH';
+    const institutionWidth = doc.getTextWidth(institutionText);
+    doc.text(institutionText, (pageWidth - institutionWidth) / 2, yPos);
     
+    // Address
+    yPos += 7;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
-    doc.text(profileData.schoolName || 'ASRAMA PESANTREN PERSATUAN ISLAM 80 Al-AMIN SINDANGKASIH', 105, 30, { align: 'center' });
-    doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 105, 36, { align: 'center' });
+    const addressText = profileData.schoolAddress || 'Jl. Raya Ancol No. 27 Sindangkasih Ciamis 46268';
+    const addressWidth = doc.getTextWidth(addressText);
+    doc.text(addressText, (pageWidth - addressWidth) / 2, yPos);
     
+    // Horizontal line
+    yPos += 5;
+    doc.setLineWidth(0.5);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    
+    // Title
+    yPos += 12;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    const titleText = 'LAPORAN BONUS HAFALAN';
+    const titleWidth = doc.getTextWidth(titleText);
+    doc.text(titleText, (pageWidth - titleWidth) / 2, yPos);
+    
+    // Applicant info section
+    yPos += 15;
+    doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
-    doc.text(`Nama: ${profileData.name}`, 20, 50);
-    doc.text(`Jabatan: ${profileData.role}`, 20, 58);
-    doc.text(`Gaji Pokok: Rp ${bonusSettings.gajiPokok.toLocaleString('id-ID')}`, 20, 66);
-    doc.text(`Bonus per Halaman: Rp ${bonusSettings.bonusPerHalaman.toLocaleString('id-ID')}`, 20, 74);
+    doc.text('Data Pemohon', margin, yPos);
+    
+    yPos += 8;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    
+    // Two column layout for applicant info
+    const col1X = margin;
+    const col2X = 70;
+    
+    doc.text('Nama', col1X, yPos);
+    doc.text(`: ${profileData.name}`, col2X, yPos);
+    yPos += 6;
+    doc.text('Jabatan', col1X, yPos);
+    doc.text(`: ${profileData.role}`, col2X, yPos);
+    yPos += 6;
+    doc.text('Gaji Pokok', col1X, yPos);
+    doc.text(`: Rp ${bonusSettings.gajiPokok.toLocaleString('id-ID')}`, col2X, yPos);
+    yPos += 6;
+    doc.text('Bonus per Halaman', col1X, yPos);
+    doc.text(`: Rp ${bonusSettings.bonusPerHalaman.toLocaleString('id-ID')}`, col2X, yPos);
+    
+    // Student report table
+    yPos += 15;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('Laporan Lengkap Per Santri', margin, yPos);
     
     // Table header
-    let yPos = 90;
-    doc.setFont('helvetica', 'bold');
-    doc.text('LAPORAN LENGKAP PER SANTRI', 20, yPos);
-    yPos += 10;
+    yPos += 8;
+    doc.setFillColor(240, 240, 240);
+    doc.rect(margin, yPos - 5, pageWidth - (margin * 2), 8, 'F');
     doc.setFontSize(9);
-    doc.text('No', 20, yPos);
-    doc.text('Nama', 30, yPos);
-    doc.text('Halaqah', 80, yPos);
-    doc.text('Pencapaian', 120, yPos);
-    doc.text('Bonus (Rp)', 155, yPos);
+    doc.text('No', margin + 2, yPos);
+    doc.text('Nama Santri', margin + 15, yPos);
+    doc.text('Halaqah', margin + 65, yPos);
+    doc.text('Pencapaian', margin + 100, yPos);
+    doc.text('Bonus (Rp)', margin + 135, yPos);
     
+    // Table rows
     doc.setFont('helvetica', 'normal');
     yPos += 8;
     
     memorizationData.forEach((item, idx) => {
-      doc.text(String(idx + 1), 20, yPos);
-      doc.text(item.nama.substring(0, 20), 30, yPos);
-      doc.text(item.halaqah.substring(0, 15), 80, yPos);
-      doc.text(String(item.pencapaian), 120, yPos);
-      doc.text(item.idr.toLocaleString('id-ID'), 155, yPos);
-      yPos += 7;
-      
       if (yPos > 250) {
         doc.addPage();
         yPos = 20;
       }
+      
+      doc.text(String(idx + 1), margin + 2, yPos);
+      doc.text(item.nama.substring(0, 20), margin + 15, yPos);
+      doc.text(item.halaqah.substring(0, 15), margin + 65, yPos);
+      doc.text(`${item.pencapaian} hlm`, margin + 100, yPos);
+      doc.text(item.idr.toLocaleString('id-ID'), margin + 135, yPos);
+      yPos += 7;
     });
     
-    // Summary
+    // Summary section
     yPos += 10;
+    doc.setLineWidth(0.3);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+    
+    yPos += 10;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text('Total Bonus Hafalan', margin, yPos);
+    doc.text(`: Rp ${totalBonus.toLocaleString('id-ID')}`, col2X, yPos);
+    yPos += 6;
+    doc.text('Gaji Pokok', margin, yPos);
+    doc.text(`: Rp ${bonusSettings.gajiPokok.toLocaleString('id-ID')}`, col2X, yPos);
+    yPos += 8;
     doc.setFont('helvetica', 'bold');
-    doc.text(`Total Bonus Hafalan: Rp ${totalBonus.toLocaleString('id-ID')}`, 20, yPos);
-    yPos += 8;
-    doc.text(`Gaji Pokok: Rp ${bonusSettings.gajiPokok.toLocaleString('id-ID')}`, 20, yPos);
-    yPos += 8;
-    doc.setFontSize(12);
-    doc.text(`Total Penerimaan: Rp ${(bonusSettings.gajiPokok + totalBonus).toLocaleString('id-ID')}`, 20, yPos);
+    doc.setFontSize(11);
+    doc.text('Total Penerimaan', margin, yPos);
+    doc.text(`: Rp ${(bonusSettings.gajiPokok + totalBonus).toLocaleString('id-ID')}`, col2X, yPos);
+    
+    // Note section
+    yPos += 15;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Catatan: Penarikan hanya dapat dilakukan di akhir semester.', margin, yPos);
+    doc.setTextColor(0, 0, 0);
+    
+    // Date and Signature section - at the bottom
+    yPos += 20;
+    const currentDate = new Date().toLocaleDateString('id-ID', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
+    
+    // Right-aligned date above signatures
+    const dateText = `Ciamis, ${currentDate}`;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(dateText, pageWidth - margin - doc.getTextWidth(dateText), yPos);
     
     // Signature section
-    yPos += 20;
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Tanda Tangan:', 20, yPos);
-    
     yPos += 15;
-    doc.text('Pemohon,', 40, yPos);
-    doc.text('Admin,', 140, yPos);
+    const leftSignX = margin + 25;
+    const rightSignX = pageWidth - margin - 45;
     
-    yPos += 30;
-    doc.text('_________________', 30, yPos);
-    doc.text('_________________', 130, yPos);
+    doc.text('Pemohon,', leftSignX, yPos);
+    doc.text('Admin,', rightSignX, yPos);
     
-    yPos += 8;
-    doc.text(`(${profileData.name})`, 40, yPos);
-    doc.text('(                        )', 140, yPos);
+    yPos += 35;
+    // Signature lines - centered under labels
+    doc.line(leftSignX - 15, yPos, leftSignX + 35, yPos);
+    doc.line(rightSignX - 15, yPos, rightSignX + 35, yPos);
+    
+    yPos += 6;
+    // Names in parentheses - centered under lines
+    const pemohonName = `(${profileData.name})`;
+    const adminName = '(                              )';
+    
+    const pemohonNameX = leftSignX + 10 - (doc.getTextWidth(pemohonName) / 2);
+    const adminNameX = rightSignX + 10 - (doc.getTextWidth(adminName) / 2);
+    
+    doc.text(pemohonName, pemohonNameX, yPos);
+    doc.text(adminName, adminNameX, yPos);
     
     doc.save('Laporan_Bonus_Hafalan.pdf');
   };
@@ -855,17 +949,38 @@ const Profile: React.FC = () => {
             {/* Bonus Tab */}
             <TabsContent value="bonus" className="mt-6">
               <div className="space-y-6">
-                {/* Bonus Display */}
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg border">
-                <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-800">Total Bonus yang Diperoleh</h3>
-                      <p className="text-3xl font-bold text-green-600 mt-2">
-                        Rp {totalBonus.toLocaleString('id-ID')}
-                      </p>
+                {/* Bonus Display - Two Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Total Accumulated Bonus */}
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg border">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-600">Total Akumulasi Bonus</h3>
+                        <p className="text-2xl font-bold text-green-600 mt-2">
+                          Rp {totalBonus.toLocaleString('id-ID')}
+                        </p>
+                      </div>
+                      <div className="text-green-500 text-2xl font-bold opacity-50">
+                        💰
+                      </div>
                     </div>
-                    <div className="text-green-600 text-4xl font-bold">
-                      IDR
+                  </div>
+                  
+                  {/* Total Withdrawn */}
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-600">Total Bonus Dicairkan</h3>
+                        <p className="text-2xl font-bold text-blue-600 mt-2">
+                          Rp {userWithdrawalRequests
+                            .filter(r => r.status === 'completed')
+                            .reduce((sum, r) => sum + r.amount, 0)
+                            .toLocaleString('id-ID')}
+                        </p>
+                      </div>
+                      <div className="text-blue-500 text-2xl font-bold opacity-50">
+                        💸
+                      </div>
                     </div>
                   </div>
                 </div>
