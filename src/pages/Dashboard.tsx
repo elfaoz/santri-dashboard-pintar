@@ -7,6 +7,7 @@ import LeaderboardOverview from '../components/LeaderboardOverview';
 import ShareResultsSection from '../components/ShareResultsSection';
 import ShareResultsMonthlySection from '../components/ShareResultsMonthlySection';
 import ShareResultsDailySection from '../components/ShareResultsDailySection';
+import ShareResultsFinanceDailySection from '../components/ShareResultsFinanceDailySection';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -44,6 +45,9 @@ const Dashboard: React.FC = () => {
       
       {/* Report Download and Share Section - Harian */}
       <ShareResultsDailySection />
+      
+      {/* Report Download and Share Section - Keuangan Harian */}
+      <ShareResultsFinanceDailySection />
     </div>
   );
 };
