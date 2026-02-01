@@ -11,7 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-type UserRole = 'student' | 'teacher' | 'parent' | 'admin';
+type UserRole = 'santri' | 'guru' | 'ortu' | 'admin';
 
 interface UserWithRole {
   id: string;
@@ -26,9 +26,16 @@ const UserManagement: React.FC = () => {
   
   const [usersWithRoles, setUsersWithRoles] = useState<UserWithRole[]>(() => {
     const stored = localStorage.getItem('kdm_users_roles');
-    if (stored) return JSON.parse(stored);
+    if (stored) {
+      // Migrate old roles to new roles
+      const parsedUsers = JSON.parse(stored);
+      return parsedUsers.map((u: any) => ({
+        ...u,
+        role: migrateOldRole(u.role)
+      }));
+    }
     
-    // Generate default users
+    // Generate default users with new role names
     const defaultUsers: UserWithRole[] = [];
     
     // Admin accounts (10)
@@ -41,39 +48,50 @@ const UserManagement: React.FC = () => {
       });
     }
     
-    // Student accounts (350)
+    // Santri accounts (350)
     for (let i = 1; i <= 350; i++) {
       defaultUsers.push({
-        id: `student-${i}`,
+        id: `santri-${i}`,
         username: `santri${i}`,
         password: 'santri123',
-        role: 'student'
+        role: 'santri'
       });
     }
     
-    // Teacher accounts (350)
+    // Guru accounts (350)
     for (let i = 1; i <= 350; i++) {
       defaultUsers.push({
-        id: `teacher-${i}`,
+        id: `guru-${i}`,
         username: `guru${i}`,
         password: 'guru123',
-        role: 'teacher'
+        role: 'guru'
       });
     }
     
-    // Parent accounts (350)
+    // Ortu accounts (350)
     for (let i = 1; i <= 350; i++) {
       defaultUsers.push({
-        id: `parent-${i}`,
+        id: `ortu-${i}`,
         username: `ortu${i}`,
         password: 'ortu123',
-        role: 'parent'
+        role: 'ortu'
       });
     }
     
     return defaultUsers;
   });
-  
+
+// Helper to migrate old role names to new
+const migrateOldRole = (oldRole: string): UserRole => {
+  switch (oldRole) {
+    case 'student': return 'santri';
+    case 'teacher': return 'guru';
+    case 'parent': return 'ortu';
+    case 'admin': return 'admin';
+    default: return oldRole as UserRole;
+  }
+};
+
   const [newUser, setNewUser] = useState({ username: '', password: '' });
   const [showPassword, setShowPassword] = useState<{ [key: string]: boolean }>({});
   const [editPasswordId, setEditPasswordId] = useState<string | null>(null);
@@ -81,7 +99,7 @@ const UserManagement: React.FC = () => {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<UserRole>('student');
+  const [activeTab, setActiveTab] = useState<UserRole>('santri');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
 
@@ -150,18 +168,18 @@ const UserManagement: React.FC = () => {
 
   const getRoleIcon = (role: UserRole) => {
     switch (role) {
-      case 'student': return <GraduationCap className="h-4 w-4" />;
-      case 'teacher': return <UserCheck className="h-4 w-4" />;
-      case 'parent': return <Users className="h-4 w-4" />;
+      case 'santri': return <GraduationCap className="h-4 w-4" />;
+      case 'guru': return <UserCheck className="h-4 w-4" />;
+      case 'ortu': return <Users className="h-4 w-4" />;
       case 'admin': return <Shield className="h-4 w-4" />;
     }
   };
 
   const getRoleLabel = (role: UserRole) => {
     switch (role) {
-      case 'student': return t('studentRole');
-      case 'teacher': return t('teacherRole');
-      case 'parent': return t('parentRole');
+      case 'santri': return t('santriRole');
+      case 'guru': return t('guruRole');
+      case 'ortu': return t('ortuRole');
       case 'admin': return t('adminRole');
     }
   };
@@ -179,17 +197,17 @@ const UserManagement: React.FC = () => {
 
       <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as UserRole); setCurrentPage(1); }}>
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="student" className="flex items-center gap-2">
+          <TabsTrigger value="santri" className="flex items-center gap-2">
             <GraduationCap className="h-4 w-4" />
-            {t('studentRole')} ({getUserCount('student')})
+            {t('santriRole')} ({getUserCount('santri')})
           </TabsTrigger>
-          <TabsTrigger value="teacher" className="flex items-center gap-2">
+          <TabsTrigger value="guru" className="flex items-center gap-2">
             <UserCheck className="h-4 w-4" />
-            {t('teacherRole')} ({getUserCount('teacher')})
+            {t('guruRole')} ({getUserCount('guru')})
           </TabsTrigger>
-          <TabsTrigger value="parent" className="flex items-center gap-2">
+          <TabsTrigger value="ortu" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            {t('parentRole')} ({getUserCount('parent')})
+            {t('ortuRole')} ({getUserCount('ortu')})
           </TabsTrigger>
           <TabsTrigger value="admin" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
@@ -197,7 +215,7 @@ const UserManagement: React.FC = () => {
           </TabsTrigger>
         </TabsList>
 
-        {(['student', 'teacher', 'parent', 'admin'] as UserRole[]).map(role => (
+        {(['santri', 'guru', 'ortu', 'admin'] as UserRole[]).map(role => (
           <TabsContent key={role} value={role}>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">

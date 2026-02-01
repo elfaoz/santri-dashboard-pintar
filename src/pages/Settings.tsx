@@ -107,7 +107,7 @@ const Settings: React.FC = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="sticky left-0 bg-background">{t('user')}</TableHead>
+                      <TableHead className="sticky left-0 bg-background">{t('role')}</TableHead>
                       {allPages.map(page => (
                         <TableHead key={page.id} className="text-center min-w-[100px]">
                           {t(page.labelKey)}
@@ -116,21 +116,66 @@ const Settings: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {rolePermissions.map(rp => (
-                      <TableRow key={rp.userId}>
-                        <TableCell className="sticky left-0 bg-background font-medium">
-                          {rp.username}
+                    {/* Admin Role - Full Access */}
+                    <TableRow>
+                      <TableCell className="sticky left-0 bg-background font-medium">{t('adminRole')}</TableCell>
+                      {allPages.map(page => (
+                        <TableCell key={page.id} className="text-center">
+                          <Check className="h-4 w-4 mx-auto text-green-500" />
                         </TableCell>
-                        {allPages.map(page => (
+                      ))}
+                    </TableRow>
+                    {/* Guru Role */}
+                    <TableRow>
+                      <TableCell className="sticky left-0 bg-background font-medium">{t('guruRole')}</TableCell>
+                      {allPages.map(page => {
+                        const allowedForGuru = ['dashboard', 'profile', 'attendance', 'halaqah', 'activities', 'finance', 'add-student'];
+                        const isAllowed = allowedForGuru.includes(page.id);
+                        return (
                           <TableCell key={page.id} className="text-center">
-                            <Switch
-                              checked={rp.permissions[page.id] || false}
-                              onCheckedChange={(checked) => updateRolePermission(rp.userId, page.id, checked)}
-                            />
+                            {isAllowed ? (
+                              <Check className="h-4 w-4 mx-auto text-green-500" />
+                            ) : (
+                              <XCircle className="h-4 w-4 mx-auto text-red-400" />
+                            )}
                           </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
+                        );
+                      })}
+                    </TableRow>
+                    {/* Santri Role */}
+                    <TableRow>
+                      <TableCell className="sticky left-0 bg-background font-medium">{t('santriRole')}</TableCell>
+                      {allPages.map(page => {
+                        const allowedForSantri = ['dashboard', 'attendance', 'halaqah', 'activities', 'finance', 'add-student'];
+                        const isAllowed = allowedForSantri.includes(page.id);
+                        return (
+                          <TableCell key={page.id} className="text-center">
+                            {isAllowed ? (
+                              <Check className="h-4 w-4 mx-auto text-green-500" />
+                            ) : (
+                              <XCircle className="h-4 w-4 mx-auto text-red-400" />
+                            )}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                    {/* Ortu Role - Only Dashboard */}
+                    <TableRow>
+                      <TableCell className="sticky left-0 bg-background font-medium">{t('ortuRole')}</TableCell>
+                      {allPages.map(page => {
+                        const allowedForOrtu = ['dashboard'];
+                        const isAllowed = allowedForOrtu.includes(page.id);
+                        return (
+                          <TableCell key={page.id} className="text-center">
+                            {isAllowed ? (
+                              <Check className="h-4 w-4 mx-auto text-green-500" />
+                            ) : (
+                              <XCircle className="h-4 w-4 mx-auto text-red-400" />
+                            )}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
                   </TableBody>
                 </Table>
               </div>
