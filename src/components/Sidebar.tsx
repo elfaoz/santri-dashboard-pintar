@@ -13,19 +13,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { t } = useLanguage();
   const navRef = useRef<HTMLDivElement>(null);
 
-  const { isGuest, username } = useAuth();
+  const { isGuest, userRole } = useAuth();
 
-  // Get user role from stored users
-  const usersWithRoles = JSON.parse(localStorage.getItem('kdm_users_roles') || '[]');
-  const currentUser = usersWithRoles.find((u: any) => u.username === username);
-  const userRole = currentUser?.role || 'admin';
-
-  // Role-based protected routes
+  // Role-based protected routes with new role names
   const roleProtectedRoutes: { [role: string]: string[] } = {
-    student: ['/profile', '/event', '/user-management', '/settings', '/backup'],
-    teacher: ['/event', '/user-management', '/settings', '/backup'],
-    parent: ['/profile', '/attendance', '/halaqah', '/activities', '/finance', '/event', '/add-student', '/user-management', '/settings'],
+    santri: ['/profile', '/event', '/user-management', '/settings', '/backup'],
+    guru: ['/event', '/user-management', '/settings', '/backup'],
+    ortu: ['/profile', '/attendance', '/halaqah', '/activities', '/finance', '/event', '/add-student', '/user-management', '/settings', '/backup'],
     admin: [],
+    guest: ['/profile', '/attendance', '/halaqah', '/activities', '/finance', '/event', '/add-student', '/user-management', '/settings', '/backup'],
   };
 
   const allNavItems = [
@@ -46,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navItems = isGuest 
     ? allNavItems.filter(item => item.path === '/dashboard')
     : allNavItems.filter(item => {
-        const protectedRoutes = roleProtectedRoutes[userRole] || [];
+        const protectedRoutes = roleProtectedRoutes[userRole || 'admin'] || [];
         return !protectedRoutes.includes(item.path);
       });
 

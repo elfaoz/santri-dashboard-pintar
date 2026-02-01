@@ -202,10 +202,14 @@ const translations: Translations = {
   dataStoredLocallyDesc: { id: 'Semua data aplikasi disimpan di browser Anda. Backup secara berkala untuk mencegah kehilangan data.', en: 'All application data is stored in your browser. Backup regularly to prevent data loss.' },
   
   // User Roles
+  role: { id: 'Role', en: 'Role' },
+  santriRole: { id: 'Santri', en: 'Student' },
+  guruRole: { id: 'Guru', en: 'Teacher' },
+  ortuRole: { id: 'Orang Tua', en: 'Parent' },
+  adminRole: { id: 'Admin', en: 'Admin' },
   studentRole: { id: 'Santri', en: 'Student' },
   teacherRole: { id: 'Guru', en: 'Teacher' },
   parentRole: { id: 'Orang Tua', en: 'Parent' },
-  adminRole: { id: 'Admin', en: 'Admin' },
   
   // Pagination
   showing: { id: 'Menampilkan', en: 'Showing' },

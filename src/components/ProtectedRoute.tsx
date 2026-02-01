@@ -1,22 +1,43 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth, UserRole } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   guestAllowed?: boolean;
 }
 
-// Role-based protected routes configuration
-const roleProtectedRoutes: { [role: string]: string[] } = {
-  student: ['/profile', '/event', '/user-management', '/settings', '/backup'],
-  teacher: ['/event', '/user-management', '/settings', '/backup'],
-  parent: ['/profile', '/attendance', '/halaqah', '/activities', '/finance', '/event', '/add-student', '/user-management', '/settings'],
-  admin: [], // Admin has access to everything
+// Role-based access configuration with new roles
+// Admin: semua akses
+// Ortu: hanya overview (dashboard)
+// Guru: overview, profile, attendance, halaqah, activities, finance, add-student
+// Santri: overview, attendance, halaqah, activities, finance, add-student
+const roleAccessConfig: Record<UserRole, string[]> = {
+  admin: ['dashboard', 'profile', 'attendance', 'halaqah', 'activities', 'finance', 'event', 'add-student', 'upgrade', 'payment', 'settings', 'user-management', 'backup'],
+  guru: ['dashboard', 'profile', 'attendance', 'halaqah', 'activities', 'finance', 'add-student'],
+  ortu: ['dashboard'],
+  santri: ['dashboard', 'attendance', 'halaqah', 'activities', 'finance', 'add-student'],
+  guest: ['dashboard'],
+};
+
+// Map path to route id
+const pathToRouteId = (path: string): string => {
+  const cleanPath = path.replace('/', '');
+  if (cleanPath === '') return 'dashboard';
+  return cleanPath;
 };
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, guestAllowed = false }) => {
-  const { isAuthenticated, isGuest, username } = useAuth();
+  const { isAuthenticated, isGuest, userRole, isLoading } = useAuth();
+
+  // Wait for auth to load
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -27,15 +48,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, guestAllowed 
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Check role-based access from stored users
-  const usersWithRoles = JSON.parse(localStorage.getItem('kdm_users_roles') || '[]');
-  const currentUser = usersWithRoles.find((u: any) => u.username === username);
-  
-  if (currentUser && currentUser.role !== 'admin') {
-    const protectedRoutes = roleProtectedRoutes[currentUser.role] || [];
+  // Check role-based access
+  if (userRole) {
     const currentPath = window.location.pathname;
+    const routeId = pathToRouteId(currentPath);
+    const allowedRoutes = roleAccessConfig[userRole] || [];
     
-    if (protectedRoutes.includes(currentPath)) {
+    if (!allowedRoutes.includes(routeId)) {
       return <Navigate to="/dashboard" replace />;
     }
   }
