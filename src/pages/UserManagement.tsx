@@ -20,6 +20,68 @@ interface UserWithRole {
   role: UserRole;
 }
 
+// Helper to migrate old role names to new - moved outside component
+const migrateOldRole = (oldRole: string): UserRole => {
+  switch (oldRole) {
+    case 'student': return 'santri';
+    case 'teacher': return 'guru';
+    case 'parent': return 'ortu';
+    case 'admin': return 'admin';
+    default: 
+      if (['santri', 'guru', 'ortu', 'admin'].includes(oldRole)) {
+        return oldRole as UserRole;
+      }
+      return 'santri';
+  }
+};
+
+// Generate default users
+const generateDefaultUsers = (): UserWithRole[] => {
+  const defaultUsers: UserWithRole[] = [];
+  
+  // Admin accounts (10)
+  for (let i = 1; i <= 10; i++) {
+    defaultUsers.push({
+      id: `admin-${i}`,
+      username: i === 1 ? 'admin' : `admin${i}`,
+      password: 'admin123',
+      role: 'admin'
+    });
+  }
+  
+  // Santri accounts (350)
+  for (let i = 1; i <= 350; i++) {
+    defaultUsers.push({
+      id: `santri-${i}`,
+      username: `santri${i}`,
+      password: 'santri123',
+      role: 'santri'
+    });
+  }
+  
+  // Guru accounts (350)
+  for (let i = 1; i <= 350; i++) {
+    defaultUsers.push({
+      id: `guru-${i}`,
+      username: `guru${i}`,
+      password: 'guru123',
+      role: 'guru'
+    });
+  }
+  
+  // Ortu accounts (350)
+  for (let i = 1; i <= 350; i++) {
+    defaultUsers.push({
+      id: `ortu-${i}`,
+      username: `ortu${i}`,
+      password: 'ortu123',
+      role: 'ortu'
+    });
+  }
+  
+  return defaultUsers;
+};
+
 const UserManagement: React.FC = () => {
   const { t } = useLanguage();
   const { users, addUser, deleteUser, updateUserPassword } = useSettings();
@@ -35,62 +97,8 @@ const UserManagement: React.FC = () => {
       }));
     }
     
-    // Generate default users with new role names
-    const defaultUsers: UserWithRole[] = [];
-    
-    // Admin accounts (10)
-    for (let i = 1; i <= 10; i++) {
-      defaultUsers.push({
-        id: `admin-${i}`,
-        username: i === 1 ? 'admin' : `admin${i}`,
-        password: 'admin123',
-        role: 'admin'
-      });
-    }
-    
-    // Santri accounts (350)
-    for (let i = 1; i <= 350; i++) {
-      defaultUsers.push({
-        id: `santri-${i}`,
-        username: `santri${i}`,
-        password: 'santri123',
-        role: 'santri'
-      });
-    }
-    
-    // Guru accounts (350)
-    for (let i = 1; i <= 350; i++) {
-      defaultUsers.push({
-        id: `guru-${i}`,
-        username: `guru${i}`,
-        password: 'guru123',
-        role: 'guru'
-      });
-    }
-    
-    // Ortu accounts (350)
-    for (let i = 1; i <= 350; i++) {
-      defaultUsers.push({
-        id: `ortu-${i}`,
-        username: `ortu${i}`,
-        password: 'ortu123',
-        role: 'ortu'
-      });
-    }
-    
-    return defaultUsers;
+    return generateDefaultUsers();
   });
-
-// Helper to migrate old role names to new
-const migrateOldRole = (oldRole: string): UserRole => {
-  switch (oldRole) {
-    case 'student': return 'santri';
-    case 'teacher': return 'guru';
-    case 'parent': return 'ortu';
-    case 'admin': return 'admin';
-    default: return oldRole as UserRole;
-  }
-};
 
   const [newUser, setNewUser] = useState({ username: '', password: '' });
   const [showPassword, setShowPassword] = useState<{ [key: string]: boolean }>({});
