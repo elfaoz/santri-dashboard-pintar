@@ -19,9 +19,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const roleProtectedRoutes: { [role: string]: string[] } = {
     santri: ['/profile', '/event', '/user-management', '/settings', '/backup'],
     guru: ['/event', '/user-management', '/settings', '/backup'],
-    ortu: ['/profile', '/attendance', '/halaqah', '/activities', '/finance', '/event', '/add-student', '/user-management', '/settings', '/backup'],
+    ortu: ['/profile', '/attendance', '/halaqah', '/activities', '/finance', '/event', '/add-student', '/upgrade', '/payment', '/user-management', '/settings', '/backup'],
+    muhafizh: ['/profile', '/attendance', '/activities', '/finance', '/event', '/user-management', '/settings', '/backup'],
     admin: [],
-    guest: ['/profile', '/attendance', '/halaqah', '/activities', '/finance', '/event', '/add-student', '/user-management', '/settings', '/backup'],
+    guest: ['/profile', '/attendance', '/halaqah', '/activities', '/finance', '/event', '/add-student', '/upgrade', '/payment', '/user-management', '/settings', '/backup'],
   };
 
   const allNavItems = [

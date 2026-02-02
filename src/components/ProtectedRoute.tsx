@@ -10,13 +10,15 @@ interface ProtectedRouteProps {
 // Role-based access configuration with new roles
 // Admin: semua akses
 // Ortu: hanya overview (dashboard)
-// Guru: overview, profile, attendance, halaqah, activities, finance, add-student
-// Santri: overview, attendance, halaqah, activities, finance, add-student
+// Guru: overview, profile, attendance, halaqah, activities, finance, add-student (tidak bisa: event, user-management, settings, backup)
+// Santri: overview, attendance, halaqah, activities, finance, add-student (tidak bisa: profile, event, user-management, settings, backup)
+// Muhafizh: overview, halaqah, add-student, upgrade, payment
 const roleAccessConfig: Record<UserRole, string[]> = {
   admin: ['dashboard', 'profile', 'attendance', 'halaqah', 'activities', 'finance', 'event', 'add-student', 'upgrade', 'payment', 'settings', 'user-management', 'backup'],
   guru: ['dashboard', 'profile', 'attendance', 'halaqah', 'activities', 'finance', 'add-student'],
   ortu: ['dashboard'],
   santri: ['dashboard', 'attendance', 'halaqah', 'activities', 'finance', 'add-student'],
+  muhafizh: ['dashboard', 'halaqah', 'add-student', 'upgrade', 'payment'],
   guest: ['dashboard'],
 };
 

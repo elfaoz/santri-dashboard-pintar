@@ -4,14 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Save, X, Check, XCircle, Clock } from 'lucide-react';
+import { Plus, Pencil, Trash2, Save, X, Check, XCircle, Clock, MessageCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+// Updated to include all pages
 const allPages = [
   { id: 'dashboard', labelKey: 'dashboard' },
   { id: 'profile', labelKey: 'myProfile' },
@@ -23,8 +23,19 @@ const allPages = [
   { id: 'add-student', labelKey: 'addStudent' },
   { id: 'upgrade', labelKey: 'upgrade' },
   { id: 'payment', labelKey: 'payment' },
-  { id: 'setting', labelKey: 'settings' },
+  { id: 'settings', labelKey: 'settings' },
+  { id: 'user-management', labelKey: 'userManagement' },
+  { id: 'backup', labelKey: 'backupData' },
 ];
+
+// Role access config matching ProtectedRoute.tsx
+const roleAccessConfig: { [role: string]: string[] } = {
+  admin: ['dashboard', 'profile', 'attendance', 'halaqah', 'activities', 'finance', 'event', 'add-student', 'upgrade', 'payment', 'settings', 'user-management', 'backup'],
+  guru: ['dashboard', 'profile', 'attendance', 'halaqah', 'activities', 'finance', 'add-student'],
+  santri: ['dashboard', 'attendance', 'halaqah', 'activities', 'finance', 'add-student'],
+  ortu: ['dashboard'],
+  muhafizh: ['dashboard', 'halaqah', 'add-student', 'upgrade', 'payment'],
+};
 
 const Settings: React.FC = () => {
   const { t } = useLanguage();
@@ -33,6 +44,7 @@ const Settings: React.FC = () => {
     banks, addBank, updateBank, deleteBank,
     prices, updatePrice,
     whatsappNumber, setWhatsappNumber,
+    whatsappCSList, addWhatsAppCS, updateWhatsAppCS, deleteWhatsAppCS,
     rolePermissions, updateRolePermission,
     bonusSettings, updateBonusSettings,
     withdrawalRequests, updateWithdrawalStatus, deleteWithdrawalRequest,
@@ -58,6 +70,11 @@ const Settings: React.FC = () => {
   const [editingBonus, setEditingBonus] = useState(false);
   const [tempBonusSettings, setTempBonusSettings] = useState(bonusSettings);
 
+  // WhatsApp CS form state
+  const [newCS, setNewCS] = useState({ name: '', serviceType: '', phoneNumber: '' });
+  const [editingCSId, setEditingCSId] = useState<string | null>(null);
+  const [tempCS, setTempCS] = useState({ name: '', serviceType: '', phoneNumber: '' });
+
   // Handle voucher add
   const handleAddVoucher = () => {
     if (!newVoucher.code || !newVoucher.discount || !newVoucher.startDate || !newVoucher.endDate) {
@@ -80,6 +97,24 @@ const Settings: React.FC = () => {
     toast({ title: t('success'), description: t('bankAdded') });
   };
 
+  // Handle CS add
+  const handleAddCS = () => {
+    if (!newCS.name || !newCS.serviceType || !newCS.phoneNumber) {
+      toast({ title: t('error'), description: t('fillAllFields'), variant: 'destructive' });
+      return;
+    }
+    addWhatsAppCS(newCS);
+    setNewCS({ name: '', serviceType: '', phoneNumber: '' });
+    toast({ title: t('success'), description: t('csAdded') });
+  };
+
+  // Handle CS update
+  const handleUpdateCS = (id: string) => {
+    updateWhatsAppCS(id, tempCS);
+    setEditingCSId(null);
+    toast({ title: t('success'), description: t('csUpdated') });
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="mb-8">
@@ -88,8 +123,9 @@ const Settings: React.FC = () => {
       </div>
 
       <Tabs defaultValue="role" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="role">{t('roleManagement')}</TabsTrigger>
+          <TabsTrigger value="whatsapp-cs">{t('whatsappCS')}</TabsTrigger>
           <TabsTrigger value="upgrade">Upgrade</TabsTrigger>
           <TabsTrigger value="payment">Payment</TabsTrigger>
           <TabsTrigger value="bonus">Bonus</TabsTrigger>
@@ -109,7 +145,7 @@ const Settings: React.FC = () => {
                     <TableRow>
                       <TableHead className="sticky left-0 bg-background">{t('role')}</TableHead>
                       {allPages.map(page => (
-                        <TableHead key={page.id} className="text-center min-w-[100px]">
+                        <TableHead key={page.id} className="text-center min-w-[80px] text-xs">
                           {t(page.labelKey)}
                         </TableHead>
                       ))}
@@ -129,8 +165,7 @@ const Settings: React.FC = () => {
                     <TableRow>
                       <TableCell className="sticky left-0 bg-background font-medium">{t('guruRole')}</TableCell>
                       {allPages.map(page => {
-                        const allowedForGuru = ['dashboard', 'profile', 'attendance', 'halaqah', 'activities', 'finance', 'add-student'];
-                        const isAllowed = allowedForGuru.includes(page.id);
+                        const isAllowed = roleAccessConfig.guru.includes(page.id);
                         return (
                           <TableCell key={page.id} className="text-center">
                             {isAllowed ? (
@@ -146,8 +181,7 @@ const Settings: React.FC = () => {
                     <TableRow>
                       <TableCell className="sticky left-0 bg-background font-medium">{t('santriRole')}</TableCell>
                       {allPages.map(page => {
-                        const allowedForSantri = ['dashboard', 'attendance', 'halaqah', 'activities', 'finance', 'add-student'];
-                        const isAllowed = allowedForSantri.includes(page.id);
+                        const isAllowed = roleAccessConfig.santri.includes(page.id);
                         return (
                           <TableCell key={page.id} className="text-center">
                             {isAllowed ? (
@@ -163,8 +197,23 @@ const Settings: React.FC = () => {
                     <TableRow>
                       <TableCell className="sticky left-0 bg-background font-medium">{t('ortuRole')}</TableCell>
                       {allPages.map(page => {
-                        const allowedForOrtu = ['dashboard'];
-                        const isAllowed = allowedForOrtu.includes(page.id);
+                        const isAllowed = roleAccessConfig.ortu.includes(page.id);
+                        return (
+                          <TableCell key={page.id} className="text-center">
+                            {isAllowed ? (
+                              <Check className="h-4 w-4 mx-auto text-green-500" />
+                            ) : (
+                              <XCircle className="h-4 w-4 mx-auto text-red-400" />
+                            )}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                    {/* Muhafizh Role */}
+                    <TableRow>
+                      <TableCell className="sticky left-0 bg-background font-medium">{t('muhafizhRole')}</TableCell>
+                      {allPages.map(page => {
+                        const isAllowed = roleAccessConfig.muhafizh.includes(page.id);
                         return (
                           <TableCell key={page.id} className="text-center">
                             {isAllowed ? (
@@ -179,6 +228,140 @@ const Settings: React.FC = () => {
                   </TableBody>
                 </Table>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* WhatsApp CS Tab */}
+        <TabsContent value="whatsapp-cs" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageCircle className="h-5 w-5" />
+                {t('whatsappCS')}
+              </CardTitle>
+              <CardDescription>{t('whatsappCSDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Add CS Form */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/50">
+                <div>
+                  <Label>{t('name')}</Label>
+                  <Input
+                    value={newCS.name}
+                    onChange={(e) => setNewCS({ ...newCS, name: e.target.value })}
+                    placeholder="Rizal 1"
+                  />
+                </div>
+                <div>
+                  <Label>{t('serviceType')}</Label>
+                  <Input
+                    value={newCS.serviceType}
+                    onChange={(e) => setNewCS({ ...newCS, serviceType: e.target.value })}
+                    placeholder="CS Pendaftaran (halaman signup)"
+                  />
+                </div>
+                <div>
+                  <Label>{t('whatsappNumber')}</Label>
+                  <Input
+                    value={newCS.phoneNumber}
+                    onChange={(e) => setNewCS({ ...newCS, phoneNumber: e.target.value })}
+                    placeholder="6282297697027"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button onClick={handleAddCS} className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t('add')}
+                  </Button>
+                </div>
+              </div>
+
+              {/* CS Table */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('name')}</TableHead>
+                    <TableHead>{t('serviceType')}</TableHead>
+                    <TableHead>{t('whatsappNumber')}</TableHead>
+                    <TableHead>{t('action')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {whatsappCSList.map(cs => (
+                    <TableRow key={cs.id}>
+                      <TableCell>
+                        {editingCSId === cs.id ? (
+                          <Input
+                            value={tempCS.name}
+                            onChange={(e) => setTempCS({ ...tempCS, name: e.target.value })}
+                            className="w-32"
+                          />
+                        ) : (
+                          <span className="font-medium">{cs.name}</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {editingCSId === cs.id ? (
+                          <Input
+                            value={tempCS.serviceType}
+                            onChange={(e) => setTempCS({ ...tempCS, serviceType: e.target.value })}
+                            className="w-48"
+                          />
+                        ) : (
+                          cs.serviceType
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {editingCSId === cs.id ? (
+                          <Input
+                            value={tempCS.phoneNumber}
+                            onChange={(e) => setTempCS({ ...tempCS, phoneNumber: e.target.value })}
+                            className="w-36"
+                          />
+                        ) : (
+                          cs.phoneNumber
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {editingCSId === cs.id ? (
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={() => handleUpdateCS(cs.id)}>
+                              <Save className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => setEditingCSId(null)}>
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditingCSId(cs.id);
+                                setTempCS({ name: cs.name, serviceType: cs.serviceType, phoneNumber: cs.phoneNumber });
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                deleteWhatsAppCS(cs.id);
+                                toast({ title: t('success'), description: t('csDeleted') });
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>

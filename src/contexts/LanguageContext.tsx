@@ -207,9 +207,19 @@ const translations: Translations = {
   guruRole: { id: 'Guru', en: 'Teacher' },
   ortuRole: { id: 'Orang Tua', en: 'Parent' },
   adminRole: { id: 'Admin', en: 'Admin' },
+  muhafizhRole: { id: 'Muhafizh', en: 'Muhafizh' },
   studentRole: { id: 'Santri', en: 'Student' },
   teacherRole: { id: 'Guru', en: 'Teacher' },
   parentRole: { id: 'Orang Tua', en: 'Parent' },
+  
+  // WhatsApp CS
+  whatsappCS: { id: 'WhatsApp CS', en: 'WhatsApp CS' },
+  whatsappCSDesc: { id: 'Kelola nomor Customer Service untuk berbagai layanan', en: 'Manage Customer Service numbers for various services' },
+  serviceName: { id: 'Nama Layanan', en: 'Service Name' },
+  serviceType: { id: 'Jenis Layanan', en: 'Service Type' },
+  csAdded: { id: 'CS berhasil ditambahkan', en: 'CS added successfully' },
+  csDeleted: { id: 'CS berhasil dihapus', en: 'CS deleted successfully' },
+  csUpdated: { id: 'CS berhasil diperbarui', en: 'CS updated successfully' },
   
   // Pagination
   showing: { id: 'Menampilkan', en: 'Showing' },
