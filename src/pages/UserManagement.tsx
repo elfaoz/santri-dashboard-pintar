@@ -6,12 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, Key, Eye, EyeOff, GraduationCap, Users, UserCheck, Shield } from 'lucide-react';
+import { Plus, Trash2, Key, Eye, EyeOff, GraduationCap, Users, UserCheck, Shield, Book } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-type UserRole = 'santri' | 'guru' | 'ortu' | 'admin';
+type UserRole = 'santri' | 'guru' | 'ortu' | 'admin' | 'muhafizh';
 
 interface UserWithRole {
   id: string;
@@ -27,8 +27,9 @@ const migrateOldRole = (oldRole: string): UserRole => {
     case 'teacher': return 'guru';
     case 'parent': return 'ortu';
     case 'admin': return 'admin';
+    case 'muhafizh': return 'muhafizh';
     default: 
-      if (['santri', 'guru', 'ortu', 'admin'].includes(oldRole)) {
+      if (['santri', 'guru', 'ortu', 'admin', 'muhafizh'].includes(oldRole)) {
         return oldRole as UserRole;
       }
       return 'santri';
@@ -76,6 +77,16 @@ const generateDefaultUsers = (): UserWithRole[] => {
       username: `ortu${i}`,
       password: 'ortu123',
       role: 'ortu'
+    });
+  }
+  
+  // Muhafizh accounts (100)
+  for (let i = 1; i <= 100; i++) {
+    defaultUsers.push({
+      id: `muhafizh-${i}`,
+      username: `muhafizh${i}`,
+      password: 'muhafizh123',
+      role: 'muhafizh'
     });
   }
   
@@ -179,6 +190,7 @@ const UserManagement: React.FC = () => {
       case 'santri': return <GraduationCap className="h-4 w-4" />;
       case 'guru': return <UserCheck className="h-4 w-4" />;
       case 'ortu': return <Users className="h-4 w-4" />;
+      case 'muhafizh': return <Book className="h-4 w-4" />;
       case 'admin': return <Shield className="h-4 w-4" />;
     }
   };
@@ -188,6 +200,7 @@ const UserManagement: React.FC = () => {
       case 'santri': return t('santriRole');
       case 'guru': return t('guruRole');
       case 'ortu': return t('ortuRole');
+      case 'muhafizh': return t('muhafizhRole');
       case 'admin': return t('adminRole');
     }
   };
@@ -204,7 +217,7 @@ const UserManagement: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as UserRole); setCurrentPage(1); }}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="santri" className="flex items-center gap-2">
             <GraduationCap className="h-4 w-4" />
             {t('santriRole')} ({getUserCount('santri')})
@@ -217,13 +230,17 @@ const UserManagement: React.FC = () => {
             <Users className="h-4 w-4" />
             {t('ortuRole')} ({getUserCount('ortu')})
           </TabsTrigger>
+          <TabsTrigger value="muhafizh" className="flex items-center gap-2">
+            <Book className="h-4 w-4" />
+            {t('muhafizhRole')} ({getUserCount('muhafizh')})
+          </TabsTrigger>
           <TabsTrigger value="admin" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
             {t('adminRole')} ({getUserCount('admin')})
           </TabsTrigger>
         </TabsList>
 
-        {(['santri', 'guru', 'ortu', 'admin'] as UserRole[]).map(role => (
+        {(['santri', 'guru', 'ortu', 'muhafizh', 'admin'] as UserRole[]).map(role => (
           <TabsContent key={role} value={role}>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">

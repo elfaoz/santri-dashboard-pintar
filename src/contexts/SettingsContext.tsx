@@ -36,6 +36,13 @@ export interface BonusSettings {
   withdrawalWhatsapp: string;
 }
 
+export interface WhatsAppCSData {
+  id: string;
+  name: string;
+  serviceType: string;
+  phoneNumber: string;
+}
+
 export interface WithdrawalRequest {
   id: string;
   userName: string;
@@ -69,6 +76,12 @@ interface SettingsContextType {
   // WhatsApp
   whatsappNumber: string;
   setWhatsappNumber: (number: string) => void;
+  
+  // WhatsApp CS
+  whatsappCSList: WhatsAppCSData[];
+  addWhatsAppCS: (cs: Omit<WhatsAppCSData, 'id'>) => void;
+  updateWhatsAppCS: (id: string, cs: Partial<WhatsAppCSData>) => void;
+  deleteWhatsAppCS: (id: string) => void;
   
   // Role Permissions
   rolePermissions: RolePermission[];
@@ -106,6 +119,12 @@ const defaultVouchers: VoucherData[] = [
 
 const defaultBanks: BankData[] = [
   { id: '1', bankName: 'BRI', accountNumber: '404301015163532', accountHolder: 'MARKAZ QURAN' },
+];
+
+const defaultWhatsAppCS: WhatsAppCSData[] = [
+  { id: '1', name: 'Rizal 1', serviceType: 'CS Pendaftaran (halaman signup)', phoneNumber: '6282297697027' },
+  { id: '2', name: 'Rizal 1', serviceType: 'CS Konfirmasi Pemesanan (halaman payment)', phoneNumber: '6282297697027' },
+  { id: '3', name: 'Rizal 2', serviceType: 'CS Pembayaran Bonus', phoneNumber: '6285223857484' },
 ];
 
 const defaultBonusSettings: BonusSettings = {
@@ -169,6 +188,11 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     return stored || '6285223857484';
   });
   
+  const [whatsappCSList, setWhatsappCSList] = useState<WhatsAppCSData[]>(() => {
+    const stored = localStorage.getItem('kdm_whatsapp_cs');
+    return stored ? JSON.parse(stored) : defaultWhatsAppCS;
+  });
+  
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>(() => {
     const stored = localStorage.getItem('kdm_role_permissions');
     return stored ? JSON.parse(stored) : generateDefaultPermissions();
@@ -205,6 +229,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   useEffect(() => {
     localStorage.setItem('kdm_whatsapp', whatsappNumber);
   }, [whatsappNumber]);
+  
+  useEffect(() => {
+    localStorage.setItem('kdm_whatsapp_cs', JSON.stringify(whatsappCSList));
+  }, [whatsappCSList]);
   
   useEffect(() => {
     localStorage.setItem('kdm_role_permissions', JSON.stringify(rolePermissions));
@@ -258,6 +286,20 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   // WhatsApp function
   const setWhatsappNumber = (number: string) => {
     setWhatsappNumberState(number);
+  };
+  
+  // WhatsApp CS functions
+  const addWhatsAppCS = (cs: Omit<WhatsAppCSData, 'id'>) => {
+    const newCS = { ...cs, id: Date.now().toString() };
+    setWhatsappCSList([...whatsappCSList, newCS]);
+  };
+  
+  const updateWhatsAppCS = (id: string, cs: Partial<WhatsAppCSData>) => {
+    setWhatsappCSList(whatsappCSList.map(c => c.id === id ? { ...c, ...cs } : c));
+  };
+  
+  const deleteWhatsAppCS = (id: string) => {
+    setWhatsappCSList(whatsappCSList.filter(c => c.id !== id));
   };
 
   // Role permission functions
@@ -335,6 +377,10 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       updatePrice,
       whatsappNumber,
       setWhatsappNumber,
+      whatsappCSList,
+      addWhatsAppCS,
+      updateWhatsAppCS,
+      deleteWhatsAppCS,
       rolePermissions,
       updateRolePermission,
       addUser,

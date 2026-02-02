@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-export type UserRole = 'admin' | 'guru' | 'ortu' | 'santri' | 'guest';
+export type UserRole = 'admin' | 'guru' | 'ortu' | 'santri' | 'muhafizh' | 'guest';
 
 interface UserWithRole {
   id: string;
@@ -40,7 +40,12 @@ const mapOldRoleToNew = (oldRole: string): UserRole => {
     case 'teacher': return 'guru';
     case 'parent': return 'ortu';
     case 'admin': return 'admin';
-    default: return 'santri';
+    case 'muhafizh': return 'muhafizh';
+    default: 
+      if (['santri', 'guru', 'ortu', 'admin', 'muhafizh'].includes(oldRole)) {
+        return oldRole as UserRole;
+      }
+      return 'santri';
   }
 };
 
