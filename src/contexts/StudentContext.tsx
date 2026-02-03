@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export interface Student {
   id: number;
@@ -15,6 +15,9 @@ export interface Student {
   email: string;
   phoneNumber: string;
   address: string;
+  program?: string; // Tahsin, Tahfizh 1, Tahfizh 2, Tahfizh Kamil
+  nik?: string;
+  photo?: string;
 }
 
 interface StudentContextType {
@@ -22,6 +25,7 @@ interface StudentContextType {
   addStudent: (student: Student) => void;
   updateStudent: (updatedStudent: Student) => void;
   deleteStudent: (studentId: number) => void;
+  updateStudentPhoto: (studentId: number, photo: string) => void;
 }
 
 const StudentContext = createContext<StudentContextType | undefined>(undefined);
@@ -30,7 +34,15 @@ const StudentContext = createContext<StudentContextType | undefined>(undefined);
 const initialStudents: Student[] = [];
 
 export const StudentProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [students, setStudents] = useState<Student[]>(initialStudents);
+  const [students, setStudents] = useState<Student[]>(() => {
+    const stored = localStorage.getItem('kdm_students');
+    return stored ? JSON.parse(stored) : initialStudents;
+  });
+
+  // Persist to localStorage
+  useEffect(() => {
+    localStorage.setItem('kdm_students', JSON.stringify(students));
+  }, [students]);
 
   const addStudent = (student: Student) => {
     setStudents(prev => [...prev, student]);
@@ -48,12 +60,21 @@ export const StudentProvider: React.FC<{ children: ReactNode }> = ({ children })
     setStudents(prev => prev.filter(student => student.id !== studentId));
   };
 
+  const updateStudentPhoto = (studentId: number, photo: string) => {
+    setStudents(prev => 
+      prev.map(student => 
+        student.id === studentId ? { ...student, photo } : student
+      )
+    );
+  };
+
   return (
     <StudentContext.Provider value={{
       students,
       addStudent,
       updateStudent,
-      deleteStudent
+      deleteStudent,
+      updateStudentPhoto
     }}>
       {children}
     </StudentContext.Provider>
