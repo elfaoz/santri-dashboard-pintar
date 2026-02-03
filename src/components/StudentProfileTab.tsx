@@ -5,23 +5,20 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStudents, Student } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
-import { QRCodeSVG } from 'qrcode.react';
-import { Download, Edit, Upload, User, Camera } from 'lucide-react';
+import { Camera, Edit, User } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import jsPDF from 'jspdf';
-
-interface StudentPhotos {
-  [studentId: number]: string;
-}
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import StudentIDCard from './StudentIDCard';
 
 interface SchoolData {
   schoolName: string;
   schoolLogo: string;
+  schoolAddress: string;
 }
 
-const backgroundOptions = [
+const programOptions = [
   { id: 'tahfizh-kamil', name: 'Tahfizh Kamil', gradient: 'from-emerald-600 via-emerald-500 to-teal-400' },
   { id: 'tahfizh-1', name: 'Tahfizh 1', gradient: 'from-blue-600 via-blue-500 to-cyan-400' },
   { id: 'tahfizh-2', name: 'Tahfizh 2', gradient: 'from-purple-600 via-purple-500 to-pink-400' },
@@ -29,11 +26,15 @@ const backgroundOptions = [
 ];
 
 const StudentProfileTab: React.FC = () => {
-  const { students, updateStudent } = useStudents();
+  const { students, updateStudent, updateStudentPhoto } = useStudents();
   const { halaqahs } = useHalaqahs();
   
-  // Get school data from localStorage (same source as Profile.tsx)
-  const [schoolData, setSchoolData] = useState<SchoolData>({ schoolName: '', schoolLogo: '' });
+  // Get school data from localStorage
+  const [schoolData, setSchoolData] = useState<SchoolData>({ 
+    schoolName: '', 
+    schoolLogo: '',
+    schoolAddress: '' 
+  });
   
   useEffect(() => {
     const saved = localStorage.getItem('profile_data');
@@ -41,20 +42,19 @@ const StudentProfileTab: React.FC = () => {
       const data = JSON.parse(saved);
       setSchoolData({
         schoolName: data.schoolName || 'Nama Sekolah',
-        schoolLogo: data.schoolLogo || ''
+        schoolLogo: data.schoolLogo || '',
+        schoolAddress: data.schoolAddress || 'Alamat Sekolah'
       });
     }
   }, []);
   
   const [selectedHalaqah, setSelectedHalaqah] = useState('all');
   const [selectedStudentId, setSelectedStudentId] = useState('');
-  const [selectedBackground, setSelectedBackground] = useState('tahfizh-kamil');
-  const [studentPhotos, setStudentPhotos] = useState<StudentPhotos>({});
+  const [selectedProgram, setSelectedProgram] = useState('tahfizh-kamil');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState<Student | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
 
   const getStudentsByHalaqah = (halaqahId: string) => {
     if (halaqahId === 'all') return students;
@@ -68,17 +68,15 @@ const StudentProfileTab: React.FC = () => {
 
   const filteredStudents = getStudentsByHalaqah(selectedHalaqah);
   const selectedStudent = students.find(s => s.id.toString() === selectedStudentId);
-  const currentBackground = backgroundOptions.find(bg => bg.id === selectedBackground) || backgroundOptions[0];
+  const currentProgram = programOptions.find(p => p.id === selectedProgram) || programOptions[0];
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && selectedStudent) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setStudentPhotos(prev => ({
-          ...prev,
-          [selectedStudent.id]: reader.result as string
-        }));
+        const photoData = reader.result as string;
+        updateStudentPhoto(selectedStudent.id, photoData);
         toast.success('Foto berhasil diupload');
       };
       reader.readAsDataURL(file);
@@ -87,7 +85,7 @@ const StudentProfileTab: React.FC = () => {
 
   const handleEditProfile = () => {
     if (selectedStudent) {
-      setEditFormData({ ...selectedStudent });
+      setEditFormData({ ...selectedStudent, program: selectedProgram });
       setIsEditModalOpen(true);
     }
   };
@@ -95,108 +93,20 @@ const StudentProfileTab: React.FC = () => {
   const handleSaveEdit = () => {
     if (editFormData) {
       updateStudent(editFormData);
+      if (editFormData.program) {
+        setSelectedProgram(editFormData.program);
+      }
       setIsEditModalOpen(false);
       toast.success('Profil berhasil diperbarui');
     }
   };
 
-  const handleDownloadCard = async () => {
-    if (!selectedStudent) return;
-
-    const pdf = new jsPDF({
-      orientation: 'landscape',
-      unit: 'mm',
-      format: [85.6, 54] // Standard ID card size
-    });
-
-    // Background gradient simulation
-    const bgColors: { [key: string]: string[] } = {
-      'tahfizh-kamil': ['#059669', '#0D9488'],
-      'tahfizh-1': ['#2563EB', '#06B6D4'],
-      'tahfizh-2': ['#9333EA', '#EC4899'],
-      'tahsin': ['#D97706', '#EAB308'],
-    };
-
-    const colors = bgColors[selectedBackground] || bgColors['tahfizh-kamil'];
-    
-    // Draw gradient background
-    pdf.setFillColor(colors[0]);
-    pdf.rect(0, 0, 85.6, 54, 'F');
-
-    // Header with school name
-    pdf.setFontSize(8);
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text(schoolData.schoolName || 'Nama Sekolah', 42.8, 6, { align: 'center' });
-
-    // Program name
-    pdf.setFontSize(6);
-    pdf.setFont('helvetica', 'normal');
-    const programName = currentBackground.name.toUpperCase();
-    pdf.text(`PROGRAM ${programName}`, 42.8, 10, { align: 'center' });
-
-    // White card area
-    pdf.setFillColor(255, 255, 255);
-    pdf.roundedRect(3, 14, 79.6, 37, 2, 2, 'F');
-
-    // Photo placeholder
-    const photoX = 6;
-    const photoY = 17;
-    const photoSize = 20;
-    
-    pdf.setFillColor(240, 240, 240);
-    pdf.rect(photoX, photoY, photoSize, photoSize, 'F');
-    
-    if (studentPhotos[selectedStudent.id]) {
-      try {
-        pdf.addImage(studentPhotos[selectedStudent.id], 'JPEG', photoX, photoY, photoSize, photoSize);
-      } catch (e) {
-        // Keep placeholder if image fails
-      }
+  // When selecting a student, load their program
+  useEffect(() => {
+    if (selectedStudent?.program) {
+      setSelectedProgram(selectedStudent.program);
     }
-
-    // Student info
-    pdf.setTextColor(31, 41, 55);
-    pdf.setFontSize(7);
-    pdf.setFont('helvetica', 'bold');
-    pdf.text(selectedStudent.name, 30, 20);
-
-    pdf.setFont('helvetica', 'normal');
-    pdf.setFontSize(5);
-    
-    const infoStartY = 24;
-    const lineHeight = 3.5;
-    
-    pdf.text(`NIS: ${selectedStudent.studentId}`, 30, infoStartY);
-    pdf.text(`Jenis Kelamin: ${selectedStudent.gender}`, 30, infoStartY + lineHeight);
-    pdf.text(`TTL: ${selectedStudent.placeOfBirth}, ${selectedStudent.dateOfBirth}`, 30, infoStartY + lineHeight * 2);
-    pdf.text(`Alamat: ${selectedStudent.address.substring(0, 30)}${selectedStudent.address.length > 30 ? '...' : ''}`, 30, infoStartY + lineHeight * 3);
-
-    // QR Code - generate as canvas and add to PDF
-    const qrCanvas = document.createElement('canvas');
-    const qrSize = 64;
-    qrCanvas.width = qrSize;
-    qrCanvas.height = qrSize;
-    
-    // Create temporary QR code element
-    const tempDiv = document.createElement('div');
-    tempDiv.style.position = 'absolute';
-    tempDiv.style.left = '-9999px';
-    document.body.appendChild(tempDiv);
-    
-    // Use a simpler approach - draw QR as placeholder rect
-    pdf.setFillColor(240, 240, 240);
-    pdf.rect(65, 17, 15, 15, 'F');
-    pdf.setFontSize(4);
-    pdf.setTextColor(100, 100, 100);
-    pdf.text('QR CODE', 72.5, 25, { align: 'center' });
-    pdf.text(selectedStudent.studentId, 72.5, 28, { align: 'center' });
-
-    document.body.removeChild(tempDiv);
-
-    pdf.save(`Kartu_Santri_${selectedStudent.name.replace(/\s+/g, '_')}.pdf`);
-    toast.success('Kartu santri berhasil didownload');
-  };
+  }, [selectedStudent]);
 
   return (
     <div className="space-y-6">
@@ -206,7 +116,7 @@ const StudentProfileTab: React.FC = () => {
           <CardTitle className="text-lg font-semibold text-gray-800">Filter Santri</CardTitle>
         </CardHeader>
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Pilih Halaqah</Label>
               <Select 
@@ -249,224 +159,162 @@ const StudentProfileTab: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="space-y-2">
+              <Label>Pilih Program</Label>
+              <Select 
+                value={selectedProgram} 
+                onValueChange={(value) => {
+                  setSelectedProgram(value);
+                  // Update student's program
+                  if (selectedStudent) {
+                    updateStudent({ ...selectedStudent, program: value });
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih Program" />
+                </SelectTrigger>
+                <SelectContent>
+                  {programOptions.map(program => (
+                    <SelectItem key={program.id} value={program.id}>
+                      {program.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {selectedStudent ? (
         <>
-          {/* Student Data Display */}
-          <Card className="shadow-sm border border-gray-100">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 flex flex-row items-center justify-between">
-              <CardTitle className="text-xl font-bold text-gray-800">Data Santri</CardTitle>
-              <div className="flex gap-2">
+          {/* Student Profile with Dynamic Header */}
+          <Card className="shadow-sm border border-gray-100 overflow-hidden">
+            {/* Dynamic Header based on program */}
+            <div className={`relative bg-gradient-to-r ${currentProgram.gradient} px-6 py-6`}>
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                {/* Avatar with upload overlay */}
+                <div className="relative group">
+                  <Avatar className="w-24 h-24 border-4 border-white/30 shadow-lg">
+                    <AvatarImage src={selectedStudent.photo} alt={selectedStudent.name} />
+                    <AvatarFallback className="bg-white/20 text-white text-2xl">
+                      <User size={40} />
+                    </AvatarFallback>
+                  </Avatar>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  >
+                    <Camera className="w-8 h-8 text-white" />
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handlePhotoUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                </div>
+
+                {/* Name and Program */}
+                <div className="flex-1 text-center sm:text-left">
+                  <h2 className="text-xl sm:text-2xl font-bold text-white">{selectedStudent.name}</h2>
+                  <p className="text-white/80 text-sm sm:text-base">{currentProgram.name}</p>
+                </div>
+
+                {/* Edit button */}
                 <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2"
-                >
-                  <Camera size={16} />
-                  Upload Foto
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
                   onClick={handleEditProfile}
-                  className="flex items-center gap-2"
+                  variant="outline"
+                  size="sm"
+                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white flex items-center gap-2"
                 >
                   <Edit size={16} />
-                  Edit Profil
+                  Edit Profile
                 </Button>
               </div>
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handlePhotoUpload}
-                accept="image/*"
-                className="hidden"
-              />
-            </CardHeader>
+            </div>
+
+            {/* Profile Data - Horizontal Layout */}
             <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row gap-6">
-                {/* Photo Section */}
-                <div className="flex flex-col items-center">
-                  <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden bg-gray-50">
-                    {studentPhotos[selectedStudent.id] ? (
-                      <img 
-                        src={studentPhotos[selectedStudent.id]} 
-                        alt={selectedStudent.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <User className="w-16 h-16 text-gray-400" />
-                    )}
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="mt-2 text-blue-600"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload size={14} className="mr-1" />
-                    Upload
-                  </Button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center py-2 border-b border-gray-100">
+                  <span className="w-36 text-sm text-gray-500 flex-shrink-0">Nama Lengkap</span>
+                  <span className="font-medium text-gray-800">: {selectedStudent.name}</span>
                 </div>
-
-                {/* Data Grid */}
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Nomor Induk</p>
-                    <p className="font-medium">{selectedStudent.studentId}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Nama Lengkap</p>
-                    <p className="font-medium">{selectedStudent.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Jenis Kelamin</p>
-                    <p className="font-medium">{selectedStudent.gender}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Tempat Lahir</p>
-                    <p className="font-medium">{selectedStudent.placeOfBirth}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Tanggal Lahir</p>
-                    <p className="font-medium">{selectedStudent.dateOfBirth}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Nama Ayah</p>
-                    <p className="font-medium">{selectedStudent.fatherName}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Nama Ibu</p>
-                    <p className="font-medium">{selectedStudent.motherName}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Kelas</p>
-                    <p className="font-medium">{selectedStudent.class}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Jenjang</p>
-                    <p className="font-medium">{selectedStudent.level}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Periode</p>
-                    <p className="font-medium">{selectedStudent.period}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Email</p>
-                    <p className="font-medium">{selectedStudent.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">No. Telepon</p>
-                    <p className="font-medium">{selectedStudent.phoneNumber}</p>
-                  </div>
-                  <div className="md:col-span-2">
-                    <p className="text-sm text-gray-500">Alamat</p>
-                    <p className="font-medium">{selectedStudent.address}</p>
-                  </div>
+                <div className="flex items-center py-2 border-b border-gray-100">
+                  <span className="w-36 text-sm text-gray-500 flex-shrink-0">Nomor Induk</span>
+                  <span className="font-medium text-gray-800">: {selectedStudent.studentId}</span>
+                </div>
+                <div className="flex items-center py-2 border-b border-gray-100">
+                  <span className="w-36 text-sm text-gray-500 flex-shrink-0">NIK</span>
+                  <span className="font-medium text-gray-800">: {selectedStudent.nik || '-'}</span>
+                </div>
+                <div className="flex items-center py-2 border-b border-gray-100">
+                  <span className="w-36 text-sm text-gray-500 flex-shrink-0">Jenis Kelamin</span>
+                  <span className="font-medium text-gray-800">: {selectedStudent.gender}</span>
+                </div>
+                <div className="flex items-center py-2 border-b border-gray-100">
+                  <span className="w-36 text-sm text-gray-500 flex-shrink-0">Tempat Lahir</span>
+                  <span className="font-medium text-gray-800">: {selectedStudent.placeOfBirth}</span>
+                </div>
+                <div className="flex items-center py-2 border-b border-gray-100">
+                  <span className="w-36 text-sm text-gray-500 flex-shrink-0">Tanggal Lahir</span>
+                  <span className="font-medium text-gray-800">: {selectedStudent.dateOfBirth}</span>
+                </div>
+                <div className="flex items-center py-2 border-b border-gray-100">
+                  <span className="w-36 text-sm text-gray-500 flex-shrink-0">Nama Ayah</span>
+                  <span className="font-medium text-gray-800">: {selectedStudent.fatherName}</span>
+                </div>
+                <div className="flex items-center py-2 border-b border-gray-100">
+                  <span className="w-36 text-sm text-gray-500 flex-shrink-0">Nama Ibu</span>
+                  <span className="font-medium text-gray-800">: {selectedStudent.motherName}</span>
+                </div>
+                <div className="flex items-center py-2 border-b border-gray-100">
+                  <span className="w-36 text-sm text-gray-500 flex-shrink-0">Kelas</span>
+                  <span className="font-medium text-gray-800">: {selectedStudent.class}</span>
+                </div>
+                <div className="flex items-center py-2 border-b border-gray-100">
+                  <span className="w-36 text-sm text-gray-500 flex-shrink-0">Jenjang</span>
+                  <span className="font-medium text-gray-800">: {selectedStudent.level}</span>
+                </div>
+                <div className="flex items-center py-2 border-b border-gray-100">
+                  <span className="w-36 text-sm text-gray-500 flex-shrink-0">Periode</span>
+                  <span className="font-medium text-gray-800">: {selectedStudent.period}</span>
+                </div>
+                <div className="flex items-center py-2 border-b border-gray-100">
+                  <span className="w-36 text-sm text-gray-500 flex-shrink-0">Email</span>
+                  <span className="font-medium text-gray-800">: {selectedStudent.email}</span>
+                </div>
+                <div className="flex items-center py-2 border-b border-gray-100">
+                  <span className="w-36 text-sm text-gray-500 flex-shrink-0">No. Telepon</span>
+                  <span className="font-medium text-gray-800">: {selectedStudent.phoneNumber}</span>
+                </div>
+                <div className="flex items-center py-2 border-b border-gray-100 md:col-span-2">
+                  <span className="w-36 text-sm text-gray-500 flex-shrink-0">Alamat</span>
+                  <span className="font-medium text-gray-800">: {selectedStudent.address}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Background Selection */}
-          <Card className="shadow-sm border border-gray-100">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 py-4">
-              <CardTitle className="text-lg font-semibold text-gray-800">Pilih Background Kartu</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {backgroundOptions.map(bg => (
-                  <button
-                    key={bg.id}
-                    onClick={() => setSelectedBackground(bg.id)}
-                    className={`p-3 rounded-lg border-2 transition-all ${
-                      selectedBackground === bg.id 
-                        ? 'border-blue-500 ring-2 ring-blue-200' 
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className={`h-12 rounded-md bg-gradient-to-r ${bg.gradient} mb-2`}></div>
-                    <p className="text-sm font-medium text-center">{bg.name}</p>
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Student Card Preview */}
-          <Card className="shadow-sm border border-gray-100">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 flex flex-row items-center justify-between">
-              <CardTitle className="text-lg font-semibold text-gray-800">Preview Kartu Santri</CardTitle>
-              <Button 
-                onClick={handleDownloadCard}
-                className="bg-[#5db3d2] hover:bg-[#4a9ab8] text-white flex items-center gap-2"
-              >
-                <Download size={16} />
-                Download Kartu
-              </Button>
-            </CardHeader>
-            <CardContent className="p-6 flex justify-center">
-              <div 
-                ref={cardRef}
-                className={`w-[340px] h-[220px] rounded-xl shadow-lg overflow-hidden bg-gradient-to-br ${currentBackground.gradient}`}
-              >
-                {/* Card Header */}
-                <div className="text-center py-2 text-white">
-                  <h3 className="text-sm font-bold">{schoolData.schoolName || 'Nama Sekolah'}</h3>
-                  <p className="text-xs opacity-90">PROGRAM {currentBackground.name.toUpperCase()}</p>
-                </div>
-
-                {/* Card Body */}
-                <div className="bg-white mx-2 rounded-lg p-3 h-[160px]">
-                  <div className="flex gap-3">
-                    {/* Photo */}
-                    <div className="w-20 h-20 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {studentPhotos[selectedStudent.id] ? (
-                        <img 
-                          src={studentPhotos[selectedStudent.id]} 
-                          alt={selectedStudent.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <User className="w-10 h-10 text-gray-400" />
-                      )}
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-gray-800 text-sm truncate">{selectedStudent.name}</h4>
-                      <div className="mt-1 space-y-0.5 text-xs text-gray-600">
-                        <p><span className="text-gray-400">NIS:</span> {selectedStudent.studentId}</p>
-                        <p><span className="text-gray-400">JK:</span> {selectedStudent.gender}</p>
-                        <p className="truncate"><span className="text-gray-400">TTL:</span> {selectedStudent.placeOfBirth}, {selectedStudent.dateOfBirth}</p>
-                        <p className="truncate"><span className="text-gray-400">Alamat:</span> {selectedStudent.address}</p>
-                      </div>
-                    </div>
-
-                    {/* QR Code */}
-                    <div className="flex flex-col items-center flex-shrink-0">
-                      <QRCodeSVG 
-                        value={`student:${selectedStudent.studentId}`}
-                        size={60}
-                        level="M"
-                      />
-                      <p className="text-[8px] text-gray-400 mt-1">Scan to Login</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Student ID Card */}
+          <StudentIDCard
+            student={selectedStudent}
+            schoolName={schoolData.schoolName}
+            schoolAddress={schoolData.schoolAddress}
+            schoolLogo={schoolData.schoolLogo}
+            programId={selectedProgram}
+            programName={currentProgram.name}
+          />
         </>
       ) : (
         <Card className="shadow-sm border border-gray-100">
           <CardContent className="p-12 text-center">
             <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500">Pilih santri untuk melihat profil dan kartu santri</p>
+            <p className="text-gray-500">Pilih santri untuk melihat profil dan kartu identitas</p>
           </CardContent>
         </Card>
       )}
@@ -493,6 +341,14 @@ const StudentProfileTab: React.FC = () => {
                   id="edit-name"
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-nik">NIK</Label>
+                <Input
+                  id="edit-nik"
+                  value={editFormData.nik || ''}
+                  onChange={(e) => setEditFormData({ ...editFormData, nik: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
@@ -571,6 +427,22 @@ const StudentProfileTab: React.FC = () => {
                   <SelectContent>
                     {['SD','SMP','SMA','Mahasiswa','Umum'].map(l => (
                       <SelectItem key={l} value={l}>{l}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-program">Program</Label>
+                <Select 
+                  value={editFormData.program || 'tahfizh-kamil'} 
+                  onValueChange={(value) => setEditFormData({ ...editFormData, program: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {programOptions.map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

@@ -13,6 +13,7 @@ const AddNewStudent: React.FC = () => {
   const [formData, setFormData] = useState({
     studentId: '',
     fullName: '',
+    nik: '',
     gender: '',
     placeOfBirth: '',
     dateOfBirth: '',
@@ -21,6 +22,7 @@ const AddNewStudent: React.FC = () => {
     registrationPeriod: '',
     class: '',
     level: '',
+    program: 'tahfizh-kamil',
     email: '',
     phoneNumber: '+62',
     address: ''
@@ -36,11 +38,15 @@ const AddNewStudent: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Generate unique ID based on timestamp
+    const uniqueId = Date.now();
+    
     // Create new student object
     const newStudent: Student = {
-      id: students.length + 1,
+      id: uniqueId,
       studentId: formData.studentId,
       name: formData.fullName,
+      nik: formData.nik,
       gender: formData.gender,
       placeOfBirth: formData.placeOfBirth,
       dateOfBirth: formData.dateOfBirth,
@@ -49,6 +55,7 @@ const AddNewStudent: React.FC = () => {
       class: formData.class,
       level: formData.level,
       period: formData.registrationPeriod,
+      program: formData.program,
       email: formData.email,
       phoneNumber: formData.phoneNumber,
       address: formData.address
@@ -61,6 +68,7 @@ const AddNewStudent: React.FC = () => {
     setFormData({
       studentId: '',
       fullName: '',
+      nik: '',
       gender: '',
       placeOfBirth: '',
       dateOfBirth: '',
@@ -69,6 +77,7 @@ const AddNewStudent: React.FC = () => {
       registrationPeriod: '',
       class: '',
       level: '',
+      program: 'tahfizh-kamil',
       email: '',
       phoneNumber: '+62',
       address: ''
@@ -108,6 +117,19 @@ const AddNewStudent: React.FC = () => {
                 placeholder="Masukkan nama lengkap"
                 className="w-full"
                 required
+              />
+            </div>
+
+            {/* NIK */}
+            <div className="space-y-2">
+              <Label htmlFor="nik">NIK</Label>
+              <Input
+                id="nik"
+                type="text"
+                value={formData.nik}
+                onChange={(e) => handleInputChange('nik', e.target.value)}
+                placeholder="Masukkan NIK"
+                className="w-full"
               />
             </div>
 
@@ -232,6 +254,22 @@ const AddNewStudent: React.FC = () => {
                   <SelectItem value="SMA">SMA</SelectItem>
                   <SelectItem value="Mahasiswa">Mahasiswa</SelectItem>
                   <SelectItem value="Umum">Umum</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Program */}
+            <div className="space-y-2">
+              <Label htmlFor="program">Program</Label>
+              <Select value={formData.program} onValueChange={(value) => handleInputChange('program', value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Pilih program" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tahsin">Tahsin</SelectItem>
+                  <SelectItem value="tahfizh-1">Tahfizh 1</SelectItem>
+                  <SelectItem value="tahfizh-2">Tahfizh 2</SelectItem>
+                  <SelectItem value="tahfizh-kamil">Tahfizh Kamil</SelectItem>
                 </SelectContent>
               </Select>
             </div>

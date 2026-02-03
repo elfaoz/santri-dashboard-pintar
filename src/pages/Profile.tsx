@@ -518,28 +518,45 @@ const Profile: React.FC = () => {
       </div>
       
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        {/* Header Profile */}
-        <div className="px-6 py-8 bg-gradient-to-r from-[#5db3d2]/20 to-[#5db3d2]/10">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Avatar className="w-20 h-20">
+        {/* Header Profile - Solid Blue */}
+        <div className="px-6 py-8 bg-[#5db3d2]">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            {/* Avatar with upload overlay */}
+            <div className="relative group">
+              <Avatar className="w-24 h-24 border-4 border-white/30 shadow-lg">
                 <AvatarImage src={profileData.profileImage || "/placeholder.svg"} alt="Profile" />
-                <AvatarFallback className="bg-blue-100 text-blue-600 text-xl">
-                  <User size={32} />
+                <AvatarFallback className="bg-white/20 text-white text-2xl">
+                  <User size={40} />
                 </AvatarFallback>
               </Avatar>
-              <div>
-                <h2 className="text-xl font-bold text-gray-800">{profileData.name}</h2>
-                <p className="text-gray-600">{profileData.role}</p>
-              </div>
+              {isEditing && (
+                <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <User className="w-8 h-8 text-white" />
+                </label>
+              )}
             </div>
+            
+            {/* Name and Role */}
+            <div className="flex-1 text-center sm:text-left">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">{profileData.name}</h2>
+              <p className="text-white/80">{profileData.role}</p>
+            </div>
+            
+            {/* Edit button */}
             <Button 
               onClick={() => {
                 setFormData(profileData);
                 setIsEditing(!isEditing);
               }} 
               variant="outline"
-              className="flex items-center gap-2 border-[#5db3d2] text-[#5db3d2] hover:bg-[#5db3d2] hover:text-white"
+              size="sm"
+              className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white flex items-center gap-2"
             >
               <Edit3 size={16} />
               Edit Profile
@@ -558,118 +575,148 @@ const Profile: React.FC = () => {
             
             {/* Edit Profile Tab */}
             <TabsContent value="profile" className="space-y-6 mt-6">
-              {/* Profile Image Upload */}
-              {isEditing && (
-                <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-                  <Avatar className="w-16 h-16">
-                    <AvatarImage src={formData.profileImage || "/placeholder.svg"} alt="Profile" />
-                    <AvatarFallback className="bg-blue-100 text-blue-600 text-xl">
-                      <User size={24} />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="space-y-2">
-                    <Label>Upload Gambar Profil</Label>
-                    <Input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="w-full"
-                    />
+              {/* View Mode - Inline Layout */}
+              {!isEditing && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center py-2 border-b border-gray-100">
+                    <span className="w-36 text-sm text-gray-500 flex-shrink-0">Nama Lengkap</span>
+                    <span className="font-medium text-gray-800">: {profileData.name}</span>
+                  </div>
+                  <div className="flex items-center py-2 border-b border-gray-100">
+                    <span className="w-36 text-sm text-gray-500 flex-shrink-0">Jabatan</span>
+                    <span className="font-medium text-gray-800">: {profileData.role}</span>
+                  </div>
+                  <div className="flex items-center py-2 border-b border-gray-100">
+                    <span className="w-36 text-sm text-gray-500 flex-shrink-0">NIK</span>
+                    <span className="font-medium text-gray-800">: {profileData.nik}</span>
+                  </div>
+                  <div className="flex items-center py-2 border-b border-gray-100">
+                    <span className="w-36 text-sm text-gray-500 flex-shrink-0">Tanggal Lahir</span>
+                    <span className="font-medium text-gray-800">: {profileData.dateOfBirth}</span>
+                  </div>
+                  <div className="flex items-center py-2 border-b border-gray-100">
+                    <span className="w-36 text-sm text-gray-500 flex-shrink-0">Nomor HP</span>
+                    <span className="font-medium text-gray-800">: {profileData.phone}</span>
+                  </div>
+                  <div className="flex items-center py-2 border-b border-gray-100">
+                    <span className="w-36 text-sm text-gray-500 flex-shrink-0">Email</span>
+                    <span className="font-medium text-gray-800">: {profileData.email}</span>
+                  </div>
+                  <div className="flex items-center py-2 border-b border-gray-100">
+                    <span className="w-36 text-sm text-gray-500 flex-shrink-0">Rekening & Bank</span>
+                    <span className="font-medium text-gray-800">: {profileData.bankInfo}</span>
+                  </div>
+                  <div className="flex items-center py-2 border-b border-gray-100 md:col-span-2">
+                    <span className="w-36 text-sm text-gray-500 flex-shrink-0">Alamat</span>
+                    <span className="font-medium text-gray-800">: {profileData.address}</span>
                   </div>
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Nama Lengkap</Label>
-                    <Input 
-                      value={formData.name} 
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      disabled={!isEditing} 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Jabatan</Label>
-                    <Input 
-                      value={formData.role} 
-                      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                      disabled={!isEditing} 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Tanggal Lahir</Label>
-                    <Input 
-                      value={formData.dateOfBirth} 
-                      onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                      disabled={!isEditing} 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Nomor HP</Label>
-                    <Input 
-                      value={formData.phone} 
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      disabled={!isEditing} 
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Email</Label>
-                    <Input 
-                      value={formData.email} 
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      disabled={!isEditing} 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Alamat</Label>
-                    <Textarea 
-                      value={formData.address} 
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      disabled={!isEditing} 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Rekening & Bank</Label>
-                    <Input 
-                      value={formData.bankInfo} 
-                      onChange={(e) => setFormData({ ...formData, bankInfo: e.target.value })}
-                      disabled={!isEditing} 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>NIK</Label>
-                    <Input 
-                      value={formData.nik} 
-                      onChange={(e) => setFormData({ ...formData, nik: e.target.value })}
-                      disabled={!isEditing} 
-                    />
-                  </div>
-                  
-                  {isEditing && (
+              {/* Edit Mode - Form Inputs */}
+              {isEditing && (
+                <>
+                  <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                    <Avatar className="w-16 h-16">
+                      <AvatarImage src={formData.profileImage || "/placeholder.svg"} alt="Profile" />
+                      <AvatarFallback className="bg-blue-100 text-blue-600 text-xl">
+                        <User size={24} />
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="space-y-2">
-                      <Label>Ubah PIN Penarikan (6 digit)</Label>
+                      <Label>Upload Gambar Profil</Label>
                       <Input 
-                        type="password" 
-                        placeholder="Masukkan PIN baru (6 digit)" 
-                        maxLength={6} 
-                        value={newPin}
-                        onChange={(e) => setNewPin(e.target.value)}
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="w-full"
                       />
-                      <p className="text-xs text-gray-500">PIN ini digunakan sebagai gatekeeper untuk penarikan bonus</p>
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Nama Lengkap</Label>
+                        <Input 
+                          value={formData.name} 
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Jabatan</Label>
+                        <Input 
+                          value={formData.role} 
+                          onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Tanggal Lahir</Label>
+                        <Input 
+                          value={formData.dateOfBirth} 
+                          onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Nomor HP</Label>
+                        <Input 
+                          value={formData.phone} 
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Email</Label>
+                        <Input 
+                          value={formData.email} 
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Alamat</Label>
+                        <Textarea 
+                          value={formData.address} 
+                          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Rekening & Bank</Label>
+                        <Input 
+                          value={formData.bankInfo} 
+                          onChange={(e) => setFormData({ ...formData, bankInfo: e.target.value })}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>NIK</Label>
+                        <Input 
+                          value={formData.nik} 
+                          onChange={(e) => setFormData({ ...formData, nik: e.target.value })}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Ubah PIN Penarikan (6 digit)</Label>
+                        <Input 
+                          type="password" 
+                          placeholder="Masukkan PIN baru (6 digit)" 
+                          maxLength={6} 
+                          value={newPin}
+                          onChange={(e) => setNewPin(e.target.value)}
+                        />
+                        <p className="text-xs text-gray-500">PIN ini digunakan sebagai gatekeeper untuk penarikan bonus</p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Identitas Sekolah Section */}
               <div className="space-y-4 pt-6 border-t">
