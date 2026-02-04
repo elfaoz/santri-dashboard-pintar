@@ -48,27 +48,23 @@ const StudentProfileTab: React.FC = () => {
     }
   }, []);
   
-  const [selectedHalaqah, setSelectedHalaqah] = useState('all');
   const [selectedStudentId, setSelectedStudentId] = useState('');
-  const [selectedProgram, setSelectedProgram] = useState('tahfizh-kamil');
+  const [selectedProgram, setSelectedProgram] = useState('all');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState<Student | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const getStudentsByHalaqah = (halaqahId: string) => {
-    if (halaqahId === 'all') return students;
-    const halaqah = halaqahs.find(h => h.id.toString() === halaqahId);
-    if (!halaqah?.selectedStudents) return [];
-    
-    return students.filter(student => 
-      halaqah.selectedStudents?.includes(student.id.toString())
-    );
+  // Filter students by program
+  const getStudentsByProgram = (programId: string) => {
+    if (programId === 'all') return students;
+    return students.filter(student => student.program === programId);
   };
 
-  const filteredStudents = getStudentsByHalaqah(selectedHalaqah);
+  const filteredStudents = getStudentsByProgram(selectedProgram);
   const selectedStudent = students.find(s => s.id.toString() === selectedStudentId);
-  const currentProgram = programOptions.find(p => p.id === selectedProgram) || programOptions[0];
+  const studentProgram = selectedStudent?.program || 'tahfizh-kamil';
+  const currentProgram = programOptions.find(p => p.id === studentProgram) || programOptions[0];
 
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -116,24 +112,24 @@ const StudentProfileTab: React.FC = () => {
           <CardTitle className="text-lg font-semibold text-gray-800">Filter Santri</CardTitle>
         </CardHeader>
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Pilih Halaqah</Label>
+              <Label>Pilih Program</Label>
               <Select 
-                value={selectedHalaqah} 
+                value={selectedProgram} 
                 onValueChange={(value) => {
-                  setSelectedHalaqah(value);
+                  setSelectedProgram(value);
                   setSelectedStudentId('');
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Semua Halaqah" />
+                  <SelectValue placeholder="Semua Program" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Halaqah</SelectItem>
-                  {halaqahs.map(halaqah => (
-                    <SelectItem key={halaqah.id} value={halaqah.id.toString()}>
-                      {halaqah.name}
+                  <SelectItem value="all">Semua Program</SelectItem>
+                  {programOptions.map(program => (
+                    <SelectItem key={program.id} value={program.id}>
+                      {program.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -154,31 +150,6 @@ const StudentProfileTab: React.FC = () => {
                   {filteredStudents.map(student => (
                     <SelectItem key={student.id} value={student.id.toString()}>
                       {student.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Pilih Program</Label>
-              <Select 
-                value={selectedProgram} 
-                onValueChange={(value) => {
-                  setSelectedProgram(value);
-                  // Update student's program
-                  if (selectedStudent) {
-                    updateStudent({ ...selectedStudent, program: value });
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih Program" />
-                </SelectTrigger>
-                <SelectContent>
-                  {programOptions.map(program => (
-                    <SelectItem key={program.id} value={program.id}>
-                      {program.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -306,7 +277,7 @@ const StudentProfileTab: React.FC = () => {
             schoolName={schoolData.schoolName}
             schoolAddress={schoolData.schoolAddress}
             schoolLogo={schoolData.schoolLogo}
-            programId={selectedProgram}
+            programId={studentProgram}
             programName={currentProgram.name}
           />
         </>

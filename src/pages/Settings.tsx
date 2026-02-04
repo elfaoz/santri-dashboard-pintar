@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Save, X, Check, XCircle, Clock, MessageCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Save, X, Check, XCircle, Clock, MessageCircle, BookOpen, Wallet, Users, Activity, Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -37,6 +37,13 @@ const roleAccessConfig: { [role: string]: string[] } = {
   muhafizh: ['dashboard', 'halaqah', 'add-student', 'upgrade', 'payment'],
 };
 
+// Juz info helper
+const getJuzInfo = (pages: number): string => {
+  // 1 juz = 20 halaman (kecuali juz 1 = 21 hal, juz 30 = 23 halaman)
+  const juz = (pages / 20).toFixed(1);
+  return `${pages} halaman (≈ ${juz} juz)`;
+};
+
 const Settings: React.FC = () => {
   const { t } = useLanguage();
   const {
@@ -45,9 +52,14 @@ const Settings: React.FC = () => {
     prices, updatePrice,
     whatsappNumber, setWhatsappNumber,
     whatsappCSList, addWhatsAppCS, updateWhatsAppCS, deleteWhatsAppCS,
-    rolePermissions, updateRolePermission,
     bonusSettings, updateBonusSettings,
     withdrawalRequests, updateWithdrawalStatus, deleteWithdrawalRequest,
+    memorizationPrograms, addMemorizationProgram, updateMemorizationProgram, deleteMemorizationProgram,
+    expenseCategories, addExpenseCategory, updateExpenseCategory, deleteExpenseCategory,
+    maxDailyExpense, setMaxDailyExpense,
+    attendanceCategories, addAttendanceCategory, updateAttendanceCategory, deleteAttendanceCategory,
+    activityCategories, addActivityCategory, updateActivityCategory, deleteActivityCategory,
+    gatekeeperPasswords, addGatekeeperPassword, updateGatekeeperPassword, deleteGatekeeperPassword,
   } = useSettings();
 
   // Voucher form state
@@ -74,6 +86,29 @@ const Settings: React.FC = () => {
   const [newCS, setNewCS] = useState({ name: '', serviceType: '', phoneNumber: '' });
   const [editingCSId, setEditingCSId] = useState<string | null>(null);
   const [tempCS, setTempCS] = useState({ name: '', serviceType: '', phoneNumber: '' });
+
+  // New settings form states
+  const [newProgram, setNewProgram] = useState({ name: '', targetMonthly: 0, targetSemester: 0 });
+  const [editingProgramId, setEditingProgramId] = useState<string | null>(null);
+  const [tempProgram, setTempProgram] = useState({ name: '', targetMonthly: 0, targetSemester: 0 });
+
+  const [newExpenseCategory, setNewExpenseCategory] = useState({ name: '' });
+  const [editingExpenseCategoryId, setEditingExpenseCategoryId] = useState<string | null>(null);
+  const [tempExpenseCategory, setTempExpenseCategory] = useState({ name: '' });
+  const [tempMaxDaily, setTempMaxDaily] = useState(maxDailyExpense);
+  const [editingMaxDaily, setEditingMaxDaily] = useState(false);
+
+  const [newAttendanceCategory, setNewAttendanceCategory] = useState({ name: '' });
+  const [editingAttendanceCategoryId, setEditingAttendanceCategoryId] = useState<string | null>(null);
+  const [tempAttendanceCategory, setTempAttendanceCategory] = useState({ name: '' });
+
+  const [newActivityCategory, setNewActivityCategory] = useState({ name: '' });
+  const [editingActivityCategoryId, setEditingActivityCategoryId] = useState<string | null>(null);
+  const [tempActivityCategory, setTempActivityCategory] = useState({ name: '' });
+
+  const [newGatekeeper, setNewGatekeeper] = useState({ pageName: '', accessCode: '' });
+  const [editingGatekeeperId, setEditingGatekeeperId] = useState<string | null>(null);
+  const [tempGatekeeper, setTempGatekeeper] = useState({ pageName: '', accessCode: '' });
 
   // Handle voucher add
   const handleAddVoucher = () => {
@@ -123,12 +158,32 @@ const Settings: React.FC = () => {
       </div>
 
       <Tabs defaultValue="role" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="role">{t('roleManagement')}</TabsTrigger>
-          <TabsTrigger value="whatsapp-cs">{t('whatsappCS')}</TabsTrigger>
-          <TabsTrigger value="upgrade">Upgrade</TabsTrigger>
-          <TabsTrigger value="payment">Payment</TabsTrigger>
-          <TabsTrigger value="bonus">Bonus</TabsTrigger>
+        <TabsList className="w-full flex overflow-x-auto scrollbar-hide whitespace-nowrap">
+          <TabsTrigger value="role" className="flex-shrink-0">{t('roleManagement')}</TabsTrigger>
+          <TabsTrigger value="whatsapp-cs" className="flex-shrink-0">{t('whatsappCS')}</TabsTrigger>
+          <TabsTrigger value="memorization" className="flex-shrink-0 flex items-center gap-1">
+            <BookOpen className="h-3 w-3" />
+            Hafalan
+          </TabsTrigger>
+          <TabsTrigger value="finance-settings" className="flex-shrink-0 flex items-center gap-1">
+            <Wallet className="h-3 w-3" />
+            Keuangan
+          </TabsTrigger>
+          <TabsTrigger value="attendance-settings" className="flex-shrink-0 flex items-center gap-1">
+            <Users className="h-3 w-3" />
+            Kehadiran
+          </TabsTrigger>
+          <TabsTrigger value="activities-settings" className="flex-shrink-0 flex items-center gap-1">
+            <Activity className="h-3 w-3" />
+            Aktivitas
+          </TabsTrigger>
+          <TabsTrigger value="gatekeeper" className="flex-shrink-0 flex items-center gap-1">
+            <Lock className="h-3 w-3" />
+            Gatekeeper
+          </TabsTrigger>
+          <TabsTrigger value="upgrade" className="flex-shrink-0">Upgrade</TabsTrigger>
+          <TabsTrigger value="payment" className="flex-shrink-0">Payment</TabsTrigger>
+          <TabsTrigger value="bonus" className="flex-shrink-0">Bonus</TabsTrigger>
         </TabsList>
 
         {/* Role Management Tab */}
@@ -351,6 +406,551 @@ const Settings: React.FC = () => {
                               onClick={() => {
                                 deleteWhatsAppCS(cs.id);
                                 toast({ title: t('success'), description: t('csDeleted') });
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Memorization Settings Tab */}
+        <TabsContent value="memorization" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                {t('memorizationSettings')}
+              </CardTitle>
+              <CardDescription>{t('memorizationSettingsDesc')}</CardDescription>
+              <p className="text-xs text-muted-foreground mt-2">
+                Note: 1 juz = 20 halaman (kecuali juz 1 = 21 hal, juz 30 = 23 hal)
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Add Program Form */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/50">
+                <div>
+                  <Label>{t('programName')}</Label>
+                  <Input
+                    value={newProgram.name}
+                    onChange={(e) => setNewProgram({ ...newProgram, name: e.target.value })}
+                    placeholder="Nama Program"
+                  />
+                </div>
+                <div>
+                  <Label>{t('targetMonthly')} (hal)</Label>
+                  <Input
+                    type="number"
+                    value={newProgram.targetMonthly || ''}
+                    onChange={(e) => setNewProgram({ ...newProgram, targetMonthly: parseInt(e.target.value) || 0 })}
+                    placeholder="4"
+                  />
+                </div>
+                <div>
+                  <Label>{t('targetSemester')} (hal)</Label>
+                  <Input
+                    type="number"
+                    value={newProgram.targetSemester || ''}
+                    onChange={(e) => setNewProgram({ ...newProgram, targetSemester: parseInt(e.target.value) || 0 })}
+                    placeholder="20"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button onClick={() => {
+                    if (!newProgram.name) {
+                      toast({ title: t('error'), description: t('fillAllFields'), variant: 'destructive' });
+                      return;
+                    }
+                    addMemorizationProgram(newProgram);
+                    setNewProgram({ name: '', targetMonthly: 0, targetSemester: 0 });
+                    toast({ title: t('success'), description: 'Program berhasil ditambahkan' });
+                  }} className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t('add')}
+                  </Button>
+                </div>
+              </div>
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('programName')}</TableHead>
+                    <TableHead>{t('targetMonthly')}</TableHead>
+                    <TableHead>{t('targetSemester')}</TableHead>
+                    <TableHead>{t('action')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {memorizationPrograms.map(program => (
+                    <TableRow key={program.id}>
+                      <TableCell>
+                        {editingProgramId === program.id ? (
+                          <Input
+                            value={tempProgram.name}
+                            onChange={(e) => setTempProgram({ ...tempProgram, name: e.target.value })}
+                            className="w-32"
+                          />
+                        ) : (
+                          <span className="font-medium">{program.name}</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {editingProgramId === program.id ? (
+                          <Input
+                            type="number"
+                            value={tempProgram.targetMonthly}
+                            onChange={(e) => setTempProgram({ ...tempProgram, targetMonthly: parseInt(e.target.value) || 0 })}
+                            className="w-24"
+                          />
+                        ) : (
+                          <span>{program.targetMonthly} hal/bln</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {editingProgramId === program.id ? (
+                          <Input
+                            type="number"
+                            value={tempProgram.targetSemester}
+                            onChange={(e) => setTempProgram({ ...tempProgram, targetSemester: parseInt(e.target.value) || 0 })}
+                            className="w-24"
+                          />
+                        ) : (
+                          <span>{getJuzInfo(program.targetSemester)}</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {editingProgramId === program.id ? (
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={() => {
+                              updateMemorizationProgram(program.id, tempProgram);
+                              setEditingProgramId(null);
+                              toast({ title: t('success'), description: 'Program berhasil diperbarui' });
+                            }}>
+                              <Save className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => setEditingProgramId(null)}>
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditingProgramId(program.id);
+                                setTempProgram({ name: program.name, targetMonthly: program.targetMonthly, targetSemester: program.targetSemester });
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                deleteMemorizationProgram(program.id);
+                                toast({ title: t('success'), description: 'Program berhasil dihapus' });
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Finance Settings Tab */}
+        <TabsContent value="finance-settings" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Wallet className="h-5 w-5" />
+                {t('financeSettings')}
+              </CardTitle>
+              <CardDescription>{t('financeSettingsDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Max Daily Expense */}
+              <div className="p-4 border rounded-lg bg-muted/50">
+                <div className="flex items-end gap-4">
+                  <div className="flex-1">
+                    <Label>{t('maxDailyExpense')} (Rp)</Label>
+                    <Input
+                      type="number"
+                      value={editingMaxDaily ? tempMaxDaily : maxDailyExpense}
+                      onChange={(e) => setTempMaxDaily(parseInt(e.target.value) || 0)}
+                      disabled={!editingMaxDaily}
+                    />
+                  </div>
+                  {editingMaxDaily ? (
+                    <div className="flex gap-2">
+                      <Button onClick={() => {
+                        setMaxDailyExpense(tempMaxDaily);
+                        setEditingMaxDaily(false);
+                        toast({ title: t('success'), description: 'Batas harian berhasil diperbarui' });
+                      }}>
+                        <Save className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" onClick={() => {
+                        setTempMaxDaily(maxDailyExpense);
+                        setEditingMaxDaily(false);
+                      }}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button onClick={() => setEditingMaxDaily(true)}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      {t('edit')}
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Expense Categories */}
+              <div>
+                <h4 className="font-medium mb-4">{t('category')} Pengeluaran</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg bg-muted/50 mb-4">
+                  <div className="md:col-span-2">
+                    <Label>{t('category')}</Label>
+                    <Input
+                      value={newExpenseCategory.name}
+                      onChange={(e) => setNewExpenseCategory({ name: e.target.value })}
+                      placeholder="Nama kategori"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <Button onClick={() => {
+                      if (!newExpenseCategory.name) {
+                        toast({ title: t('error'), description: t('fillAllFields'), variant: 'destructive' });
+                        return;
+                      }
+                      addExpenseCategory(newExpenseCategory);
+                      setNewExpenseCategory({ name: '' });
+                      toast({ title: t('success'), description: 'Kategori berhasil ditambahkan' });
+                    }} className="w-full">
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t('add')}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {expenseCategories.map(cat => (
+                    <Badge key={cat.id} variant="secondary" className="py-2 px-3 flex items-center gap-2">
+                      {editingExpenseCategoryId === cat.id ? (
+                        <>
+                          <Input
+                            value={tempExpenseCategory.name}
+                            onChange={(e) => setTempExpenseCategory({ name: e.target.value })}
+                            className="w-24 h-6 text-xs"
+                          />
+                          <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => {
+                            updateExpenseCategory(cat.id, tempExpenseCategory);
+                            setEditingExpenseCategoryId(null);
+                          }}>
+                            <Check className="h-3 w-3" />
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          {cat.name}
+                          <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => {
+                            setEditingExpenseCategoryId(cat.id);
+                            setTempExpenseCategory({ name: cat.name });
+                          }}>
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-destructive" onClick={() => {
+                            deleteExpenseCategory(cat.id);
+                          }}>
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </>
+                      )}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Attendance Settings Tab */}
+        <TabsContent value="attendance-settings" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                {t('attendanceSettings')}
+              </CardTitle>
+              <CardDescription>{t('attendanceSettingsDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg bg-muted/50">
+                <div className="md:col-span-2">
+                  <Label>{t('category')}</Label>
+                  <Input
+                    value={newAttendanceCategory.name}
+                    onChange={(e) => setNewAttendanceCategory({ name: e.target.value })}
+                    placeholder="Nama kategori kehadiran"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button onClick={() => {
+                    if (!newAttendanceCategory.name) {
+                      toast({ title: t('error'), description: t('fillAllFields'), variant: 'destructive' });
+                      return;
+                    }
+                    addAttendanceCategory(newAttendanceCategory);
+                    setNewAttendanceCategory({ name: '' });
+                    toast({ title: t('success'), description: 'Kategori berhasil ditambahkan' });
+                  }} className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t('add')}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {attendanceCategories.map(cat => (
+                  <Badge key={cat.id} variant="secondary" className="py-2 px-3 flex items-center gap-2">
+                    {editingAttendanceCategoryId === cat.id ? (
+                      <>
+                        <Input
+                          value={tempAttendanceCategory.name}
+                          onChange={(e) => setTempAttendanceCategory({ name: e.target.value })}
+                          className="w-24 h-6 text-xs"
+                        />
+                        <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => {
+                          updateAttendanceCategory(cat.id, tempAttendanceCategory);
+                          setEditingAttendanceCategoryId(null);
+                        }}>
+                          <Check className="h-3 w-3" />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        {cat.name}
+                        <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => {
+                          setEditingAttendanceCategoryId(cat.id);
+                          setTempAttendanceCategory({ name: cat.name });
+                        }}>
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-destructive" onClick={() => {
+                          deleteAttendanceCategory(cat.id);
+                        }}>
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </>
+                    )}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Activities Settings Tab */}
+        <TabsContent value="activities-settings" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                {t('activitiesSettings')}
+              </CardTitle>
+              <CardDescription>{t('activitiesSettingsDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg bg-muted/50">
+                <div className="md:col-span-2">
+                  <Label>{t('category')}</Label>
+                  <Input
+                    value={newActivityCategory.name}
+                    onChange={(e) => setNewActivityCategory({ name: e.target.value })}
+                    placeholder="Nama kategori aktivitas"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button onClick={() => {
+                    if (!newActivityCategory.name) {
+                      toast({ title: t('error'), description: t('fillAllFields'), variant: 'destructive' });
+                      return;
+                    }
+                    addActivityCategory(newActivityCategory);
+                    setNewActivityCategory({ name: '' });
+                    toast({ title: t('success'), description: 'Kategori berhasil ditambahkan' });
+                  }} className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t('add')}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {activityCategories.map(cat => (
+                  <Badge key={cat.id} variant="secondary" className="py-2 px-3 flex items-center gap-2">
+                    {editingActivityCategoryId === cat.id ? (
+                      <>
+                        <Input
+                          value={tempActivityCategory.name}
+                          onChange={(e) => setTempActivityCategory({ name: e.target.value })}
+                          className="w-24 h-6 text-xs"
+                        />
+                        <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => {
+                          updateActivityCategory(cat.id, tempActivityCategory);
+                          setEditingActivityCategoryId(null);
+                        }}>
+                          <Check className="h-3 w-3" />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        {cat.name}
+                        <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => {
+                          setEditingActivityCategoryId(cat.id);
+                          setTempActivityCategory({ name: cat.name });
+                        }}>
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-5 w-5 p-0 text-destructive" onClick={() => {
+                          deleteActivityCategory(cat.id);
+                        }}>
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </>
+                    )}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Gatekeeper Settings Tab */}
+        <TabsContent value="gatekeeper" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                {t('gatekeeperSettings')}
+              </CardTitle>
+              <CardDescription>{t('gatekeeperSettingsDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border rounded-lg bg-muted/50">
+                <div>
+                  <Label>{t('pageName')}</Label>
+                  <Input
+                    value={newGatekeeper.pageName}
+                    onChange={(e) => setNewGatekeeper({ ...newGatekeeper, pageName: e.target.value })}
+                    placeholder="Nama Halaman"
+                  />
+                </div>
+                <div>
+                  <Label>{t('accessCode')}</Label>
+                  <Input
+                    value={newGatekeeper.accessCode}
+                    onChange={(e) => setNewGatekeeper({ ...newGatekeeper, accessCode: e.target.value })}
+                    placeholder="Kode Akses"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button onClick={() => {
+                    if (!newGatekeeper.pageName || !newGatekeeper.accessCode) {
+                      toast({ title: t('error'), description: t('fillAllFields'), variant: 'destructive' });
+                      return;
+                    }
+                    addGatekeeperPassword(newGatekeeper);
+                    setNewGatekeeper({ pageName: '', accessCode: '' });
+                    toast({ title: t('success'), description: 'Password berhasil ditambahkan' });
+                  }} className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t('add')}
+                  </Button>
+                </div>
+              </div>
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('pageName')}</TableHead>
+                    <TableHead>{t('accessCode')}</TableHead>
+                    <TableHead>{t('action')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {gatekeeperPasswords.map(gk => (
+                    <TableRow key={gk.id}>
+                      <TableCell>
+                        {editingGatekeeperId === gk.id ? (
+                          <Input
+                            value={tempGatekeeper.pageName}
+                            onChange={(e) => setTempGatekeeper({ ...tempGatekeeper, pageName: e.target.value })}
+                            className="w-32"
+                          />
+                        ) : (
+                          <span className="font-medium">{gk.pageName}</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {editingGatekeeperId === gk.id ? (
+                          <Input
+                            value={tempGatekeeper.accessCode}
+                            onChange={(e) => setTempGatekeeper({ ...tempGatekeeper, accessCode: e.target.value })}
+                            className="w-32"
+                          />
+                        ) : (
+                          <code className="bg-muted px-2 py-1 rounded text-sm">{gk.accessCode}</code>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {editingGatekeeperId === gk.id ? (
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={() => {
+                              updateGatekeeperPassword(gk.id, tempGatekeeper);
+                              setEditingGatekeeperId(null);
+                              toast({ title: t('success'), description: 'Password berhasil diperbarui' });
+                            }}>
+                              <Save className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => setEditingGatekeeperId(null)}>
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditingGatekeeperId(gk.id);
+                                setTempGatekeeper({ pageName: gk.pageName, accessCode: gk.accessCode });
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => {
+                                deleteGatekeeperPassword(gk.id);
+                                toast({ title: t('success'), description: 'Password berhasil dihapus' });
                               }}
                             >
                               <Trash2 className="h-4 w-4" />

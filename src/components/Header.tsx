@@ -31,7 +31,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         </button>
         <div>
           <h2 className="text-lg font-semibold text-white">{t('welcome')}</h2>
-          <p className="text-sm text-white/80">{t('manageStudents')}</p>
+          <p className="text-sm text-white/80">{t('manageMutabaah')}</p>
         </div>
       </div>
       
@@ -39,15 +39,15 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         {/* Language Toggle */}
         <LanguageToggle />
         
-        {/* Logout Button */}
+        {/* Logout Button - Icon only */}
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={handleLogout}
           className="text-white hover:bg-white/20 hover:text-white"
+          title={t('logout')}
         >
-          <LogOut size={18} className="mr-2" />
-          {t('logout')}
+          <LogOut size={18} />
         </Button>
       </div>
     </header>

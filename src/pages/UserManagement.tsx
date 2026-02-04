@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Trash2, Key, Eye, EyeOff, GraduationCap, Users, UserCheck, Shield, Book } from 'lucide-react';
+import { Plus, Trash2, Key, Eye, EyeOff, GraduationCap, Users, UserCheck, Shield, Book, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -120,12 +120,19 @@ const UserManagement: React.FC = () => {
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<UserRole>('santri');
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
   const itemsPerPage = 20;
 
   // Persist users with roles
   useEffect(() => {
     localStorage.setItem('kdm_users_roles', JSON.stringify(usersWithRoles));
   }, [usersWithRoles]);
+
+  // Reset page and search when tab changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setSearchQuery('');
+  }, [activeTab]);
 
   const handleAddUser = () => {
     if (!newUser.username || !newUser.password) {
@@ -178,7 +185,17 @@ const UserManagement: React.FC = () => {
     setShowPassword(prev => ({ ...prev, [userId]: !prev[userId] }));
   };
 
-  const filteredUsers = usersWithRoles.filter(u => u.role === activeTab);
+  // Filter users by role and search query
+  const filteredUsers = useMemo(() => {
+    return usersWithRoles.filter(u => {
+      const matchesRole = u.role === activeTab;
+      const matchesSearch = searchQuery 
+        ? u.username.toLowerCase().includes(searchQuery.toLowerCase())
+        : true;
+      return matchesRole && matchesSearch;
+    });
+  }, [usersWithRoles, activeTab, searchQuery]);
+
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
   const paginatedUsers = filteredUsers.slice(
     (currentPage - 1) * itemsPerPage,
@@ -217,24 +234,24 @@ const UserManagement: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as UserRole); setCurrentPage(1); }}>
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="santri" className="flex items-center gap-2">
+        <TabsList className="w-full flex overflow-x-auto scrollbar-hide whitespace-nowrap">
+          <TabsTrigger value="santri" className="flex items-center gap-2 flex-shrink-0">
             <GraduationCap className="h-4 w-4" />
             {t('santriRole')} ({getUserCount('santri')})
           </TabsTrigger>
-          <TabsTrigger value="guru" className="flex items-center gap-2">
+          <TabsTrigger value="guru" className="flex items-center gap-2 flex-shrink-0">
             <UserCheck className="h-4 w-4" />
             {t('guruRole')} ({getUserCount('guru')})
           </TabsTrigger>
-          <TabsTrigger value="ortu" className="flex items-center gap-2">
+          <TabsTrigger value="ortu" className="flex items-center gap-2 flex-shrink-0">
             <Users className="h-4 w-4" />
             {t('ortuRole')} ({getUserCount('ortu')})
           </TabsTrigger>
-          <TabsTrigger value="muhafizh" className="flex items-center gap-2">
+          <TabsTrigger value="muhafizh" className="flex items-center gap-2 flex-shrink-0">
             <Book className="h-4 w-4" />
             {t('muhafizhRole')} ({getUserCount('muhafizh')})
           </TabsTrigger>
-          <TabsTrigger value="admin" className="flex items-center gap-2">
+          <TabsTrigger value="admin" className="flex items-center gap-2 flex-shrink-0">
             <Shield className="h-4 w-4" />
             {t('adminRole')} ({getUserCount('admin')})
           </TabsTrigger>
@@ -243,7 +260,7 @@ const UserManagement: React.FC = () => {
         {(['santri', 'guru', 'ortu', 'muhafizh', 'admin'] as UserRole[]).map(role => (
           <TabsContent key={role} value={role}>
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
+              <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     {getRoleIcon(role)}
@@ -251,43 +268,58 @@ const UserManagement: React.FC = () => {
                   </CardTitle>
                   <CardDescription>{t('addEditDeleteUsers')}</CardDescription>
                 </div>
-                <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-[#5db3d2] hover:bg-[#4a9ab8]">
-                      <Plus className="h-4 w-4 mr-2" />
-                      {t('addUser')}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>{t('addNewUser')} - {getRoleLabel(activeTab)}</DialogTitle>
-                      <DialogDescription>{t('enterUsernamePassword')}</DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div>
-                        <Label>{t('username')}</Label>
-                        <Input
-                          value={newUser.username}
-                          onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-                          placeholder={t('username')}
-                        />
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {/* Search Input */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      placeholder={t('searchUsers')}
+                      className="pl-9 w-full sm:w-64"
+                    />
+                  </div>
+                  <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-[#5db3d2] hover:bg-[#4a9ab8]">
+                        <Plus className="h-4 w-4 mr-2" />
+                        {t('addUser')}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>{t('addNewUser')} - {getRoleLabel(activeTab)}</DialogTitle>
+                        <DialogDescription>{t('enterUsernamePassword')}</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div>
+                          <Label>{t('username')}</Label>
+                          <Input
+                            value={newUser.username}
+                            onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                            placeholder={t('username')}
+                          />
+                        </div>
+                        <div>
+                          <Label>{t('password')}</Label>
+                          <Input
+                            type="password"
+                            value={newUser.password}
+                            onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                            placeholder={t('password')}
+                          />
+                        </div>
                       </div>
-                      <div>
-                        <Label>{t('password')}</Label>
-                        <Input
-                          type="password"
-                          value={newUser.password}
-                          onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                          placeholder={t('password')}
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setAddDialogOpen(false)}>{t('cancel')}</Button>
-                      <Button onClick={handleAddUser} className="bg-[#5db3d2] hover:bg-[#4a9ab8]">{t('add')}</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setAddDialogOpen(false)}>{t('cancel')}</Button>
+                        <Button onClick={handleAddUser} className="bg-[#5db3d2] hover:bg-[#4a9ab8]">{t('add')}</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </CardHeader>
               <CardContent>
                 <Table>

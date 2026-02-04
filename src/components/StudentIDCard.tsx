@@ -84,8 +84,8 @@ const StudentIDCard: React.FC<StudentIDCardProps> = ({
     const schoolNameLines = pdf.splitTextToSize(schoolName, 70);
     pdf.text(schoolNameLines, 42.8, 9, { align: 'center' });
 
-    // White card area
-    pdf.setFillColor(255, 255, 255);
+    // White card area with transparent background
+    pdf.setFillColor(255, 255, 255, 0.9);
     pdf.roundedRect(3, 14, 79.6, 37, 2, 2, 'F');
 
     // Photo placeholder
@@ -177,7 +177,7 @@ const StudentIDCard: React.FC<StudentIDCardProps> = ({
       '1. Kartu ini berlaku selama siswa terdaftar di lembaga.',
       '2. Kartu berlaku sesuai waktu yang ditetapkan.',
       '3. Apabila kartu ini hilang atau rusak, segera melapor ke bagian administrasi asrama.',
-      `4. Bagi yang menemukan kartu ini, diharap mengembalikan ke: ${schoolAddress.substring(0, 50)}`,
+      `4. Penemu harap mengembalikan ke: ${schoolAddress || 'Alamat Sekolah'}`,
     ];
     
     let ruleY = 34;
@@ -219,8 +219,8 @@ const StudentIDCard: React.FC<StudentIDCardProps> = ({
                 <p className="text-[8px] opacity-90 px-4 truncate">{schoolName}</p>
               </div>
 
-              {/* White card body */}
-              <div className="bg-white mx-2 rounded-lg p-3 h-[165px] flex gap-3">
+              {/* White card body with semi-transparent background */}
+              <div className="bg-white/90 backdrop-blur-sm mx-2 rounded-lg p-3 h-[165px] flex gap-3">
                 {/* Photo */}
                 <div className="w-[88px] h-[112px] rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0 border border-gray-200">
                   {student.photo ? (
@@ -281,12 +281,12 @@ const StudentIDCard: React.FC<StudentIDCardProps> = ({
                 </p>
               </div>
 
-              {/* Content */}
-              <div className="p-4 space-y-3">
+              {/* Content with semi-transparent background */}
+              <div className="p-4 space-y-3 bg-white/80">
                 {/* Barcode */}
-                <div className="flex justify-center bg-white p-2 rounded-lg">
+                <div className="flex justify-center bg-white/90 p-2 rounded-lg">
                   <div className="text-center">
-                    <div className="h-10 flex items-center justify-center bg-gray-100 px-4 rounded">
+                    <div className="h-10 flex items-center justify-center bg-gray-100/80 px-4 rounded">
                       <span className="font-mono text-sm font-bold tracking-widest">{student.studentId}</span>
                     </div>
                     <p className="text-[8px] text-gray-500 mt-1">BARCODE ID</p>
@@ -298,7 +298,7 @@ const StudentIDCard: React.FC<StudentIDCardProps> = ({
                   <p>1. Kartu ini berlaku selama siswa terdaftar di lembaga.</p>
                   <p>2. Kartu berlaku sesuai waktu yang ditetapkan.</p>
                   <p>3. Apabila kartu hilang/rusak, segera melapor ke administrasi.</p>
-                  <p className="truncate">4. Penemu harap mengembalikan ke: {schoolAddress}</p>
+                  <p className="truncate">4. Penemu harap mengembalikan ke: {schoolAddress || 'Alamat Sekolah'}</p>
                 </div>
               </div>
             </div>
