@@ -15,10 +15,10 @@ const AddStudent: React.FC = () => {
       </div>
 
       <Tabs defaultValue="students" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="students">Add New Student</TabsTrigger>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="halaqah">Halaqah Management</TabsTrigger>
+        <TabsList className="w-full flex overflow-x-auto scrollbar-hide whitespace-nowrap">
+          <TabsTrigger value="students" className="flex-shrink-0">Add New Student</TabsTrigger>
+          <TabsTrigger value="halaqah" className="flex-shrink-0">Halaqah Management</TabsTrigger>
+          <TabsTrigger value="profile" className="flex-shrink-0">Profile</TabsTrigger>
         </TabsList>
         
         <TabsContent value="students" className="space-y-6">
@@ -26,12 +26,12 @@ const AddStudent: React.FC = () => {
           <RegisteredStudentsTable />
         </TabsContent>
         
-        <TabsContent value="profile" className="space-y-6">
-          <StudentProfileTab />
-        </TabsContent>
-        
         <TabsContent value="halaqah" className="space-y-6">
           <HalaqahManagement />
+        </TabsContent>
+        
+        <TabsContent value="profile" className="space-y-6">
+          <StudentProfileTab />
         </TabsContent>
       </Tabs>
     </div>

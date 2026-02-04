@@ -13,6 +13,7 @@ const translations: Translations = {
   // Header
   welcome: { id: 'Selamat Datang', en: 'Welcome' },
   manageStudents: { id: 'Kelola data santri dengan mudah', en: 'Manage student data easily' },
+  manageMutabaah: { id: 'Kelola Mutabaah harian dengan mudah', en: 'Manage daily Mutabaah easily' },
   
   // Dashboard
   dashboard: { id: 'Overview', en: 'Overview' },
@@ -263,6 +264,32 @@ const translations: Translations = {
   remove: { id: 'Hapus', en: 'Remove' },
   copied: { id: 'Disalin', en: 'Copied' },
   copy: { id: 'Salin', en: 'Copy' },
+  
+  // Settings Tabs
+  memorizationSettings: { id: 'Pengaturan Hafalan', en: 'Memorization Settings' },
+  memorizationSettingsDesc: { id: 'Kelola program dan target hafalan', en: 'Manage programs and memorization targets' },
+  financeSettings: { id: 'Pengaturan Keuangan', en: 'Finance Settings' },
+  financeSettingsDesc: { id: 'Kelola kategori pengeluaran dan batas harian', en: 'Manage expense categories and daily limits' },
+  attendanceSettings: { id: 'Pengaturan Kehadiran', en: 'Attendance Settings' },
+  attendanceSettingsDesc: { id: 'Kelola kategori kehadiran', en: 'Manage attendance categories' },
+  activitiesSettings: { id: 'Pengaturan Aktivitas', en: 'Activities Settings' },
+  activitiesSettingsDesc: { id: 'Kelola kategori aktivitas harian', en: 'Manage daily activity categories' },
+  gatekeeperSettings: { id: 'Pengaturan Gatekeeper', en: 'Gatekeeper Settings' },
+  gatekeeperSettingsDesc: { id: 'Kelola password halaman gatekeeper', en: 'Manage gatekeeper page passwords' },
+  programName: { id: 'Nama Program', en: 'Program Name' },
+  targetMonthly: { id: 'Target/Bulan', en: 'Monthly Target' },
+  targetSemester: { id: 'Target/Semester', en: 'Semester Target' },
+  pages: { id: 'halaman', en: 'pages' },
+  juz: { id: 'juz', en: 'juz' },
+  category: { id: 'Kategori', en: 'Category' },
+  maxDailyExpense: { id: 'Batas Pengeluaran Harian', en: 'Daily Expense Limit' },
+  pageName: { id: 'Nama Halaman', en: 'Page Name' },
+  accessCode: { id: 'Kode Akses', en: 'Access Code' },
+  search: { id: 'Cari', en: 'Search' },
+  searchUsers: { id: 'Cari pengguna...', en: 'Search users...' },
+  importExcel: { id: 'Import Excel/CSV', en: 'Import Excel/CSV' },
+  exportExcel: { id: 'Export Excel/CSV', en: 'Export Excel/CSV' },
+  downloadTemplate: { id: 'Download Template', en: 'Download Template' },
 };
 
 interface LanguageContextType {

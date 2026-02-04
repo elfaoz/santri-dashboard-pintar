@@ -56,6 +56,35 @@ export interface WithdrawalRequest {
   studentReports?: { nama: string; halaqah: string; pencapaian: number; bonus: number }[];
 }
 
+// New interfaces for Settings tabs
+export interface MemorizationProgram {
+  id: string;
+  name: string;
+  targetMonthly: number; // pages per month
+  targetSemester: number; // pages per semester
+}
+
+export interface ExpenseCategory {
+  id: string;
+  name: string;
+}
+
+export interface AttendanceCategory {
+  id: string;
+  name: string;
+}
+
+export interface ActivityCategory {
+  id: string;
+  name: string;
+}
+
+export interface GatekeeperPassword {
+  id: string;
+  pageName: string;
+  accessCode: string;
+}
+
 interface SettingsContextType {
   // Vouchers
   vouchers: VoucherData[];
@@ -100,6 +129,38 @@ interface SettingsContextType {
   addWithdrawalRequest: (request: Omit<WithdrawalRequest, 'id' | 'status'>) => void;
   updateWithdrawalStatus: (id: string, status: WithdrawalRequest['status']) => void;
   deleteWithdrawalRequest: (id: string) => void;
+  
+  // Memorization Programs
+  memorizationPrograms: MemorizationProgram[];
+  addMemorizationProgram: (program: Omit<MemorizationProgram, 'id'>) => void;
+  updateMemorizationProgram: (id: string, program: Partial<MemorizationProgram>) => void;
+  deleteMemorizationProgram: (id: string) => void;
+  
+  // Expense Categories & Settings
+  expenseCategories: ExpenseCategory[];
+  addExpenseCategory: (category: Omit<ExpenseCategory, 'id'>) => void;
+  updateExpenseCategory: (id: string, category: Partial<ExpenseCategory>) => void;
+  deleteExpenseCategory: (id: string) => void;
+  maxDailyExpense: number;
+  setMaxDailyExpense: (amount: number) => void;
+  
+  // Attendance Categories
+  attendanceCategories: AttendanceCategory[];
+  addAttendanceCategory: (category: Omit<AttendanceCategory, 'id'>) => void;
+  updateAttendanceCategory: (id: string, category: Partial<AttendanceCategory>) => void;
+  deleteAttendanceCategory: (id: string) => void;
+  
+  // Activity Categories
+  activityCategories: ActivityCategory[];
+  addActivityCategory: (category: Omit<ActivityCategory, 'id'>) => void;
+  updateActivityCategory: (id: string, category: Partial<ActivityCategory>) => void;
+  deleteActivityCategory: (id: string) => void;
+  
+  // Gatekeeper Passwords
+  gatekeeperPasswords: GatekeeperPassword[];
+  addGatekeeperPassword: (password: Omit<GatekeeperPassword, 'id'>) => void;
+  updateGatekeeperPassword: (id: string, password: Partial<GatekeeperPassword>) => void;
+  deleteGatekeeperPassword: (id: string) => void;
 }
 
 const defaultPrices: PriceData[] = [
@@ -143,6 +204,47 @@ const defaultUsers = [
   { id: '7', username: 'demopesantren4', password: 'freeplan' },
 ];
 
+// New defaults
+const defaultMemorizationPrograms: MemorizationProgram[] = [
+  { id: '1', name: 'Tahsin', targetMonthly: 4, targetSemester: 20 },
+  { id: '2', name: 'Tahfizh 1', targetMonthly: 6, targetSemester: 30 },
+  { id: '3', name: 'Tahfizh 2', targetMonthly: 10, targetSemester: 50 },
+  { id: '4', name: 'Tahfizh Kamil', targetMonthly: 20, targetSemester: 100 },
+];
+
+const defaultExpenseCategories: ExpenseCategory[] = [
+  { id: '1', name: 'Makan' },
+  { id: '2', name: 'Transport' },
+  { id: '3', name: 'Kesehatan' },
+  { id: '4', name: 'Pribadi' },
+  { id: '5', name: 'Pendidikan' },
+];
+
+const defaultAttendanceCategories: AttendanceCategory[] = [
+  { id: '1', name: 'Hadir' },
+  { id: '2', name: 'Alpha' },
+  { id: '3', name: 'Izin' },
+  { id: '4', name: 'Sakit' },
+  { id: '5', name: 'Tanpa Keterangan' },
+  { id: '6', name: 'Haid' },
+];
+
+const defaultActivityCategories: ActivityCategory[] = [
+  { id: '1', name: 'Bangun Tidur' },
+  { id: '2', name: 'Tahajud' },
+  { id: '3', name: 'Rawatib' },
+  { id: '4', name: 'Shaum' },
+  { id: '5', name: 'Tilawah' },
+  { id: '6', name: 'Piket' },
+];
+
+const defaultGatekeeperPasswords: GatekeeperPassword[] = [
+  { id: '1', pageName: 'Attendance', accessCode: 'attendance1' },
+  { id: '2', pageName: 'Memorization', accessCode: 'memorization1' },
+  { id: '3', pageName: 'Finance', accessCode: 'finance1' },
+  { id: '4', pageName: 'Activities', accessCode: 'activities1' },
+];
+
 const allPages = [
   'dashboard', 'profile', 'attendance', 'halaqah', 'activities', 
   'finance', 'event', 'add-student', 'upgrade', 'payment', 'setting'
@@ -153,7 +255,6 @@ const generateDefaultPermissions = () => {
     userId: user.id,
     username: user.username,
     permissions: allPages.reduce((acc, page) => {
-      // Guest only has dashboard access
       if (user.username === 'guest') {
         acc[page] = page === 'dashboard';
       } else {
@@ -212,6 +313,37 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const stored = localStorage.getItem('kdm_withdrawal_requests');
     return stored ? JSON.parse(stored) : [];
   });
+  
+  // New states
+  const [memorizationPrograms, setMemorizationPrograms] = useState<MemorizationProgram[]>(() => {
+    const stored = localStorage.getItem('kdm_memorization_programs');
+    return stored ? JSON.parse(stored) : defaultMemorizationPrograms;
+  });
+  
+  const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>(() => {
+    const stored = localStorage.getItem('kdm_expense_categories');
+    return stored ? JSON.parse(stored) : defaultExpenseCategories;
+  });
+  
+  const [maxDailyExpense, setMaxDailyExpenseState] = useState<number>(() => {
+    const stored = localStorage.getItem('kdm_max_daily_expense');
+    return stored ? parseInt(stored) : 15000;
+  });
+  
+  const [attendanceCategories, setAttendanceCategories] = useState<AttendanceCategory[]>(() => {
+    const stored = localStorage.getItem('kdm_attendance_categories');
+    return stored ? JSON.parse(stored) : defaultAttendanceCategories;
+  });
+  
+  const [activityCategories, setActivityCategories] = useState<ActivityCategory[]>(() => {
+    const stored = localStorage.getItem('kdm_activity_categories');
+    return stored ? JSON.parse(stored) : defaultActivityCategories;
+  });
+  
+  const [gatekeeperPasswords, setGatekeeperPasswords] = useState<GatekeeperPassword[]>(() => {
+    const stored = localStorage.getItem('kdm_gatekeeper_passwords');
+    return stored ? JSON.parse(stored) : defaultGatekeeperPasswords;
+  });
 
   // Persist to localStorage
   useEffect(() => {
@@ -249,6 +381,30 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   useEffect(() => {
     localStorage.setItem('kdm_withdrawal_requests', JSON.stringify(withdrawalRequests));
   }, [withdrawalRequests]);
+  
+  useEffect(() => {
+    localStorage.setItem('kdm_memorization_programs', JSON.stringify(memorizationPrograms));
+  }, [memorizationPrograms]);
+  
+  useEffect(() => {
+    localStorage.setItem('kdm_expense_categories', JSON.stringify(expenseCategories));
+  }, [expenseCategories]);
+  
+  useEffect(() => {
+    localStorage.setItem('kdm_max_daily_expense', maxDailyExpense.toString());
+  }, [maxDailyExpense]);
+  
+  useEffect(() => {
+    localStorage.setItem('kdm_attendance_categories', JSON.stringify(attendanceCategories));
+  }, [attendanceCategories]);
+  
+  useEffect(() => {
+    localStorage.setItem('kdm_activity_categories', JSON.stringify(activityCategories));
+  }, [activityCategories]);
+  
+  useEffect(() => {
+    localStorage.setItem('kdm_gatekeeper_passwords', JSON.stringify(gatekeeperPasswords));
+  }, [gatekeeperPasswords]);
 
   // Voucher functions
   const addVoucher = (voucher: Omit<VoucherData, 'id'>) => {
@@ -317,7 +473,6 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     const newUser = { id: newUserId, ...user };
     setUsers([...users, newUser]);
     
-    // Add default permissions for new user
     const newPermission: RolePermission = {
       userId: newUserId,
       username: user.username,
@@ -362,6 +517,80 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const deleteWithdrawalRequest = (id: string) => {
     setWithdrawalRequests(prev => prev.filter(req => req.id !== id));
   };
+  
+  // Memorization Programs functions
+  const addMemorizationProgram = (program: Omit<MemorizationProgram, 'id'>) => {
+    const newProgram = { ...program, id: Date.now().toString() };
+    setMemorizationPrograms([...memorizationPrograms, newProgram]);
+  };
+  
+  const updateMemorizationProgram = (id: string, program: Partial<MemorizationProgram>) => {
+    setMemorizationPrograms(memorizationPrograms.map(p => p.id === id ? { ...p, ...program } : p));
+  };
+  
+  const deleteMemorizationProgram = (id: string) => {
+    setMemorizationPrograms(memorizationPrograms.filter(p => p.id !== id));
+  };
+  
+  // Expense Categories functions
+  const addExpenseCategory = (category: Omit<ExpenseCategory, 'id'>) => {
+    const newCategory = { ...category, id: Date.now().toString() };
+    setExpenseCategories([...expenseCategories, newCategory]);
+  };
+  
+  const updateExpenseCategory = (id: string, category: Partial<ExpenseCategory>) => {
+    setExpenseCategories(expenseCategories.map(c => c.id === id ? { ...c, ...category } : c));
+  };
+  
+  const deleteExpenseCategory = (id: string) => {
+    setExpenseCategories(expenseCategories.filter(c => c.id !== id));
+  };
+  
+  const setMaxDailyExpense = (amount: number) => {
+    setMaxDailyExpenseState(amount);
+  };
+  
+  // Attendance Categories functions
+  const addAttendanceCategory = (category: Omit<AttendanceCategory, 'id'>) => {
+    const newCategory = { ...category, id: Date.now().toString() };
+    setAttendanceCategories([...attendanceCategories, newCategory]);
+  };
+  
+  const updateAttendanceCategory = (id: string, category: Partial<AttendanceCategory>) => {
+    setAttendanceCategories(attendanceCategories.map(c => c.id === id ? { ...c, ...category } : c));
+  };
+  
+  const deleteAttendanceCategory = (id: string) => {
+    setAttendanceCategories(attendanceCategories.filter(c => c.id !== id));
+  };
+  
+  // Activity Categories functions
+  const addActivityCategory = (category: Omit<ActivityCategory, 'id'>) => {
+    const newCategory = { ...category, id: Date.now().toString() };
+    setActivityCategories([...activityCategories, newCategory]);
+  };
+  
+  const updateActivityCategory = (id: string, category: Partial<ActivityCategory>) => {
+    setActivityCategories(activityCategories.map(c => c.id === id ? { ...c, ...category } : c));
+  };
+  
+  const deleteActivityCategory = (id: string) => {
+    setActivityCategories(activityCategories.filter(c => c.id !== id));
+  };
+  
+  // Gatekeeper Passwords functions
+  const addGatekeeperPassword = (password: Omit<GatekeeperPassword, 'id'>) => {
+    const newPassword = { ...password, id: Date.now().toString() };
+    setGatekeeperPasswords([...gatekeeperPasswords, newPassword]);
+  };
+  
+  const updateGatekeeperPassword = (id: string, password: Partial<GatekeeperPassword>) => {
+    setGatekeeperPasswords(gatekeeperPasswords.map(p => p.id === id ? { ...p, ...password } : p));
+  };
+  
+  const deleteGatekeeperPassword = (id: string) => {
+    setGatekeeperPasswords(gatekeeperPasswords.filter(p => p.id !== id));
+  };
 
   return (
     <SettingsContext.Provider value={{
@@ -393,6 +622,28 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
       addWithdrawalRequest,
       updateWithdrawalStatus,
       deleteWithdrawalRequest,
+      memorizationPrograms,
+      addMemorizationProgram,
+      updateMemorizationProgram,
+      deleteMemorizationProgram,
+      expenseCategories,
+      addExpenseCategory,
+      updateExpenseCategory,
+      deleteExpenseCategory,
+      maxDailyExpense,
+      setMaxDailyExpense,
+      attendanceCategories,
+      addAttendanceCategory,
+      updateAttendanceCategory,
+      deleteAttendanceCategory,
+      activityCategories,
+      addActivityCategory,
+      updateActivityCategory,
+      deleteActivityCategory,
+      gatekeeperPasswords,
+      addGatekeeperPassword,
+      updateGatekeeperPassword,
+      deleteGatekeeperPassword,
     }}>
       {children}
     </SettingsContext.Provider>
