@@ -8,6 +8,15 @@ import { useStudents, Student } from '@/contexts/StudentContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Upload, Download, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
+import { 
+  parseCSVLine, 
+  detectDelimiter, 
+  removeBOM, 
+  STUDENT_CSV_HEADERS, 
+  STUDENT_EXAMPLE_ROWS, 
+  generateCSVContent, 
+  downloadCSV 
+} from '@/utils/csvUtils';
 
 const AddNewStudent: React.FC = () => {
   const { students, addStudent } = useStudents();
@@ -90,72 +99,9 @@ const AddNewStudent: React.FC = () => {
 
   // Download CSV template
   const handleDownloadTemplate = () => {
-    const headers = [
-      'studentId',
-      'fullName',
-      'gender',
-      'placeOfBirth',
-      'dateOfBirth',
-      'fatherName',
-      'motherName',
-      'registrationPeriod',
-      'class',
-      'level',
-      'program',
-      'email',
-      'phoneNumber',
-      'address'
-    ];
-    
-    // Add instruction comments and example rows
-    const instructions = [
-      '# PETUNJUK PENGGUNAAN TEMPLATE IMPORT SANTRI',
-      '# ==========================================',
-      '# 1. Hapus baris yang diawali # (baris instruksi ini) sebelum import',
-      '# 2. Baris pertama adalah HEADER - JANGAN DIHAPUS atau DIUBAH',
-      '# 3. Baris kedua dan seterusnya adalah data contoh - GANTI dengan data santri Anda',
-      '# 4. Simpan file dalam format CSV (UTF-8) sebelum import',
-      '#',
-      '# PENJELASAN KOLOM:',
-      '# - studentId: Nomor Induk Siswa (wajib - contoh: STD001)',
-      '# - fullName: Nama lengkap santri (wajib)',
-      '# - gender: Laki-laki atau Perempuan',
-      '# - placeOfBirth: Tempat lahir',
-      '# - dateOfBirth: Tanggal lahir format YYYY-MM-DD (contoh: 2010-05-15)',
-      '# - fatherName: Nama ayah',
-      '# - motherName: Nama ibu', 
-      '# - registrationPeriod: Periode pendaftaran (contoh: 2025-2026)',
-      '# - class: Kelas (1-12 atau Umum)',
-      '# - level: Jenjang (SD/SMP/SMA/Mahasiswa/Umum)',
-      '# - program: tahfizh-kamil, tahfizh-1, tahfizh-2, atau tahsin',
-      '# - email: Email santri/wali',
-      '# - phoneNumber: Nomor HP dengan kode negara (contoh: +6281234567890)',
-      '# - address: Alamat lengkap',
-      '#'
-    ];
-    
-    const exampleRows = [
-      ['STD001', 'Ahmad Fauzi', 'Laki-laki', 'Jakarta', '2010-05-15', 'Budi Santoso', 'Siti Aminah', '2025-2026', '7', 'SMP', 'tahfizh-kamil', 'ahmad@email.com', '+6281234567890', 'Jl. Merdeka No. 10 Jakarta'],
-      ['STD002', 'Fatimah Zahra', 'Perempuan', 'Bandung', '2011-08-20', 'Ahmad Hidayat', 'Nur Aini', '2025-2026', '6', 'SD', 'tahfizh-1', 'fatimah@email.com', '+6289876543210', 'Jl. Cikutra No. 5 Bandung']
-    ];
-    
-    const csvContent = [
-      ...instructions,
-      headers.join(','),
-      ...exampleRows.map(row => row.map(val => `"${val}"`).join(','))
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'template_import_santri.csv';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    toast.success('Template berhasil didownload');
+    const csvContent = generateCSVContent(STUDENT_CSV_HEADERS, STUDENT_EXAMPLE_ROWS);
+    downloadCSV(csvContent, 'template_import_santri.csv');
+    toast.success('Template berhasil didownload. Ganti baris contoh dengan data santri Anda, jangan ubah baris header.');
   };
 
   // Export students to CSV
@@ -165,23 +111,6 @@ const AddNewStudent: React.FC = () => {
       return;
     }
 
-    const headers = [
-      'studentId',
-      'name',
-      'gender',
-      'placeOfBirth',
-      'dateOfBirth',
-      'fatherName',
-      'motherName',
-      'period',
-      'class',
-      'level',
-      'program',
-      'email',
-      'phoneNumber',
-      'address'
-    ];
-    
     const rows = students.map(student => [
       student.studentId,
       student.name,
@@ -197,19 +126,10 @@ const AddNewStudent: React.FC = () => {
       student.email,
       student.phoneNumber,
       student.address
-    ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(','));
-    
-    const csvContent = [headers.join(','), ...rows].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `data_santri_${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
+    ]);
+
+    const csvContent = generateCSVContent(STUDENT_CSV_HEADERS, rows);
+    downloadCSV(csvContent, `data_santri_${new Date().toISOString().split('T')[0]}.csv`);
     toast.success('Data santri berhasil diexport');
   };
 
@@ -221,46 +141,66 @@ const AddNewStudent: React.FC = () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const text = e.target?.result as string;
+        let text = e.target?.result as string;
+        
+        // Remove BOM character if present
+        text = removeBOM(text);
+        
         // Filter out comment lines (starting with #) and empty lines
         const lines = text.split('\n').filter(line => line.trim() && !line.trim().startsWith('#'));
         
         if (lines.length < 2) {
-          toast.error('File CSV harus memiliki header dan minimal 1 baris data. Pastikan Anda sudah menghapus baris instruksi yang diawali #');
+          toast.error('File CSV harus memiliki header dan minimal 1 baris data.');
           return;
         }
         
+        // Auto-detect delimiter (comma or semicolon)
+        const delimiter = detectDelimiter(text);
+        console.log('Detected delimiter:', delimiter);
+        
         // Parse header
-        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        const headers = parseCSVLine(lines[0], delimiter);
+        console.log('Parsed headers:', headers);
         
         let importedCount = 0;
+        let skippedCount = 0;
         
         // Parse data rows
         for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].match(/("([^"]|"")*"|[^,]*)/g)?.map(v => 
-            v.trim().replace(/^"|"$/g, '').replace(/""/g, '"')
-          ) || [];
+          const line = lines[i].trim();
+          if (!line) continue;
           
-          if (values.length < headers.length) continue;
+          const values = parseCSVLine(line, delimiter);
+          console.log(`Row ${i} values:`, values);
+          
+          // Skip if not enough values (need at least studentId and fullName)
+          if (values.length < 2) {
+            skippedCount++;
+            continue;
+          }
           
           const rowData: { [key: string]: string } = {};
           headers.forEach((header, idx) => {
             rowData[header] = values[idx] || '';
           });
           
+          // Get studentId and name with multiple fallback options
+          const studentId = rowData.studentId || rowData.student_id || rowData['Student ID'] || rowData['Nomor Induk'] || values[0] || '';
+          const fullName = rowData.fullName || rowData.name || rowData['Full Name'] || rowData['Nama Lengkap'] || values[1] || '';
+          
           // Create student from row data
           const newStudent: Student = {
             id: Date.now() + i,
-            studentId: rowData.studentId || rowData.student_id || '',
-            name: rowData.fullName || rowData.name || '',
-            gender: rowData.gender || 'Laki-laki',
-            placeOfBirth: rowData.placeOfBirth || rowData.place_of_birth || '',
-            dateOfBirth: rowData.dateOfBirth || rowData.date_of_birth || '',
-            fatherName: rowData.fatherName || rowData.father_name || '',
-            motherName: rowData.motherName || rowData.mother_name || '',
-            class: rowData.class || '',
-            level: rowData.level || '',
-            period: rowData.registrationPeriod || rowData.period || '',
+            studentId: studentId,
+            name: fullName,
+            gender: rowData.gender || values[2] || 'Laki-laki',
+            placeOfBirth: rowData.placeOfBirth || rowData.place_of_birth || values[3] || '',
+            dateOfBirth: rowData.dateOfBirth || rowData.date_of_birth || values[4] || '',
+            fatherName: rowData.fatherName || rowData.father_name || values[5] || '',
+            motherName: rowData.motherName || rowData.mother_name || values[6] || '',
+            class: rowData.class || values[8] || '',
+            level: rowData.level || values[9] || '',
+            period: rowData.registrationPeriod || rowData.period || values[7] || '',
             program: rowData.program || 'tahfizh-kamil',
             email: rowData.email || '',
             phoneNumber: rowData.phoneNumber || rowData.phone_number || '+62',
@@ -271,16 +211,19 @@ const AddNewStudent: React.FC = () => {
           if (newStudent.studentId && newStudent.name) {
             addStudent(newStudent);
             importedCount++;
+          } else {
+            console.log(`Row ${i} skipped - missing required fields:`, { studentId: newStudent.studentId, name: newStudent.name });
+            skippedCount++;
           }
         }
         
         if (importedCount > 0) {
-          toast.success(`Berhasil mengimport ${importedCount} santri`);
+          toast.success(`Berhasil mengimport ${importedCount} santri${skippedCount > 0 ? ` (${skippedCount} baris dilewati)` : ''}`);
         } else {
-          toast.error('Tidak ada data valid yang bisa diimport. Pastikan kolom studentId dan fullName/name terisi.');
+          toast.error('Tidak ada data valid. Pastikan file CSV menggunakan koma (,) sebagai pemisah dan kolom studentId serta fullName terisi.');
         }
       } catch (error) {
-        toast.error('Gagal memproses file CSV. Pastikan format file benar dan baris instruksi (#) sudah dihapus.');
+        toast.error('Gagal memproses file CSV. Pastikan format sesuai template.');
         console.error(error);
       }
     };
