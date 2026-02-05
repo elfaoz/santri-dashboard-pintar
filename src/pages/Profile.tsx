@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, MapPin, Calendar, CreditCard, Phone, Mail, Clock, Edit3, Download, Lock } from 'lucide-react';
+import { User, MapPin, Calendar, CreditCard, Phone, Mail, Clock, Edit3, Download, Lock, Users, BookOpen, DollarSign, CalendarIcon } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -516,6 +520,48 @@ const Profile: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-800 mb-2">My Profile</h1>
         <p className="text-gray-600">Informasi data pribadi</p>
       </div>
+
+      {/* Stat Cards - Moved from Dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <div className="flex items-center">
+            <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mr-4">
+              <Users className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-600 mb-1">Jumlah Murid</h3>
+              <p className="text-2xl font-bold text-gray-900">{students.length}</p>
+              <p className="text-xs text-gray-500">Santri aktif</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <div className="flex items-center">
+            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+              <BookOpen className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-600 mb-1">Jumlah Halaqah</h3>
+              <p className="text-2xl font-bold text-gray-900">{halaqahs.length}</p>
+              <p className="text-xs text-gray-500">Kelompok belajar</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <div className="flex items-center">
+            <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mr-4">
+              <DollarSign className="w-6 h-6 text-yellow-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-600 mb-1">Bonus</h3>
+              <p className="text-2xl font-bold text-gray-900">Rp {totalBonus.toLocaleString('id-ID')}</p>
+              <p className="text-xs text-gray-500">Bonus Bulan Ini</p>
+            </div>
+          </div>
+        </div>
+      </div>
       
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {/* Header Profile - Solid Blue */}
@@ -654,10 +700,29 @@ const Profile: React.FC = () => {
                       
                       <div className="space-y-2">
                         <Label>Tanggal Lahir</Label>
-                        <Input 
-                          value={formData.dateOfBirth} 
-                          onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                        />
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !formData.dateOfBirth && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {formData.dateOfBirth || <span>Pilih tanggal</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined}
+                              onSelect={(date) => setFormData({ ...formData, dateOfBirth: date ? format(date, 'dd MMMM yyyy') : '' })}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                       
                       <div className="space-y-2">

@@ -220,10 +220,6 @@ const StudentProfileTab: React.FC = () => {
                   <span className="font-medium text-gray-800">: {selectedStudent.studentId}</span>
                 </div>
                 <div className="flex items-center py-2 border-b border-gray-100">
-                  <span className="w-36 text-sm text-gray-500 flex-shrink-0">NIK</span>
-                  <span className="font-medium text-gray-800">: {selectedStudent.nik || '-'}</span>
-                </div>
-                <div className="flex items-center py-2 border-b border-gray-100">
                   <span className="w-36 text-sm text-gray-500 flex-shrink-0">Jenis Kelamin</span>
                   <span className="font-medium text-gray-800">: {selectedStudent.gender}</span>
                 </div>
@@ -279,6 +275,7 @@ const StudentProfileTab: React.FC = () => {
             schoolLogo={schoolData.schoolLogo}
             programId={studentProgram}
             programName={currentProgram.name}
+            showDownloadButton={false}
           />
         </>
       ) : (
@@ -312,14 +309,6 @@ const StudentProfileTab: React.FC = () => {
                   id="edit-name"
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-nik">NIK</Label>
-                <Input
-                  id="edit-nik"
-                  value={editFormData.nik || ''}
-                  onChange={(e) => setEditFormData({ ...editFormData, nik: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
