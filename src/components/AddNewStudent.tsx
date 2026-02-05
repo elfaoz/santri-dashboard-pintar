@@ -18,7 +18,6 @@ const AddNewStudent: React.FC = () => {
   const [formData, setFormData] = useState({
     studentId: '',
     fullName: '',
-    nik: '',
     gender: '',
     placeOfBirth: '',
     dateOfBirth: '',
@@ -51,7 +50,6 @@ const AddNewStudent: React.FC = () => {
       id: uniqueId,
       studentId: formData.studentId,
       name: formData.fullName,
-      nik: formData.nik,
       gender: formData.gender,
       placeOfBirth: formData.placeOfBirth,
       dateOfBirth: formData.dateOfBirth,
@@ -73,7 +71,6 @@ const AddNewStudent: React.FC = () => {
     setFormData({
       studentId: '',
       fullName: '',
-      nik: '',
       gender: '',
       placeOfBirth: '',
       dateOfBirth: '',
@@ -96,7 +93,6 @@ const AddNewStudent: React.FC = () => {
     const headers = [
       'studentId',
       'fullName',
-      'nik',
       'gender',
       'placeOfBirth',
       'dateOfBirth',
@@ -111,25 +107,44 @@ const AddNewStudent: React.FC = () => {
       'address'
     ];
     
-    const exampleRow = [
-      'STD001',
-      'Ahmad Fauzi',
-      '3201012345678901',
-      'Laki-laki',
-      'Jakarta',
-      '2010-05-15',
-      'Budi Santoso',
-      'Siti Aminah',
-      '2025-2026',
-      '7',
-      'SMP',
-      'tahfizh-kamil',
-      'ahmad@email.com',
-      '+6281234567890',
-      'Jl. Merdeka No. 10'
+    // Add instruction comments and example rows
+    const instructions = [
+      '# PETUNJUK PENGGUNAAN TEMPLATE IMPORT SANTRI',
+      '# ==========================================',
+      '# 1. Hapus baris yang diawali # (baris instruksi ini) sebelum import',
+      '# 2. Baris pertama adalah HEADER - JANGAN DIHAPUS atau DIUBAH',
+      '# 3. Baris kedua dan seterusnya adalah data contoh - GANTI dengan data santri Anda',
+      '# 4. Simpan file dalam format CSV (UTF-8) sebelum import',
+      '#',
+      '# PENJELASAN KOLOM:',
+      '# - studentId: Nomor Induk Siswa (wajib - contoh: STD001)',
+      '# - fullName: Nama lengkap santri (wajib)',
+      '# - gender: Laki-laki atau Perempuan',
+      '# - placeOfBirth: Tempat lahir',
+      '# - dateOfBirth: Tanggal lahir format YYYY-MM-DD (contoh: 2010-05-15)',
+      '# - fatherName: Nama ayah',
+      '# - motherName: Nama ibu', 
+      '# - registrationPeriod: Periode pendaftaran (contoh: 2025-2026)',
+      '# - class: Kelas (1-12 atau Umum)',
+      '# - level: Jenjang (SD/SMP/SMA/Mahasiswa/Umum)',
+      '# - program: tahfizh-kamil, tahfizh-1, tahfizh-2, atau tahsin',
+      '# - email: Email santri/wali',
+      '# - phoneNumber: Nomor HP dengan kode negara (contoh: +6281234567890)',
+      '# - address: Alamat lengkap',
+      '#'
     ];
     
-    const csvContent = [headers.join(','), exampleRow.join(',')].join('\n');
+    const exampleRows = [
+      ['STD001', 'Ahmad Fauzi', 'Laki-laki', 'Jakarta', '2010-05-15', 'Budi Santoso', 'Siti Aminah', '2025-2026', '7', 'SMP', 'tahfizh-kamil', 'ahmad@email.com', '+6281234567890', 'Jl. Merdeka No. 10 Jakarta'],
+      ['STD002', 'Fatimah Zahra', 'Perempuan', 'Bandung', '2011-08-20', 'Ahmad Hidayat', 'Nur Aini', '2025-2026', '6', 'SD', 'tahfizh-1', 'fatimah@email.com', '+6289876543210', 'Jl. Cikutra No. 5 Bandung']
+    ];
+    
+    const csvContent = [
+      ...instructions,
+      headers.join(','),
+      ...exampleRows.map(row => row.map(val => `"${val}"`).join(','))
+    ].join('\n');
+    
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -153,7 +168,6 @@ const AddNewStudent: React.FC = () => {
     const headers = [
       'studentId',
       'name',
-      'nik',
       'gender',
       'placeOfBirth',
       'dateOfBirth',
@@ -171,7 +185,6 @@ const AddNewStudent: React.FC = () => {
     const rows = students.map(student => [
       student.studentId,
       student.name,
-      student.nik || '',
       student.gender,
       student.placeOfBirth,
       student.dateOfBirth,
@@ -209,10 +222,11 @@ const AddNewStudent: React.FC = () => {
     reader.onload = (e) => {
       try {
         const text = e.target?.result as string;
-        const lines = text.split('\n').filter(line => line.trim());
+        // Filter out comment lines (starting with #) and empty lines
+        const lines = text.split('\n').filter(line => line.trim() && !line.trim().startsWith('#'));
         
         if (lines.length < 2) {
-          toast.error('File CSV harus memiliki header dan minimal 1 baris data');
+          toast.error('File CSV harus memiliki header dan minimal 1 baris data. Pastikan Anda sudah menghapus baris instruksi yang diawali #');
           return;
         }
         
@@ -239,7 +253,6 @@ const AddNewStudent: React.FC = () => {
             id: Date.now() + i,
             studentId: rowData.studentId || rowData.student_id || '',
             name: rowData.fullName || rowData.name || '',
-            nik: rowData.nik || '',
             gender: rowData.gender || 'Laki-laki',
             placeOfBirth: rowData.placeOfBirth || rowData.place_of_birth || '',
             dateOfBirth: rowData.dateOfBirth || rowData.date_of_birth || '',
@@ -264,10 +277,10 @@ const AddNewStudent: React.FC = () => {
         if (importedCount > 0) {
           toast.success(`Berhasil mengimport ${importedCount} santri`);
         } else {
-          toast.error('Tidak ada data valid yang bisa diimport');
+          toast.error('Tidak ada data valid yang bisa diimport. Pastikan kolom studentId dan fullName/name terisi.');
         }
       } catch (error) {
-        toast.error('Gagal memproses file CSV');
+        toast.error('Gagal memproses file CSV. Pastikan format file benar dan baris instruksi (#) sudah dihapus.');
         console.error(error);
       }
     };
@@ -351,19 +364,6 @@ const AddNewStudent: React.FC = () => {
                 placeholder="Masukkan nama lengkap"
                 className="w-full"
                 required
-              />
-            </div>
-
-            {/* NIK */}
-            <div className="space-y-2">
-              <Label htmlFor="nik">NIK</Label>
-              <Input
-                id="nik"
-                type="text"
-                value={formData.nik}
-                onChange={(e) => handleInputChange('nik', e.target.value)}
-                placeholder="Masukkan NIK"
-                className="w-full"
               />
             </div>
 
