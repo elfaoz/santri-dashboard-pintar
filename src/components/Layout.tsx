@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import Footer from './Footer';
+import MobileBottomNav from './MobileBottomNav';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -29,12 +30,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         }`}>
           <Header onToggleSidebar={toggleSidebar} />
           
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 overflow-auto pb-20 md:pb-0">
             {children}
           </main>
         </div>
       </div>
       <Footer />
+      <MobileBottomNav />
     </div>
   );
 };

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import DashboardStats from '../components/DashboardStats';
 import DashboardNavCards from '../components/DashboardNavCards';
 import ProgramCalendar from '../components/ProgramCalendar';
 import StudentOverviewDashboard from '../components/StudentOverviewDashboard';
@@ -17,17 +16,15 @@ const Dashboard: React.FC = () => {
   const { isGuest } = useAuth();
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-6 pb-24 md:pb-6 space-y-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground mb-2">{t('dashboard')}</h1>
         <p className="text-muted-foreground">Ustadz Ahmad Wijaya</p>
       </div>
       
-      <DashboardStats />
-      
       {/* Navigation Cards - hidden for guest */}
       {!isGuest && <DashboardNavCards />}
-      
+
       <ProgramCalendar />
       
       <StudentOverviewDashboard />

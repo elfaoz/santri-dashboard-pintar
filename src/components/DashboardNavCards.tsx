@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, Book, FileText, Wallet } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { cn } from '@/lib/utils';
 
 const DashboardNavCards: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const [activeCard, setActiveCard] = useState<string | null>(null);
 
   const navItems = [
     {
@@ -14,49 +15,77 @@ const DashboardNavCards: React.FC = () => {
       icon: Calendar,
       label: t('attendance'),
       emoji: '📅',
-      color: 'bg-blue-500',
-      hoverColor: 'hover:bg-blue-600',
     },
     {
       path: '/halaqah',
       icon: Book,
       label: t('memorization'),
       emoji: '📖',
-      color: 'bg-green-500',
-      hoverColor: 'hover:bg-green-600',
     },
     {
       path: '/activities',
       icon: FileText,
       label: t('activities'),
       emoji: '📝',
-      color: 'bg-purple-500',
-      hoverColor: 'hover:bg-purple-600',
     },
     {
       path: '/finance',
       icon: Wallet,
       label: t('finance'),
       emoji: '💸',
-      color: 'bg-orange-500',
-      hoverColor: 'hover:bg-orange-600',
     },
   ];
 
+  const handleCardClick = (path: string) => {
+    setActiveCard(path);
+    navigate(path);
+  };
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      {navItems.map((item) => (
-        <Card
-          key={item.path}
-          className={`cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg ${item.color} ${item.hoverColor} text-white border-0`}
-          onClick={() => navigate(item.path)}
-        >
-          <CardContent className="flex flex-col items-center justify-center p-6">
-            <span className="text-4xl mb-2">{item.emoji}</span>
-            <span className="font-semibold text-center">{item.label}</span>
-          </CardContent>
-        </Card>
-      ))}
+      {navItems.map((item) => {
+        const Icon = item.icon;
+        const isActive = activeCard === item.path;
+        
+        return (
+          <div
+            key={item.path}
+            className={cn(
+              "relative cursor-pointer rounded-2xl p-4 transition-all duration-300",
+              "bg-white/80 backdrop-blur-sm",
+              "border-2 hover:shadow-lg hover:scale-[1.02]",
+              isActive 
+                ? "border-primary bg-primary/5 shadow-lg" 
+                : "border-primary/20 hover:border-primary/50"
+            )}
+            onClick={() => handleCardClick(item.path)}
+          >
+            {/* Subtle gradient overlay on hover/active */}
+            <div className={cn(
+              "absolute inset-0 rounded-2xl transition-opacity duration-300",
+              "bg-gradient-to-br from-primary/5 to-primary/10",
+              isActive ? "opacity-100" : "opacity-0 hover:opacity-50"
+            )} />
+            
+            <div className="relative flex flex-col items-center justify-center py-4 gap-3">
+              {/* Icon container with gradient border */}
+              <div className={cn(
+                "w-14 h-14 rounded-xl flex items-center justify-center",
+                "bg-gradient-to-br from-primary/10 to-primary/20",
+                "border border-primary/30",
+                "transition-all duration-300",
+                isActive && "from-primary/20 to-primary/30 border-primary/50"
+              )}>
+                <Icon className="w-7 h-7 text-primary" />
+              </div>
+              
+              <span className="font-semibold text-center text-foreground text-sm">
+                {item.label}
+              </span>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };

@@ -23,6 +23,12 @@
     --primary: 196 67% 45%;
     --primary-foreground: 0 0% 100%;
 
+    /* Premium Gradient Cards */
+    --gradient-start: 200 100% 65%;
+    --gradient-end: 220 90% 55%;
+    --card-premium-bg: 0 0% 100%;
+    --card-premium-border: 200 100% 50%;
+
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
