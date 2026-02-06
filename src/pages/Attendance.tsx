@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Calendar, CheckCircle, Circle } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Calendar, CheckCircle, Circle, Download, Upload, FileDown } from 'lucide-react';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
 import { useAttendance } from '@/contexts/AttendanceContext';
@@ -10,6 +10,13 @@ import LeaderboardAttendance from '@/components/LeaderboardAttendance';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import GatekeeperModal from '@/components/GatekeeperModal';
+import { toast } from 'sonner';
+import {
+  generateAttendanceTemplate,
+  parseAttendanceCSV,
+  exportAttendanceToCSV,
+  downloadAttendanceCSV
+} from '@/utils/attendanceCSVUtils';
 
 interface StudentAttendance {
   id: string;
@@ -38,10 +45,97 @@ const Attendance: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<StudentAttendance | null>(null);
   const [hasAccess, setHasAccess] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Input form state
   const [attendanceStatus, setAttendanceStatus] = useState<'hadir' | 'izin' | 'sakit' | 'tanpa keterangan' | 'pulang'>('hadir');
   const [remarks, setRemarks] = useState('');
+
+  // Get selected month/year from selectedDate
+  const selectedDateObj = new Date(selectedDate);
+  const selectedMonth = selectedDateObj.getMonth() + 1;
+  const selectedYear = selectedDateObj.getFullYear();
+
+  // CSV Functions
+  const handleDownloadTemplate = () => {
+    const studentsForTemplate = students.map(s => ({
+      studentId: s.studentId,
+      name: s.name,
+      halaqah: halaqahs.find(h => h.selectedStudents?.includes(s.id.toString()))?.name || ''
+    }));
+    
+    const csvContent = generateAttendanceTemplate(studentsForTemplate, selectedMonth, selectedYear);
+    const monthName = selectedDateObj.toLocaleDateString('id-ID', { month: 'long' });
+    downloadAttendanceCSV(csvContent, `template_absensi_${monthName}_${selectedYear}.csv`);
+    toast.success('Template berhasil didownload');
+  };
+
+  const handleImportCSV = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const parsedData = parseAttendanceCSV(content, selectedMonth, selectedYear);
+        
+        let importedCount = 0;
+        parsedData.forEach(studentData => {
+          studentData.dailyStatus.forEach(dayData => {
+            const dateStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(dayData.day).padStart(2, '0')}`;
+            
+            const record: AttendanceRecord = {
+              id: `${studentData.studentId}-${dateStr}`,
+              studentId: studentData.studentId,
+              studentName: studentData.studentName,
+              date: dateStr,
+              status: dayData.status as AttendanceRecord['status'],
+              remarks: dayData.remarks
+            };
+            
+            addAttendanceRecord(record);
+            importedCount++;
+          });
+        });
+        
+        toast.success(`Berhasil import ${importedCount} data absensi dari ${parsedData.length} santri`);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Gagal import file CSV');
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleExportCSV = () => {
+    const studentsForExport = students.map(s => ({
+      studentId: s.studentId,
+      name: s.name,
+      halaqah: halaqahs.find(h => h.selectedStudents?.includes(s.id.toString()))?.name || ''
+    }));
+    
+    const csvContent = exportAttendanceToCSV(
+      attendanceRecords.map(r => ({
+        studentId: r.studentId,
+        studentName: r.studentName,
+        date: r.date,
+        status: r.status,
+        remarks: r.remarks
+      })),
+      studentsForExport,
+      selectedMonth,
+      selectedYear
+    );
+    
+    const monthName = selectedDateObj.toLocaleDateString('id-ID', { month: 'long' });
+    downloadAttendanceCSV(csvContent, `data_absensi_${monthName}_${selectedYear}.csv`);
+    toast.success('Data absensi berhasil diexport');
+  };
 
   const getStudentsByHalaqah = (halaqahId: string) => {
     if (halaqahId === 'all') return students;
@@ -124,19 +218,56 @@ const Attendance: React.FC = () => {
       {hasAccess && (
         <div className="p-6">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">Attendance</h1>
-            <p className="text-gray-600">Kelola absensi santri harian</p>
+            <h1 className="text-2xl font-bold text-foreground mb-2">Attendance</h1>
+            <p className="text-muted-foreground">Kelola absensi santri harian</p>
+          </div>
+
+          {/* CSV Import/Export Buttons */}
+          <div className="mb-6 flex flex-wrap gap-3">
+            <Button
+              variant="outline"
+              onClick={handleDownloadTemplate}
+              className="flex items-center gap-2"
+            >
+              <Download size={16} />
+              Download Template
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-2"
+            >
+              <Upload size={16} />
+              Import CSV
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleImportCSV}
+              className="hidden"
+            />
+            
+            <Button
+              variant="outline"
+              onClick={handleExportCSV}
+              className="flex items-center gap-2"
+            >
+              <FileDown size={16} />
+              Export CSV
+            </Button>
           </div>
 
           {/* Filters */}
           <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-center space-x-3">
-              <Calendar className="text-gray-400" size={20} />
+              <Calendar className="text-muted-foreground" size={20} />
               <input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             
@@ -146,7 +277,7 @@ const Attendance: React.FC = () => {
                 setSelectedHalaqah(e.target.value);
                 setSelectedStudent('');
               }}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="all">Semua Halaqah</option>
               {halaqahs.map(halaqah => (
@@ -159,7 +290,7 @@ const Attendance: React.FC = () => {
             <select 
               value={selectedStudent}
               onChange={(e) => setSelectedStudent(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
               disabled={filteredStudents.length === 0}
             >
               <option value="">Pilih Santri</option>
@@ -172,12 +303,12 @@ const Attendance: React.FC = () => {
           </div>
 
           {/* Input Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-            <div className="px-6 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-800">
+          <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden mb-8">
+            <div className="px-6 py-4 border-b border-border">
+              <h3 className="text-lg font-semibold text-foreground">
                 Input Absensi - {selectedStudent ? students.find(s => s.id.toString() === selectedStudent)?.name : 'Pilih Santri'}
               </h3>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 Tanggal: {new Date(selectedDate).toLocaleDateString('id-ID', {
                   weekday: 'long',
                   year: 'numeric',
@@ -194,20 +325,20 @@ const Attendance: React.FC = () => {
                     key={status}
                     className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
                       attendanceStatus === status
-                        ? 'border-blue-200 bg-blue-50'
-                        : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                        ? 'border-primary/30 bg-primary/5'
+                        : 'border-border bg-muted/30 hover:border-primary/20'
                     }`}
                     onClick={() => setAttendanceStatus(status)}
                   >
                     <div className="flex items-center space-x-3">
                       {attendanceStatus === status ? (
-                        <CheckCircle className="text-blue-600" size={24} />
+                        <CheckCircle className="text-primary" size={24} />
                       ) : (
-                        <Circle className="text-gray-400" size={24} />
+                        <Circle className="text-muted-foreground" size={24} />
                       )}
                       <div className="flex-1">
                         <span className={`font-medium capitalize ${
-                          attendanceStatus === status ? 'text-blue-800' : 'text-gray-700'
+                          attendanceStatus === status ? 'text-primary' : 'text-muted-foreground'
                         }`}>
                           {status}
                         </span>
@@ -218,30 +349,30 @@ const Attendance: React.FC = () => {
               </div>
               
               <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Keterangan (opsional)
                 </label>
                 <textarea
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
                   placeholder="Masukkan keterangan..."
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                   rows={3}
                 />
               </div>
               
-              <div className="mt-6 pt-6 border-t border-gray-100">
+              <div className="mt-6 pt-6 border-t border-border">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-muted-foreground">
                     Status: <span className="font-medium capitalize">{attendanceStatus}</span>
                   </div>
-                  <button 
+                  <Button 
                     onClick={handleSaveAttendance}
                     disabled={!selectedStudent}
-                    className="bg-[#5db3d2] text-white px-6 py-2 rounded-lg font-medium hover:bg-[#4a9ab8] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
                   >
                     Save Attendance
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -249,21 +380,21 @@ const Attendance: React.FC = () => {
 
           {/* Weekly Attendance Table */}
           {studentRecords.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-800">
+            <div className="bg-card rounded-xl shadow-sm border border-border overflow-hidden mb-8">
+              <div className="px-6 py-4 border-b border-border">
+                <h3 className="text-lg font-semibold text-foreground">
                   Riwayat Absensi - 7 Hari Terakhir
                 </h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-muted/50">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
                         Santri
                       </th>
                       {weekDates.map(date => (
-                        <th key={date} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                        <th key={date} className="px-4 py-3 text-center text-xs font-medium text-muted-foreground uppercase">
                           {new Date(date).toLocaleDateString('id-ID', { 
                             month: 'short', 
                             day: 'numeric'
@@ -272,9 +403,9 @@ const Attendance: React.FC = () => {
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-card divide-y divide-border">
                     <tr>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
+                      <td className="px-4 py-3 text-sm font-medium text-foreground bg-muted/30">
                         {selectedStudent ? students.find(s => s.id.toString() === selectedStudent)?.name : 'All Students'}
                       </td>
                       {weekDates.map(date => {
@@ -285,13 +416,13 @@ const Attendance: React.FC = () => {
                               <div className="flex flex-col items-center">
                                 {getStatusBadge(record.status)}
                                 {record.remarks && (
-                                  <span className="text-xs text-gray-500 mt-1" title={record.remarks}>
+                                  <span className="text-xs text-muted-foreground mt-1" title={record.remarks}>
                                     {record.remarks.substring(0, 10)}...
                                   </span>
                                 )}
                               </div>
                             ) : (
-                              <Circle className="mx-auto text-gray-300" size={20} />
+                              <Circle className="mx-auto text-muted-foreground/40" size={20} />
                             )}
                           </td>
                         );

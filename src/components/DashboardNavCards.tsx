@@ -54,9 +54,10 @@ const DashboardNavCards: React.FC = () => {
               "relative cursor-pointer rounded-2xl p-4 transition-all duration-300",
               "bg-white/80 backdrop-blur-sm",
               "border-2 hover:shadow-lg hover:scale-[1.02]",
+              "hover:bg-[#5db3d2]/10 hover:border-[#5db3d2]",
               isActive 
-                ? "border-primary bg-primary/5 shadow-lg" 
-                : "border-primary/20 hover:border-primary/50"
+                ? "border-[#5db3d2] bg-[#5db3d2]/10 shadow-lg" 
+                : "border-primary/20"
             )}
             onClick={() => handleCardClick(item.path)}
           >
