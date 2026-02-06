@@ -13,53 +13,88 @@ import {
   detectDelimiter, 
   removeBOM, 
   STUDENT_CSV_HEADERS, 
-  STUDENT_EXAMPLE_ROWS, 
   generateCSVContent, 
-  downloadCSV 
+  downloadCSV,
+  generateTemplateContent,
+  parseStudentRow
 } from '@/utils/csvUtils';
+
+// Form field configuration - synced with CSV structure
+interface FormFieldConfig {
+  key: string;
+  label: string;
+  type: 'text' | 'email' | 'tel' | 'date' | 'select';
+  placeholder?: string;
+  required: boolean;
+  fullWidth?: boolean;
+  options?: string[] | { value: string; label: string }[];
+}
+
+const FORM_FIELDS: FormFieldConfig[] = [
+  { key: 'studentId', label: 'Nomor Induk', type: 'text', placeholder: 'Masukkan nomor induk', required: true },
+  { key: 'fullName', label: 'Nama Lengkap', type: 'text', placeholder: 'Masukkan nama lengkap', required: true },
+  { key: 'gender', label: 'Jenis Kelamin', type: 'select', options: ['Laki-laki', 'Perempuan'], required: false },
+  { key: 'placeOfBirth', label: 'Tempat Lahir', type: 'text', placeholder: 'Masukkan tempat lahir', required: false },
+  { key: 'dateOfBirth', label: 'Tanggal Lahir', type: 'date', required: false },
+  { key: 'fatherName', label: 'Nama Ayah', type: 'text', placeholder: 'Masukkan nama ayah', required: false },
+  { key: 'motherName', label: 'Nama Ibu', type: 'text', placeholder: 'Masukkan nama ibu', required: false },
+  { key: 'registrationPeriod', label: 'Periode Pendaftaran', type: 'text', placeholder: 'contoh: 2025-2026', required: false },
+  { key: 'class', label: 'Kelas', type: 'select', options: ['1','2','3','4','5','6','7','8','9','10','11','12','Umum'], required: false },
+  { key: 'level', label: 'Jenjang', type: 'select', options: ['SD','SMP','SMA','Mahasiswa','Umum'], required: false },
+  { key: 'program', label: 'Program', type: 'select', options: [
+    { value: 'tahsin', label: 'Tahsin' },
+    { value: 'tahfizh-1', label: 'Tahfizh 1' },
+    { value: 'tahfizh-2', label: 'Tahfizh 2' },
+    { value: 'tahfizh-kamil', label: 'Tahfizh Kamil' }
+  ], required: false },
+  { key: 'email', label: 'Email', type: 'email', placeholder: 'Masukkan email', required: false },
+  { key: 'phoneNumber', label: 'Nomor HP', type: 'tel', placeholder: '+62...', required: false },
+  { key: 'address', label: 'Alamat', type: 'text', placeholder: 'Masukkan alamat lengkap', required: false, fullWidth: true },
+];
+
+// Initial form state - synced with FORM_FIELDS
+const getInitialFormState = () => ({
+  studentId: '',
+  fullName: '',
+  gender: '',
+  placeOfBirth: '',
+  dateOfBirth: '',
+  fatherName: '',
+  motherName: '',
+  registrationPeriod: '',
+  class: '',
+  level: '',
+  program: 'tahfizh-kamil',
+  email: '',
+  phoneNumber: '+62',
+  address: ''
+});
+
+type FormDataType = ReturnType<typeof getInitialFormState>;
 
 const AddNewStudent: React.FC = () => {
   const { students, addStudent } = useStudents();
   const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  // Form state
-  const [formData, setFormData] = useState({
-    studentId: '',
-    fullName: '',
-    gender: '',
-    placeOfBirth: '',
-    dateOfBirth: '',
-    fatherName: '',
-    motherName: '',
-    registrationPeriod: '',
-    class: '',
-    level: '',
-    program: 'tahfizh-kamil',
-    email: '',
-    phoneNumber: '+62',
-    address: ''
-  });
+  const [formData, setFormData] = useState<FormDataType>(getInitialFormState());
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Generate unique ID based on timestamp
-    const uniqueId = Date.now();
-    
-    // Create new student object
+    if (!formData.studentId || !formData.fullName) {
+      toast.error('Nomor Induk dan Nama Lengkap wajib diisi');
+      return;
+    }
+
     const newStudent: Student = {
-      id: uniqueId,
+      id: Date.now(),
       studentId: formData.studentId,
       name: formData.fullName,
-      gender: formData.gender,
+      gender: formData.gender || 'Laki-laki',
       placeOfBirth: formData.placeOfBirth,
       dateOfBirth: formData.dateOfBirth,
       fatherName: formData.fatherName,
@@ -73,59 +108,41 @@ const AddNewStudent: React.FC = () => {
       address: formData.address
     };
 
-    // Add to students array
     addStudent(newStudent);
-
-    // Reset form
-    setFormData({
-      studentId: '',
-      fullName: '',
-      gender: '',
-      placeOfBirth: '',
-      dateOfBirth: '',
-      fatherName: '',
-      motherName: '',
-      registrationPeriod: '',
-      class: '',
-      level: '',
-      program: 'tahfizh-kamil',
-      email: '',
-      phoneNumber: '+62',
-      address: ''
-    });
-
+    setFormData(getInitialFormState());
     toast.success('Santri berhasil ditambahkan');
   };
 
-  // Download CSV template
+  // Download CSV template with instructions
   const handleDownloadTemplate = () => {
-    const csvContent = generateCSVContent(STUDENT_CSV_HEADERS, STUDENT_EXAMPLE_ROWS);
-    downloadCSV(csvContent, 'template_import_santri.csv');
-    toast.success('Template berhasil didownload. Ganti baris contoh dengan data santri Anda, jangan ubah baris header.');
+    const content = generateTemplateContent();
+    downloadCSV(content, 'template_import_santri.csv');
+    toast.success('Template berhasil didownload. Buka file dan ikuti petunjuk di dalamnya.');
   };
 
-  // Export students to CSV
+  // Export students to CSV - using exact same headers as template
   const handleExportCSV = () => {
     if (students.length === 0) {
       toast.error('Tidak ada data santri untuk diexport');
       return;
     }
 
+    // Map student data to CSV rows in exact header order
     const rows = students.map(student => [
-      student.studentId,
-      student.name,
-      student.gender,
-      student.placeOfBirth,
-      student.dateOfBirth,
-      student.fatherName,
-      student.motherName,
-      student.period,
-      student.class,
-      student.level,
+      student.studentId || '',
+      student.name || '',
+      student.gender || '',
+      student.placeOfBirth || '',
+      student.dateOfBirth || '',
+      student.fatherName || '',
+      student.motherName || '',
+      student.period || '',
+      student.class || '',
+      student.level || '',
       student.program || '',
-      student.email,
-      student.phoneNumber,
-      student.address
+      student.email || '',
+      student.phoneNumber || '',
+      student.address || ''
     ]);
 
     const csvContent = generateCSVContent(STUDENT_CSV_HEADERS, rows);
@@ -142,85 +159,72 @@ const AddNewStudent: React.FC = () => {
     reader.onload = (e) => {
       try {
         let text = e.target?.result as string;
-        
-        // Remove BOM character if present
         text = removeBOM(text);
         
-        // Filter out comment lines (starting with #) and empty lines
-        const lines = text.split('\n').filter(line => line.trim() && !line.trim().startsWith('#'));
+        // Filter out comment lines and empty lines
+        const lines = text.split('\n').filter(line => {
+          const trimmed = line.trim();
+          return trimmed && !trimmed.startsWith('#');
+        });
         
         if (lines.length < 2) {
-          toast.error('File CSV harus memiliki header dan minimal 1 baris data.');
+          toast.error('File CSV harus memiliki header dan minimal 1 baris data');
           return;
         }
         
-        // Auto-detect delimiter (comma or semicolon)
-        const delimiter = detectDelimiter(text);
-        console.log('Detected delimiter:', delimiter);
-        
-        // Parse header
+        const delimiter = detectDelimiter(lines.join('\n'));
         const headers = parseCSVLine(lines[0], delimiter);
-        console.log('Parsed headers:', headers);
         
         let importedCount = 0;
         let skippedCount = 0;
+        const errors: string[] = [];
         
-        // Parse data rows
+        // Parse data rows (skip header)
         for (let i = 1; i < lines.length; i++) {
           const line = lines[i].trim();
           if (!line) continue;
           
           const values = parseCSVLine(line, delimiter);
-          console.log(`Row ${i} values:`, values);
+          const { data, error } = parseStudentRow(headers, values, i);
           
-          // Skip if not enough values (need at least studentId and fullName)
-          if (values.length < 2) {
+          if (error) {
+            errors.push(error);
             skippedCount++;
             continue;
           }
           
-          const rowData: { [key: string]: string } = {};
-          headers.forEach((header, idx) => {
-            rowData[header] = values[idx] || '';
-          });
-          
-          // Get studentId and name with multiple fallback options
-          const studentId = rowData.studentId || rowData.student_id || rowData['Student ID'] || rowData['Nomor Induk'] || values[0] || '';
-          const fullName = rowData.fullName || rowData.name || rowData['Full Name'] || rowData['Nama Lengkap'] || values[1] || '';
-          
-          // Create student from row data
-          const newStudent: Student = {
-            id: Date.now() + i,
-            studentId: studentId,
-            name: fullName,
-            gender: rowData.gender || values[2] || 'Laki-laki',
-            placeOfBirth: rowData.placeOfBirth || rowData.place_of_birth || values[3] || '',
-            dateOfBirth: rowData.dateOfBirth || rowData.date_of_birth || values[4] || '',
-            fatherName: rowData.fatherName || rowData.father_name || values[5] || '',
-            motherName: rowData.motherName || rowData.mother_name || values[6] || '',
-            class: rowData.class || values[8] || '',
-            level: rowData.level || values[9] || '',
-            period: rowData.registrationPeriod || rowData.period || values[7] || '',
-            program: rowData.program || 'tahfizh-kamil',
-            email: rowData.email || '',
-            phoneNumber: rowData.phoneNumber || rowData.phone_number || '+62',
-            address: rowData.address || ''
-          };
-          
-          // Only add if has at least studentId and name
-          if (newStudent.studentId && newStudent.name) {
+          if (data) {
+            const newStudent: Student = {
+              id: Date.now() + i,
+              studentId: data.studentId,
+              name: data.fullName,
+              gender: data.gender,
+              placeOfBirth: data.placeOfBirth,
+              dateOfBirth: data.dateOfBirth,
+              fatherName: data.fatherName,
+              motherName: data.motherName,
+              class: data.class,
+              level: data.level,
+              period: data.registrationPeriod,
+              program: data.program || 'tahfizh-kamil',
+              email: data.email,
+              phoneNumber: data.phoneNumber || '+62',
+              address: data.address
+            };
+            
             addStudent(newStudent);
             importedCount++;
-          } else {
-            console.log(`Row ${i} skipped - missing required fields:`, { studentId: newStudent.studentId, name: newStudent.name });
-            skippedCount++;
           }
         }
         
         if (importedCount > 0) {
           toast.success(`Berhasil mengimport ${importedCount} santri${skippedCount > 0 ? ` (${skippedCount} baris dilewati)` : ''}`);
         } else {
-          toast.error('Tidak ada data valid. Pastikan file CSV menggunakan koma (,) sebagai pemisah dan kolom studentId serta fullName terisi.');
+          toast.error(`Gagal import. ${errors[0] || 'Pastikan format sesuai template.'}`);
+        }
+        
+        if (errors.length > 0) {
+          console.warn('Import errors:', errors);
         }
       } catch (error) {
         toast.error('Gagal memproses file CSV. Pastikan format sesuai template.');
@@ -230,17 +234,61 @@ const AddNewStudent: React.FC = () => {
     
     reader.readAsText(file);
     
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
+  const renderField = (field: FormFieldConfig) => {
+    if (field.type === 'select' && field.options) {
+      const isObjectOptions = field.options.length > 0 && typeof field.options[0] === 'object';
+      
+      return (
+        <div key={field.key} className={`space-y-2 ${field.fullWidth ? 'col-span-full' : ''}`}>
+          <Label htmlFor={field.key}>{field.label}</Label>
+          <Select
+            value={formData[field.key as keyof FormDataType]} 
+            onValueChange={(value) => handleInputChange(field.key, value)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={`Pilih ${field.label.toLowerCase()}`} />
+            </SelectTrigger>
+            <SelectContent>
+              {isObjectOptions
+                ? (field.options as { value: string; label: string }[]).map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))
+                : (field.options as string[]).map(opt => (
+                    <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                  ))
+              }
+            </SelectContent>
+          </Select>
+        </div>
+      );
+    }
+
+    return (
+      <div key={field.key} className={`space-y-2 ${field.fullWidth ? 'col-span-full' : ''}`}>
+        <Label htmlFor={field.key}>{field.label}</Label>
+        <Input
+          id={field.key}
+          type={field.type}
+          value={formData[field.key as keyof FormDataType]}
+          onChange={(e) => handleInputChange(field.key, e.target.value)}
+          placeholder={field.placeholder}
+          className="w-full"
+          required={field.required}
+        />
+      </div>
+    );
+  };
+
   return (
-    <Card className="shadow-sm border border-gray-100">
-      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
+    <Card className="shadow-sm border border-border">
+      <CardHeader className="bg-gradient-to-r from-primary/10 to-primary/5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <CardTitle className="text-xl font-bold text-gray-800">Add New Student</CardTitle>
+          <CardTitle className="text-xl font-bold text-foreground">Tambah Santri Baru</CardTitle>
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
@@ -273,7 +321,7 @@ const AddNewStudent: React.FC = () => {
               type="file"
               ref={fileInputRef}
               onChange={handleImportCSV}
-              accept=".csv,.xlsx,.xls"
+              accept=".csv"
               className="hidden"
             />
           </div>
@@ -282,222 +330,12 @@ const AddNewStudent: React.FC = () => {
       <CardContent className="p-6">
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Student ID */}
-            <div className="space-y-2">
-              <Label htmlFor="studentId">Nomor Induk</Label>
-              <Input
-                id="studentId"
-                type="text"
-                value={formData.studentId}
-                onChange={(e) => handleInputChange('studentId', e.target.value)}
-                placeholder="Masukkan nomor induk"
-                className="w-full"
-                required
-              />
-            </div>
-
-            {/* Full Name */}
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
-              <Input
-                id="fullName"
-                type="text"
-                value={formData.fullName}
-                onChange={(e) => handleInputChange('fullName', e.target.value)}
-                placeholder="Masukkan nama lengkap"
-                className="w-full"
-                required
-              />
-            </div>
-
-            {/* Jenis Kelamin */}
-            <div className="space-y-2">
-              <Label htmlFor="gender">Jenis Kelamin</Label>
-              <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih jenis kelamin" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Laki-laki">Laki-laki</SelectItem>
-                  <SelectItem value="Perempuan">Perempuan</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Place of Birth */}
-            <div className="space-y-2">
-              <Label htmlFor="placeOfBirth">Place of Birth</Label>
-              <Input
-                id="placeOfBirth"
-                type="text"
-                value={formData.placeOfBirth}
-                onChange={(e) => handleInputChange('placeOfBirth', e.target.value)}
-                placeholder="Masukkan tempat lahir"
-                className="w-full"
-                required
-              />
-            </div>
-
-            {/* Date of Birth */}
-            <div className="space-y-2">
-              <Label htmlFor="dateOfBirth">Date of Birth</Label>
-              <Input
-                id="dateOfBirth"
-                type="date"
-                value={formData.dateOfBirth}
-                onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-                className="w-full"
-                required
-              />
-            </div>
-
-            {/* Father's Name */}
-            <div className="space-y-2">
-              <Label htmlFor="fatherName">Father's Name</Label>
-              <Input
-                id="fatherName"
-                type="text"
-                value={formData.fatherName}
-                onChange={(e) => handleInputChange('fatherName', e.target.value)}
-                placeholder="Masukkan nama ayah"
-                className="w-full"
-                required
-              />
-            </div>
-
-            {/* Mother's Name */}
-            <div className="space-y-2">
-              <Label htmlFor="motherName">Mother's Name</Label>
-              <Input
-                id="motherName"
-                type="text"
-                value={formData.motherName}
-                onChange={(e) => handleInputChange('motherName', e.target.value)}
-                placeholder="Masukkan nama ibu"
-                className="w-full"
-                required
-              />
-            </div>
-
-            {/* Registration Period */}
-            <div className="space-y-2">
-              <Label htmlFor="registrationPeriod">Registration Period</Label>
-              <Input
-                id="registrationPeriod"
-                type="text"
-                value={formData.registrationPeriod}
-                onChange={(e) => handleInputChange('registrationPeriod', e.target.value)}
-                placeholder="e.g., 2025-2026"
-                className="w-full"
-                required
-              />
-            </div>
-
-            {/* Class */}
-            <div className="space-y-2">
-              <Label htmlFor="class">Class</Label>
-              <Select value={formData.class} onValueChange={(value) => handleInputChange('class', value)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih kelas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">1</SelectItem>
-                  <SelectItem value="2">2</SelectItem>
-                  <SelectItem value="3">3</SelectItem>
-                  <SelectItem value="4">4</SelectItem>
-                  <SelectItem value="5">5</SelectItem>
-                  <SelectItem value="6">6</SelectItem>
-                  <SelectItem value="7">7</SelectItem>
-                  <SelectItem value="8">8</SelectItem>
-                  <SelectItem value="9">9</SelectItem>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="11">11</SelectItem>
-                  <SelectItem value="12">12</SelectItem>
-                  <SelectItem value="Umum">Umum</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Jenjang */}
-            <div className="space-y-2">
-              <Label htmlFor="level">Jenjang</Label>
-              <Select value={formData.level} onValueChange={(value) => handleInputChange('level', value)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih jenjang" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="SD">SD</SelectItem>
-                  <SelectItem value="SMP">SMP</SelectItem>
-                  <SelectItem value="SMA">SMA</SelectItem>
-                  <SelectItem value="Mahasiswa">Mahasiswa</SelectItem>
-                  <SelectItem value="Umum">Umum</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Program */}
-            <div className="space-y-2">
-              <Label htmlFor="program">Program</Label>
-              <Select value={formData.program} onValueChange={(value) => handleInputChange('program', value)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih program" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="tahsin">Tahsin</SelectItem>
-                  <SelectItem value="tahfizh-1">Tahfizh 1</SelectItem>
-                  <SelectItem value="tahfizh-2">Tahfizh 2</SelectItem>
-                  <SelectItem value="tahfizh-kamil">Tahfizh Kamil</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Email */}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="Masukkan email"
-                className="w-full"
-                required
-              />
-            </div>
-
-            {/* Phone Number */}
-            <div className="space-y-2">
-              <Label htmlFor="phoneNumber">Phone Number</Label>
-              <Input
-                id="phoneNumber"
-                type="tel"
-                value={formData.phoneNumber}
-                onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                placeholder="Masukkan nomor telepon"
-                className="w-full"
-                required
-              />
-            </div>
+            {FORM_FIELDS.map(field => renderField(field))}
           </div>
 
-          {/* Address - Full width */}
-          <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
-            <Input
-              id="address"
-              type="text"
-              value={formData.address}
-              onChange={(e) => handleInputChange('address', e.target.value)}
-              placeholder="Masukkan alamat lengkap"
-              className="w-full"
-              required
-            />
-          </div>
-
-          {/* Submit Button */}
           <div className="pt-4">
-            <Button type="submit" className="bg-[#5db3d2] hover:bg-[#4a9ab8] text-white px-8 py-2">
-              Add Student
+            <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-2">
+              Tambah Santri
             </Button>
           </div>
         </form>
