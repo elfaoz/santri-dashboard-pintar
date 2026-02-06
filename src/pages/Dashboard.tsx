@@ -19,7 +19,7 @@ const Dashboard: React.FC = () => {
     <div className="p-6 pb-24 md:pb-6 space-y-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-foreground mb-2">{t('dashboard')}</h1>
-        <p className="text-muted-foreground">Ustadz Ahmad Wijaya</p>
+        <p className="text-muted-foreground">Pantau semua laporan dengan mudah</p>
       </div>
       
       {/* Navigation Cards - hidden for guest */}
