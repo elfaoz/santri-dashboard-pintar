@@ -17,6 +17,7 @@ import {
   exportAttendanceToCSV,
   downloadAttendanceCSV
 } from '@/utils/attendanceCSVUtils';
+import HalaqahAttendanceTable from '@/components/HalaqahAttendanceTable';
 
 const STATUS_LABELS: Record<string, string> = {
   hadir: 'Hadir',
@@ -474,6 +475,14 @@ const Attendance: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Halaqah-wide Attendance Table */}
+          <HalaqahAttendanceTable
+            students={students}
+            halaqahs={halaqahs}
+            attendanceRecords={attendanceRecords}
+            selectedDate={selectedDate}
+          />
 
           {/* Monthly Attendance Section */}
           <AttendanceMonthlySection attendanceRecords={attendanceRecords} selectedStudent={selectedStudent} students={students} />
