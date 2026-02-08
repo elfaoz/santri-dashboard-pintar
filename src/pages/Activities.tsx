@@ -6,6 +6,7 @@ import { useHalaqahs } from '@/contexts/HalaqahContext';
 import { useActivity } from '@/contexts/ActivityContext';
 import ActivitiesMonthlySection from '@/components/ActivitiesMonthlySection';
 import ActivitiesSemesterSection from '@/components/ActivitiesSemesterSection';
+import HalaqahActivitiesMonthlyTable from '@/components/HalaqahActivitiesMonthlyTable';
 import LeaderboardBangunTidur from '@/components/LeaderboardBangunTidur';
 import LeaderboardTahajud from '@/components/LeaderboardTahajud';
 import LeaderboardRawatib from '@/components/LeaderboardRawatib';
@@ -270,10 +271,18 @@ const Activities: React.FC = () => {
         </div>
       )}
 
-      {/* Monthly Activities Section */}
+      {/* Monthly Activities Section (per student) */}
       <ActivitiesMonthlySection 
         activityRecords={activityRecords}
         selectedStudent={selectedStudent}
+        students={students}
+        activities={activities}
+      />
+
+      {/* Halaqah Monthly Activities Section */}
+      <HalaqahActivitiesMonthlyTable
+        activityRecords={activityRecords}
+        halaqahs={halaqahs}
         students={students}
         activities={activities}
       />
