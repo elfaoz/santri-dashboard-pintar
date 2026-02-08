@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Pencil, Trash2 } from 'lucide-react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Calendar } from 'lucide-react';
 import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
 import { useFinance } from '@/contexts/FinanceContext';
@@ -17,18 +9,9 @@ import FinanceSemesterSection from '@/components/FinanceSemesterSection';
 import EditExpenseModal from '@/components/EditExpenseModal';
 import LeaderboardFinance from '@/components/LeaderboardFinance';
 import GatekeeperModal from '@/components/GatekeeperModal';
-
-interface StudentFinance {
-  id: number;
-  nama: string;
-  halaqah: string;
-  budgetHarian: number;
-  budgetMingguan: number;
-  pengeluaranMingguIni: number;
-  persentase: number;
-  status: 'hemat' | 'over';
-  statusText: string;
-}
+import HalaqahExpenseWeeklyTable from '@/components/HalaqahExpenseWeeklyTable';
+import HalaqahExpenseDetailTable from '@/components/HalaqahExpenseDetailTable';
+import HalaqahExpenseSummaryTable from '@/components/HalaqahExpenseSummaryTable';
 
 interface ExpenseRecord {
   id: number;
@@ -55,49 +38,6 @@ const Finance: React.FC = () => {
   const [expenseAmount, setExpenseAmount] = useState('');
   const [expenseCategory, setExpenseCategory] = useState('');
   const [expenseNotes, setExpenseNotes] = useState('');
-
-  // Derived state - calculate summary directly from expenseRecords
-  const studentsFinance: StudentFinance[] = React.useMemo(() => {
-    const defaultBudgetHarian = 15000;
-    const defaultBudgetMingguan = defaultBudgetHarian * 7;
-    
-    // Get current week dates
-    const endDate = new Date(selectedDate);
-    const startDate = new Date(endDate);
-    startDate.setDate(endDate.getDate() - 6);
-    
-    const weekDatesForCalc: string[] = [];
-    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-      weekDatesForCalc.push(new Date(d).toISOString().split('T')[0]);
-    }
-    
-    // Group expenses by student name for the current week
-    const expensesByStudent: Record<string, number> = {};
-    expenseRecords.forEach(record => {
-      if (weekDatesForCalc.includes(record.tanggal)) {
-        if (!expensesByStudent[record.nama]) {
-          expensesByStudent[record.nama] = 0;
-        }
-        expensesByStudent[record.nama] += record.jumlah;
-      }
-    });
-    
-    // Create finance summary for each student with expenses
-    return Object.entries(expensesByStudent).map(([nama, pengeluaranMingguIni], index) => {
-      const persentase = Math.round((pengeluaranMingguIni / defaultBudgetMingguan) * 100);
-      return {
-        id: index + 1,
-        nama,
-        halaqah: selectedHalaqah,
-        budgetHarian: defaultBudgetHarian,
-        budgetMingguan: defaultBudgetMingguan,
-        pengeluaranMingguIni,
-        persentase,
-        status: persentase <= 100 ? 'hemat' : 'over' as 'hemat' | 'over',
-        statusText: persentase <= 100 ? 'Hemat' : 'Over Budget'
-      };
-    });
-  }, [expenseRecords, selectedDate, selectedHalaqah]);
 
   const getStudentsByHalaqah = (halaqahId: string) => {
     if (halaqahId === 'all') return students;
@@ -135,39 +75,12 @@ const Finance: React.FC = () => {
     setExpenseNotes('');
   };
 
-  const getExpenseRecordsForWeek = () => {
-    const endDate = new Date(selectedDate);
-    const startDate = new Date(endDate);
-    startDate.setDate(endDate.getDate() - 6);
-    
-    const weekDates = [];
-    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-      weekDates.push(new Date(d).toISOString().split('T')[0]);
-    }
-    
-    const studentExpenses = expenseRecords.filter(record => 
-      (!selectedStudent || record.nama === students.find(s => s.id.toString() === selectedStudent)?.name) &&
-      weekDates.includes(record.tanggal)
-    );
-    
-    return { weekDates, studentExpenses };
-  };
-
-  const { weekDates, studentExpenses } = getExpenseRecordsForWeek();
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
       minimumFractionDigits: 0,
     }).format(amount);
-  };
-
-  const formatCurrencyShort = (amount: number) => {
-    if (amount >= 1000) {
-      return `Rp ${(amount / 1000).toFixed(0)}k`;
-    }
-    return formatCurrency(amount);
   };
 
   const handleEditExpense = (expense: ExpenseRecord) => {
@@ -330,195 +243,30 @@ const Finance: React.FC = () => {
             </div>
           </div>
 
-          {/* Weekly Expense Table - Only appears once */}
-          {studentExpenses.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Riwayat Pengeluaran - 7 Hari Terakhir
-                </h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Santri
-                      </th>
-                      {weekDates.map(date => (
-                        <th key={date} className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                          {new Date(date).toLocaleDateString('id-ID', { 
-                            month: 'short', 
-                            day: 'numeric'
-                          })}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    <tr>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900 bg-gray-50">
-                        {selectedStudent ? students.find(s => s.id.toString() === selectedStudent)?.name : 'All Students'}
-                      </td>
-                      {weekDates.map(date => {
-                        const dayExpenses = studentExpenses.filter(e => e.tanggal === date);
-                        const totalAmount = dayExpenses.reduce((sum, e) => sum + e.jumlah, 0);
-                        return (
-                          <td key={date} className="px-4 py-3 text-center">
-                            {dayExpenses.length > 0 ? (
-                              <div className="flex flex-col items-center">
-                                <span className="text-sm font-medium text-green-600">
-                                  {formatCurrencyShort(totalAmount)}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {dayExpenses.length} item{dayExpenses.length > 1 ? 's' : ''}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-gray-300">-</span>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+          {/* Weekly Expense Table per Halaqah */}
+          <HalaqahExpenseWeeklyTable
+            students={students}
+            halaqahs={registeredHalaqahs}
+            expenseRecords={expenseRecords}
+            selectedDate={selectedDate}
+          />
 
-          {/* Expense History Detail Section - Only appears once */}
-          {expenseRecords.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h3 className="text-lg font-semibold text-gray-800">
-                  Rincian Riwayat Pengeluaran
-                </h3>
-              </div>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tanggal</TableHead>
-                      <TableHead>Nama</TableHead>
-                      <TableHead>Jumlah Pengeluaran</TableHead>
-                      <TableHead>Kategori</TableHead>
-                      <TableHead>Catatan</TableHead>
-                      <TableHead>Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {expenseRecords.map((record) => (
-                      <TableRow key={record.id}>
-                        <TableCell>
-                          {new Date(record.tanggal).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric'
-                          })}
-                        </TableCell>
-                        <TableCell className="font-medium">{record.nama}</TableCell>
-                        <TableCell>{formatCurrency(record.jumlah)}</TableCell>
-                        <TableCell>
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                            {record.kategori}
-                          </span>
-                        </TableCell>
-                        <TableCell>{record.catatan || '-'}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleEditExpense(record)}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                              title="Edit"
-                            >
-                              <Pencil size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteExpense(record.id)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Hapus"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          )}
+          {/* Expense History Detail per Halaqah */}
+          <HalaqahExpenseDetailTable
+            students={students}
+            halaqahs={registeredHalaqahs}
+            expenseRecords={expenseRecords}
+            onEdit={handleEditExpense}
+            onDelete={handleDeleteExpense}
+          />
 
-          {/* Summary Table - Only appears once */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
-            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <h3 className="text-lg font-semibold text-gray-800">Summary</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-100 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Santri
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Budget Harian
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Budget Mingguan
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Pengeluaran Minggu Ini
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Persentase
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {studentsFinance.map((finance) => (
-                    <tr key={finance.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {finance.nama}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {formatCurrency(finance.budgetHarian)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {formatCurrency(finance.budgetMingguan)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {formatCurrency(finance.pengeluaranMingguIni)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        <div className="flex items-center">
-                          <span className={`font-medium ${
-                            finance.persentase > 100 ? 'text-red-600' : 'text-green-600'
-                          }`}>
-                            {finance.persentase}%
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          finance.status === 'hemat' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {finance.statusText}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          {/* Summary Table per Halaqah */}
+          <HalaqahExpenseSummaryTable
+            students={students}
+            halaqahs={registeredHalaqahs}
+            expenseRecords={expenseRecords}
+            selectedDate={selectedDate}
+          />
 
           {/* Monthly Finance Section */}
           <FinanceMonthlySection 
