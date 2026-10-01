@@ -16,8 +16,9 @@ const RegisteredStudentsTable: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleSaveStudent = (updatedStudent: Student) => {
-    updateStudent(updatedStudent);
+  const handleSaveStudent = (updatedStudent: Partial<Student> & { id: number }) => {
+    const existing = students.find(s => s.id === updatedStudent.id);
+    if (existing) updateStudent({ ...existing, ...updatedStudent } as Student);
   };
 
   const handleDeleteStudent = (studentId: number) => {

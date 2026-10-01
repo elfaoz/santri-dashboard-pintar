@@ -84,6 +84,7 @@ const HalaqahManagement: React.FC = () => {
 
     // Add to halaqahs array
     addHalaqah(newHalaqah);
+    syncStudentPrograms(formData.level, selectedStudentsForm);
 
     // Reset form
     setFormData({
@@ -107,6 +108,7 @@ const HalaqahManagement: React.FC = () => {
 
   const handleSaveHalaqah = (updatedHalaqah: any) => {
     updateHalaqah(updatedHalaqah.id, updatedHalaqah);
+    syncStudentPrograms(updatedHalaqah.level, updatedHalaqah.selectedStudents || []);
     setIsEditModalOpen(false);
     setSelectedHalaqah(null);
   };
