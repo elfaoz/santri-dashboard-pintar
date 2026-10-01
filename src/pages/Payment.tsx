@@ -27,14 +27,11 @@ const Payment: React.FC = () => {
     phone: '',
   });
 
-  // Convert prices array to planDetails object
   const planDetails = useMemo(() => {
-    const details: { [key: string]: { name: string; price: number } } = {};
-    prices.forEach(p => {
-      details[p.id] = { name: p.name, price: p.price };
-    });
+    const details: { [key: string]: PaidPlan } = {};
+    PAID_PLANS.forEach(p => { details[p.id] = p; });
     return details;
-  }, [prices]);
+  }, []);
 
   // Get active vouchers (within date range)
   const activeVouchers = useMemo(() => {
@@ -63,13 +60,7 @@ const Payment: React.FC = () => {
 
 
   const calculateSubtotal = () => {
-    if (selectedPlans.includes('full-package')) {
-      return 249000 * parseInt(selectedDuration);
-    }
-    const subtotal = selectedPlans.reduce((total, planId) => {
-      return total + (planDetails[planId]?.price || 0);
-    }, 0);
-    return subtotal * parseInt(selectedDuration);
+    return selectedPlans.reduce((total, planId) => total + (planDetails[planId]?.price || 0), 0);
   };
 
   const subtotalPrice = calculateSubtotal();
@@ -208,7 +199,7 @@ const Payment: React.FC = () => {
                 <div>
                   <p className="font-medium">{plan.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    Rp {plan.price.toLocaleString('id-ID')}/bulan
+                    Rp {plan.price.toLocaleString('id-ID')} / {plan.period} · berlaku {plan.validityLabel}
                   </p>
                 </div>
                 {selectedPlans.includes(planId) ? (
@@ -295,39 +286,23 @@ const Payment: React.FC = () => {
               </p>
             ) : (
               <>
-                {/* Duration Selection */}
-                <div className="space-y-3 pb-4 border-b">
-                  <Label className="text-sm font-medium">Pilih Durasi Berlangganan</Label>
-                  <RadioGroup value={selectedDuration} onValueChange={setSelectedDuration} className="flex gap-4">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="12" id="duration-12" />
-                      <Label htmlFor="duration-12" className="cursor-pointer">12 Bulan</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="24" id="duration-24" />
-                      <Label htmlFor="duration-24" className="cursor-pointer">24 Bulan</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="36" id="duration-36" />
-                      <Label htmlFor="duration-36" className="cursor-pointer">36 Bulan</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
                 <div className="space-y-2">
                   {selectedPlans.map((planId) => (
-                    <div key={planId} className="flex justify-between items-center py-2">
-                      <span className="font-medium">{planDetails[planId]?.name}</span>
-                      <span className="text-muted-foreground">
-                        Rp {planDetails[planId]?.price.toLocaleString('id-ID')} × {selectedDuration} bln
-                      </span>
+                    <div key={planId} className="py-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">{planDetails[planId]?.name}</span>
+                        <span className="text-muted-foreground">
+                          Rp {planDetails[planId]?.price.toLocaleString('id-ID')} / {planDetails[planId]?.period}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Masa berlaku invoice: {planDetails[planId]?.validityLabel}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Subtotal */}
                 <div className="flex justify-between items-center border-t pt-4">
-                  <span className="text-muted-foreground">Subtotal ({selectedDuration} Bulan)</span>
+                  <span className="text-muted-foreground">Subtotal</span>
                   <span className={appliedVoucher ? 'line-through text-muted-foreground' : 'font-semibold'}>
                     Rp {subtotalPrice.toLocaleString('id-ID')}
                   </span>
