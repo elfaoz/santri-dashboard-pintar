@@ -5,23 +5,9 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-interface Student {
-  id: number;
-  studentId?: string;
-  name: string;
-  gender?: string;
-  placeOfBirth?: string;
-  dateOfBirth?: string;
-  fatherName?: string;
-  motherName?: string;
-  registrationPeriod?: string;
-  class: string;
-  level: string;
-  email?: string;
-  phoneNumber?: string;
-  address?: string;
-  period: string;
-}
+import { Student as BaseStudent } from '@/contexts/StudentContext';
+
+type Student = Partial<BaseStudent> & { id: number; name: string; class: string; level: string; period: string; registrationPeriod?: string };
 
 interface EditStudentModalProps {
   open: boolean;
@@ -81,7 +67,8 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    const { registrationPeriod, ...rest } = formData;
+    onSave({ ...rest, period: registrationPeriod || formData.period });
     onOpenChange(false);
   };
 
@@ -239,6 +226,22 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({
                   <SelectItem value="SMA">SMA</SelectItem>
                   <SelectItem value="Mahasiswa">Mahasiswa</SelectItem>
                   <SelectItem value="Umum">Umum</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Program */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-program">Program</Label>
+              <Select value={formData.program || 'tahfizh-kamil'} onValueChange={(value) => handleInputChange('program', value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Pilih program" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tahsin">Tahsin</SelectItem>
+                  <SelectItem value="tahfizh-1">Tahfizh 1</SelectItem>
+                  <SelectItem value="tahfizh-2">Tahfizh 2</SelectItem>
+                  <SelectItem value="tahfizh-kamil">Tahfizh Kamil</SelectItem>
                 </SelectContent>
               </Select>
             </div>

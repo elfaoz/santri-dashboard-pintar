@@ -13,8 +13,25 @@ import { useStudents } from '@/contexts/StudentContext';
 import { useHalaqahs } from '@/contexts/HalaqahContext';
 
 const HalaqahManagement: React.FC = () => {
-  const { students } = useStudents();
+  const { students, updateStudent } = useStudents();
   const { halaqahs, addHalaqah, updateHalaqah, deleteHalaqah } = useHalaqahs();
+
+  // Sinkronkan program santri dengan level halaqah
+  const levelToProgram = (level: string) => {
+    const l = level.toLowerCase();
+    if (l.startsWith('tahsin')) return 'tahsin';
+    if (l.startsWith('tahfizh 1')) return 'tahfizh-1';
+    if (l.startsWith('tahfizh 2')) return 'tahfizh-2';
+    if (l.startsWith('tahfizh kamil')) return 'tahfizh-kamil';
+    return undefined;
+  };
+  const syncStudentPrograms = (level: string, ids: string[]) => {
+    const program = levelToProgram(level || '');
+    if (!program) return;
+    students.forEach(s => {
+      if (ids.includes(s.id.toString()) && s.program !== program) updateStudent({ ...s, program });
+    });
+  };
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedHalaqah, setSelectedHalaqah] = useState<any>(null);
   
@@ -84,6 +101,7 @@ const HalaqahManagement: React.FC = () => {
 
     // Add to halaqahs array
     addHalaqah(newHalaqah);
+    syncStudentPrograms(formData.level, selectedStudentsForm);
 
     // Reset form
     setFormData({
@@ -107,6 +125,7 @@ const HalaqahManagement: React.FC = () => {
 
   const handleSaveHalaqah = (updatedHalaqah: any) => {
     updateHalaqah(updatedHalaqah.id, updatedHalaqah);
+    syncStudentPrograms(updatedHalaqah.level, updatedHalaqah.selectedStudents || []);
     setIsEditModalOpen(false);
     setSelectedHalaqah(null);
   };

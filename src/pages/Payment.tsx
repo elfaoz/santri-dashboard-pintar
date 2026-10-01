@@ -9,6 +9,7 @@ import { CreditCard, Building2, MessageCircle, Copy, Check, ArrowLeft, Plus, X, 
 import { toast } from '@/hooks/use-toast';
 import { useProfile } from '@/contexts/ProfileContext';
 import { useSettings } from '@/contexts/SettingsContext';
+import { PAID_PLANS, PaidPlan } from '@/lib/plans';
 
 const Payment: React.FC = () => {
   const location = useLocation();
@@ -27,14 +28,11 @@ const Payment: React.FC = () => {
     phone: '',
   });
 
-  // Convert prices array to planDetails object
   const planDetails = useMemo(() => {
-    const details: { [key: string]: { name: string; price: number } } = {};
-    prices.forEach(p => {
-      details[p.id] = { name: p.name, price: p.price };
-    });
+    const details: { [key: string]: PaidPlan } = {};
+    PAID_PLANS.forEach(p => { details[p.id] = p; });
     return details;
-  }, [prices]);
+  }, []);
 
   // Get active vouchers (within date range)
   const activeVouchers = useMemo(() => {
@@ -63,13 +61,7 @@ const Payment: React.FC = () => {
 
 
   const calculateSubtotal = () => {
-    if (selectedPlans.includes('full-package')) {
-      return 249000 * parseInt(selectedDuration);
-    }
-    const subtotal = selectedPlans.reduce((total, planId) => {
-      return total + (planDetails[planId]?.price || 0);
-    }, 0);
-    return subtotal * parseInt(selectedDuration);
+    return selectedPlans.reduce((total, planId) => total + (planDetails[planId]?.price || 0), 0);
   };
 
   const subtotalPrice = calculateSubtotal();
@@ -105,26 +97,7 @@ const Payment: React.FC = () => {
   };
 
   const handleAddPlan = (planId: string) => {
-    // If trying to add full package, replace everything with full package
-    if (planId === 'full-package') {
-      setSelectedPlans(['full-package']);
-      return;
-    }
-    
-    // If full package is already selected, show toast and don't add
-    if (selectedPlans.includes('full-package')) {
-      toast({
-        title: 'Full Package Sudah Dipilih',
-        description: 'Full Package tidak bisa dikombinasikan dengan paket lain',
-        variant: 'destructive',
-      });
-      return;
-    }
-    
-    // Otherwise add the package if not already selected
-    if (!selectedPlans.includes(planId)) {
-      setSelectedPlans([...selectedPlans, planId]);
-    }
+    setSelectedPlans([planId]);
   };
 
   const handleRemovePlan = (planId: string) => {
@@ -164,7 +137,8 @@ const Payment: React.FC = () => {
     const voucherInfo = appliedVoucher ? `%0AVoucher: ${appliedVoucher.code.toUpperCase()} (${appliedVoucher.discount}% off)` : '';
     const bankName = primaryBank?.bankName || 'Bank';
     const accountHolder = primaryBank?.accountHolder || '';
-    const message = `Assalamualaikum, saya ingin konfirmasi pembayaran Aplikasi KDM:%0A%0ANama: ${formData.name}%0AEmail: ${formData.email}%0ANo. HP: ${formData.phone}%0APaket: ${selectedPackages}%0ADurasi: ${selectedDuration} bulan${voucherInfo}%0ATotal: Rp ${totalPrice.toLocaleString('id-ID')}%0A%0ASaya sudah melakukan transfer ke rekening ${bankName} a.n ${accountHolder}.`;
+    const validity = selectedPlans.map(id => planDetails[id]?.validityLabel).filter(Boolean).join(', ');
+    const message = `Assalamualaikum, saya ingin konfirmasi pembayaran Aplikasi KDM:%0A%0ANama: ${formData.name}%0AEmail: ${formData.email}%0ANo. HP: ${formData.phone}%0APaket: ${selectedPackages}%0AMasa Berlaku Invoice: ${validity}${voucherInfo}%0ATotal: Rp ${totalPrice.toLocaleString('id-ID')}%0A%0ASaya sudah melakukan transfer ke rekening ${bankName} a.n ${accountHolder}.`;
     
     window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
@@ -208,7 +182,7 @@ const Payment: React.FC = () => {
                 <div>
                   <p className="font-medium">{plan.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    Rp {plan.price.toLocaleString('id-ID')}/bulan
+                    Rp {plan.price.toLocaleString('id-ID')} / {plan.period} · berlaku {plan.validityLabel}
                   </p>
                 </div>
                 {selectedPlans.includes(planId) ? (
@@ -295,39 +269,23 @@ const Payment: React.FC = () => {
               </p>
             ) : (
               <>
-                {/* Duration Selection */}
-                <div className="space-y-3 pb-4 border-b">
-                  <Label className="text-sm font-medium">Pilih Durasi Berlangganan</Label>
-                  <RadioGroup value={selectedDuration} onValueChange={setSelectedDuration} className="flex gap-4">
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="12" id="duration-12" />
-                      <Label htmlFor="duration-12" className="cursor-pointer">12 Bulan</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="24" id="duration-24" />
-                      <Label htmlFor="duration-24" className="cursor-pointer">24 Bulan</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="36" id="duration-36" />
-                      <Label htmlFor="duration-36" className="cursor-pointer">36 Bulan</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
                 <div className="space-y-2">
                   {selectedPlans.map((planId) => (
-                    <div key={planId} className="flex justify-between items-center py-2">
-                      <span className="font-medium">{planDetails[planId]?.name}</span>
-                      <span className="text-muted-foreground">
-                        Rp {planDetails[planId]?.price.toLocaleString('id-ID')} × {selectedDuration} bln
-                      </span>
+                    <div key={planId} className="py-2">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium">{planDetails[planId]?.name}</span>
+                        <span className="text-muted-foreground">
+                          Rp {planDetails[planId]?.price.toLocaleString('id-ID')} / {planDetails[planId]?.period}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Masa berlaku invoice: {planDetails[planId]?.validityLabel}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Subtotal */}
                 <div className="flex justify-between items-center border-t pt-4">
-                  <span className="text-muted-foreground">Subtotal ({selectedDuration} Bulan)</span>
+                  <span className="text-muted-foreground">Subtotal</span>
                   <span className={appliedVoucher ? 'line-through text-muted-foreground' : 'font-semibold'}>
                     Rp {subtotalPrice.toLocaleString('id-ID')}
                   </span>

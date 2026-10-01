@@ -81,7 +81,7 @@ const StudentProfileTab: React.FC = () => {
 
   const handleEditProfile = () => {
     if (selectedStudent) {
-      setEditFormData({ ...selectedStudent, program: selectedProgram });
+      setEditFormData({ ...selectedStudent, program: selectedStudent.program || 'tahfizh-kamil' });
       setIsEditModalOpen(true);
     }
   };
